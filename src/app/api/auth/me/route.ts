@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
     }
 
-    // Find session
     const session = await db.session.findUnique({
       where: { token },
       include: { user: true },
@@ -20,15 +19,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: st('sessionExpired') }, { status: 401 });
     }
 
-    return NextResponse.json({
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        fullName: session.user.fullName,
-        role: session.user.role,
-        accessPages: session.user.accessPages,
-      },
-    });
+    const userData: Record<string, unknown> = {
+      id: session.user.id,
+      email: session.user.email,
+      fullName: session.user.fullName,
+      role: session.user.role,
+      accessPages: session.user.accessPages,
+    };
+
+    // Include centre subscription info for ADMIN users
+    if (session.user.role !== 'SUPER_ADMIN' && session.user.centreId) {
+      const centre = await db.centre.findUnique({
+        where: { id: session.user.centreId },
+        select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          contactWhatsapp: true,
+          subscriptionStatus: true,
+          subscriptionPack: true,
+          subscriptionStart: true,
+          subscriptionEnd: true,
+          isActive: true,
+        },
+      });
+      userData.centre = centre;
+    }
+
+    return NextResponse.json({ user: userData });
   } catch (error) {
     console.error('Auth check error:', error);
     return NextResponse.json({ error: st('sessionError') }, { status: 500 });

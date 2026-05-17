@@ -14,28 +14,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: st('emailPasswordRequired') }, { status: 400 });
     }
 
-    // Find user
     const user = await db.user.findUnique({ where: { email } });
 
     if (!user) {
       return NextResponse.json({ error: st('invalidCredentials') }, { status: 401 });
     }
 
-    // Check password with bcrypt (supports both hashed and legacy plaintext)
     let passwordValid = false;
     if (user.password.startsWith('$2')) {
-      // Already hashed with bcrypt
       passwordValid = await bcrypt.compare(password, user.password);
     } else {
-      // Legacy plaintext password — validate and upgrade to hash
       passwordValid = user.password === password;
       if (passwordValid) {
-        // Auto-upgrade: re-hash the password in-place
         const hash = await bcrypt.hash(password, SALT_ROUNDS);
-        await db.user.update({
-          where: { id: user.id },
-          data: { password: hash },
-        });
+        await db.user.update({ where: { id: user.id }, data: { password: hash } });
       }
     }
 
@@ -47,27 +39,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: st('accountDisabled') }, { status: 403 });
     }
 
-    // Create session
     const token = randomUUID();
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await db.session.create({
-      data: {
-        token,
-        userId: user.id,
-        expiresAt,
-      },
+      data: { token, userId: user.id, expiresAt },
     });
 
-    const response = NextResponse.json({
+    const responseData: Record<string, unknown> = {
       user: {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        accessPages: user.accessPages,
       },
       token,
-    });
+    };
+
+    // Include centre subscription info for ADMIN users
+    if (user.role !== 'SUPER_ADMIN' && user.centreId) {
+      const centre = await db.centre.findUnique({
+        where: { id: user.centreId },
+        select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          contactWhatsapp: true,
+          subscriptionStatus: true,
+          subscriptionPack: true,
+          subscriptionStart: true,
+          subscriptionEnd: true,
+          isActive: true,
+        },
+      });
+      responseData.centre = centre;
+    }
+
+    const response = NextResponse.json(responseData);
 
     response.cookies.set('auth_token', token, {
       httpOnly: true,

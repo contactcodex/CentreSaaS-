@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard,
   TrendingUp,
@@ -25,6 +26,11 @@ import {
   MapPin,
   Globe,
   ShieldCheck,
+  LogOut,
+  AlertTriangle,
+  Clock,
+  Crown,
+  MessageCircle,
 } from 'lucide-react';
 import { FinancialReportsView } from '@/components/views/financial-reports-view';
 import { DashboardView } from '@/components/views/dashboard-view';
@@ -37,8 +43,20 @@ import { ServicesView } from '@/components/views/services-view';
 import { ClassroomsView } from '@/components/views/classrooms-view';
 import { SettingsView } from '@/components/views/settings-view';
 import UsersView from '@/components/views/users-view';
+import { SuperAdminView } from '@/components/views/super-admin-view';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { LogOut } from 'lucide-react';
+
+interface CentreInfo {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  contactWhatsapp: string | null;
+  subscriptionStatus: string;
+  subscriptionPack: string;
+  subscriptionStart: string | null;
+  subscriptionEnd: string | null;
+  isActive: boolean;
+}
 
 const navIcons: Record<ViewType, React.ReactNode> = {
   dashboard: <LayoutDashboard className="h-5 w-5" />,
@@ -52,6 +70,7 @@ const navIcons: Record<ViewType, React.ReactNode> = {
   classrooms: <DoorOpen className="h-5 w-5" />,
   'user-management': <ShieldCheck className="h-5 w-5" />,
   settings: <Settings className="h-5 w-5" />,
+  'super-admin': <LayoutDashboard className="h-5 w-5" />,
 };
 
 const navKeys: ViewType[] = [
@@ -72,6 +91,7 @@ function getNavLabel(t: ReturnType<typeof useT>, id: ViewType): string {
     classrooms: t.nav.classrooms,
     'user-management': t.nav.userManagement,
     settings: t.nav.settings,
+    'super-admin': t.subscription.superAdminTitle,
   };
   return map[id] || id;
 }
@@ -79,23 +99,111 @@ function getNavLabel(t: ReturnType<typeof useT>, id: ViewType): string {
 function getNavDesc(t: ReturnType<typeof useT>, id: ViewType): string {
   if (id === 'dashboard') return t.nav.dashboardDesc;
   if (id === 'financial-reports') return t.nav.financialReportsDesc;
+  if (id === 'super-admin') return t.nav.manageFinancialReports;
   return `${t.nav.manageDashboard.replace(t.nav.dashboard, '')} ${getNavLabel(t, id)}`;
 }
 
-function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys }: { currentView: ViewType; onNavigate: (v: ViewType) => void; onMobileClose?: () => void; navKeys?: ViewType[] }) {
+function getDaysRemaining(endDate: string | null): number | null {
+  if (!endDate) return null;
+  const end = new Date(endDate);
+  const now = new Date();
+  const diff = end.getTime() - now.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function SubscriptionBanner({ centre }: { centre: CentreInfo }) {
+  const t = useT();
+  const isAr = useAppStore(s => s.lang) === 'ar';
+  const { subscriptionStatus, subscriptionEnd, contactWhatsapp } = centre;
+
+  // No banner needed for unlimited or active with plenty of time
+  if (subscriptionStatus === 'unlimited') return null;
+  if (subscriptionStatus === 'none') return null;
+  if (subscriptionStatus === 'active') {
+    const days = getDaysRemaining(subscriptionEnd);
+    if (days === null || days > 7) return null;
+  }
+
+  const days = getDaysRemaining(subscriptionEnd);
+  const isExpired = subscriptionStatus === 'expired' || (days !== null && days < 0);
+  const isTrial = subscriptionStatus === 'trial_24h' || subscriptionStatus === 'trial_7d';
+  const isExpiring = subscriptionStatus === 'active' && days !== null && days <= 7 && days >= 0;
+
+  const whatsappUrl = contactWhatsapp
+    ? `https://wa.me/${contactWhatsapp.replace(/[^0-9]/g, '')}`
+    : null;
+
+  return (
+    <div
+      className={cn(
+        'w-full px-4 py-3 flex items-center justify-between gap-3 flex-wrap',
+        isExpired && 'bg-red-50 border-b border-red-200 text-red-800',
+        isTrial && !isExpired && 'bg-amber-50 border-b border-amber-200 text-amber-800',
+        isExpiring && 'bg-yellow-50 border-b border-yellow-200 text-yellow-800',
+      )}
+    >
+      <div className="flex items-center gap-2 text-sm font-medium">
+        {isExpired ? (
+          <AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
+        ) : isTrial ? (
+          <Clock className="h-4 w-4 shrink-0 text-amber-600" />
+        ) : (
+          <Clock className="h-4 w-4 shrink-0 text-yellow-600" />
+        )}
+        {isExpired && <span>{t.subscription.expiredTitle} — {t.subscription.expiredDesc}</span>}
+        {isTrial && !isExpired && days !== null && (
+          <span>{t.subscription.trialTitle} — {days} {isAr ? t.subscription.trialDaysLeft : t.subscription.trialDaysLeft}</span>
+        )}
+        {isExpiring && days !== null && (
+          <span>{t.subscription.expiringTitle} — {days} {isAr ? t.subscription.expiringDaysLeft : t.subscription.expiringDaysLeft}</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        {subscriptionStatus === 'unlimited' && (
+          <Badge className="bg-violet-100 text-violet-700 border-violet-200 text-xs">
+            <Crown className="h-3 w-3 me-1" /> {t.subscription.unlimitedBadge}
+          </Badge>
+        )}
+        {whatsappUrl && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-medium transition-colors"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            {t.subscription.whatsappOrder}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys, centreName, logoUrl }: {
+  currentView: ViewType;
+  onNavigate: (v: ViewType) => void;
+  onMobileClose?: () => void;
+  navKeys?: ViewType[];
+  centreName?: string;
+  logoUrl?: string | null;
+}) {
   const t = useT();
   const items = keys || navKeys;
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      {/* Logo */}
       <div className="p-5 pb-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center overflow-hidden shadow-lg">
-            <img src="/logo.png" alt="C" className="h-7 w-7 object-contain" />
+            {logoUrl ? (
+              <img src={logoUrl} alt="" className="h-7 w-7 object-contain" />
+            ) : (
+              <img src="/logo.png" alt="C" className="h-7 w-7 object-contain" />
+            )}
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">Codex Centre</h1>
+            <h1 className="font-bold text-lg leading-tight">{centreName || 'Codex Centre'}</h1>
             <p className="text-xs text-sidebar-foreground/70">{t.sidebar.systemName}</p>
           </div>
         </div>
@@ -103,7 +211,6 @@ function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys 
 
       <Separator className="bg-sidebar-border" />
 
-      {/* Navigation */}
       <ScrollArea className="flex-1 py-3 px-2">
         <nav className="space-y-1">
           {items.map((id) => (
@@ -130,7 +237,6 @@ function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys 
 
       <Separator className="bg-sidebar-border" />
 
-      {/* Center Info */}
       <div className="p-4 space-y-2 text-xs text-sidebar-foreground/70">
         <div className="flex items-center gap-2">
           <Phone className="h-3.5 w-3.5 shrink-0" />
@@ -147,14 +253,8 @@ function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys 
 
 function LanguageToggle() {
   const { lang, toggleLang } = useAppStore();
-
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={toggleLang}
-      className="gap-1.5 h-8 px-3 text-xs font-medium"
-    >
+    <Button variant="outline" size="sm" onClick={toggleLang} className="gap-1.5 h-8 px-3 text-xs font-medium">
       <Globe className="h-3.5 w-3.5" />
       {lang === 'ar' ? 'عربي' : 'Français'}
     </Button>
@@ -167,16 +267,17 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userName, setUserName] = useState('');
   const [accessPages, setAccessPages] = useState<string>('');
+  const [centre, setCentre] = useState<CentreInfo | null>(null);
   const t = useT();
 
+  const isSuperAdmin = userRole === 'SUPER_ADMIN';
   const isAdmin = userRole === 'ADMIN';
 
   // Filter nav items by role and accessPages
   const hiddenForSecretary = new Set<ViewType>(['user-management', 'financial-reports']);
   const filteredNavKeys = navKeys.filter(k => {
-    if (isAdmin) return true; // Admin sees everything
-    if (hiddenForSecretary.has(k)) return false; // Secretary can never see these
-    // Check accessPages for custom permissions
+    if (isAdmin) return true;
+    if (hiddenForSecretary.has(k)) return false;
     if (accessPages) {
       const pages = accessPages.split(',').map(p => p.trim());
       if (pages.length > 0 && !pages.includes(k)) return false;
@@ -184,7 +285,6 @@ export default function Home() {
     return true;
   });
 
-  // Check auth on mount
   useEffect(() => {
     fetch('/api/auth/me')
       .then(res => {
@@ -197,11 +297,26 @@ export default function Home() {
         const role = data.user?.role || '';
         setStoreUserRole(role);
         setAccessPages(data.user?.accessPages || '');
+        if (data.centre) setCentre(data.centre);
       })
       .catch(() => {
         setIsAuthenticated(false);
       });
   }, []);
+
+  // Load centre info for sidebar logo
+  useEffect(() => {
+    if (isAuthenticated && !isSuperAdmin) {
+      fetch('/api/centre-info')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) {
+            setCentre(prev => prev ? { ...prev, ...data } : null as unknown as CentreInfo);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isAuthenticated, isSuperAdmin]);
 
   if (isAuthenticated === null) {
     return (
@@ -213,6 +328,17 @@ export default function Home() {
 
   if (!isAuthenticated) {
     return <LoginPage />;
+  }
+
+  // Super Admin sees its own panel
+  if (isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-bg-main">
+        <ErrorBoundary>
+          <SuperAdminView />
+        </ErrorBoundary>
+      </div>
+    );
   }
 
   const handleLogout = async () => {
@@ -237,18 +363,26 @@ export default function Home() {
     }
   };
 
-  // RTL/LTR direction based on language
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
   return (
     <div className="flex min-h-screen bg-bg-main" dir={dir}>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 shrink-0 shadow-xl lg:sticky lg:top-0 lg:h-screen lg:self-start">
-        <SidebarContent currentView={currentView} onNavigate={setCurrentView} navKeys={filteredNavKeys} />
+        <SidebarContent
+          currentView={currentView}
+          onNavigate={setCurrentView}
+          navKeys={filteredNavKeys}
+          centreName={centre?.name}
+          logoUrl={centre?.logoUrl}
+        />
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
+        {/* Subscription Banner */}
+        {centre && <SubscriptionBanner centre={centre} />}
+
         {/* Top Bar (Mobile) */}
         <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-white border-b sticky top-0 z-40">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -264,14 +398,20 @@ export default function Home() {
                 onNavigate={setCurrentView}
                 onMobileClose={() => setMobileOpen(false)}
                 navKeys={filteredNavKeys}
+                centreName={centre?.name}
+                logoUrl={centre?.logoUrl}
               />
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="C" className="h-6 w-6 object-contain" />
+              {centre?.logoUrl ? (
+                <img src={centre.logoUrl} alt="" className="h-6 w-6 object-contain" />
+              ) : (
+                <img src="/logo.png" alt="C" className="h-6 w-6 object-contain" />
+              )}
             </div>
-            <h1 className="font-bold text-primary">Codex Centre</h1>
+            <h1 className="font-bold text-primary">{centre?.name || 'Codex Centre'}</h1>
           </div>
         </header>
 

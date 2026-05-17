@@ -14,6 +14,25 @@ model Setting {
   value String
 }
 
+model Centre {
+  id                String    @id @default(cuid())
+  name              String
+   email             String    @unique
+   password          String
+   contactPhone      String?
+  contactWhatsapp   String?
+  logoUrl           String?
+  subscriptionStatus String    @default("none") // none, trial_24h, trial_7d, active, expired, unlimited
+  subscriptionPack   String    @default("")     // "1month", "1year", "unlimited"
+  subscriptionStart  DateTime?
+  subscriptionEnd    DateTime?
+  isActive           Boolean   @default(true)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  users             User[]
+}
+
 model Service {
   id          String   @id @default(cuid())
   name        String
@@ -184,9 +203,11 @@ model User {
   email       String    @unique
   password    String
   fullName    String
-  role        String    @default("ADMIN")
+  role        String    @default("ADMIN") // SUPER_ADMIN or ADMIN
   status      String    @default("active")
   accessPages String    @default("") // comma-separated: dashboard,students,teachers,...
+  centreId    String?
+  centre      Centre?   @relation(fields: [centreId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   sessions    Session[]

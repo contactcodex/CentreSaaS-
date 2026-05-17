@@ -337,3 +337,88 @@ Stage Summary:
 - All view files now use logical CSS properties that flip correctly between Arabic (RTL) and French (LTR)
 - All `dir="ltr"` contexts (email, phone, date, fee, password inputs; promo values; print templates) correctly preserved
 - Lint check: passed
+
+---
+Task ID: 2
+Agent: Super Admin API Agent
+Task: Create super-admin API routes for SaaS centre management
+
+Work Log:
+- Read worklog and analyzed existing project structure (Prisma schema, auth system, API patterns)
+- Created auth helper `src/lib/super-admin-auth.ts`:
+  - `verifySuperAdmin()` reads `auth_token` cookie, validates session expiry, checks `role = 'SUPER_ADMIN'`
+  - Returns discriminated union: `{ success: true, user }` or `{ success: false, response }` (401/403/500)
+  - Used by all super-admin routes as first check
+- Created `src/app/api/super-admin/centres/route.ts`:
+  - GET: Lists all centres with `_count.users` and `orderBy: { createdAt: 'desc' }`
+  - POST: Creates centre + admin user. Hashes password (bcryptjs, 12 rounds). Sets `subscriptionStatus: 'trial_24h'`, start=now, end=now+24h. Checks for duplicate email in both Centre and User tables.
+- Created `src/app/api/super-admin/centres/[id]/route.ts`:
+  - GET: Single centre with users list and user count
+  - PUT: Updates centre fields + subscription logic. Auto-calculates end date for packs: 1month→+30d, 1year→+365d, unlimited→null
+  - DELETE: Deletes centre (cascade handles related records)
+- Created `src/app/api/super-admin/centres/[id]/reset-password/route.ts`:
+  - POST: Validates password (min 6 chars), hashes, updates both User and Centre password records, invalidates all sessions for the admin user
+- Created `src/app/api/super-admin/stats/route.ts`:
+  - GET: Dashboard stats: totalCentres, activeCentres, expiredCentres, trialCentres, inactiveCentres, noSubscriptionCentres, unlimitedCentres, totalUsers, byStatus (grouped count)
+- All routes use Next.js 16 async params pattern: `{ params }: { params: Promise<{ id: string }> }`
+- Lint passed with zero errors
+
+Stage Summary:
+- 5 new files created, 1 shared auth helper
+- All routes protected by SUPER_ADMIN auth check via shared `verifySuperAdmin()` helper
+- Subscription pack logic handles 1month/1year/unlimited auto-calculation on PUT
+- Password reset invalidates sessions to force re-login
+- Lint: passed | Dev server: running
+
+---
+Task ID: 2-b
+Agent: Super Admin View Agent
+Task: Create Super Admin panel view for managing centres (SaaS clients)
+
+Work Log:
+- Read worklog for project context and previous agents' work (Task ID: 2 for API routes)
+- Verified existing super-admin API routes exist: GET/POST centres, GET stats, PUT/DELETE centres/[id], POST reset-password
+- Added `superAdmin` section with 52 translation keys to BOTH `ar` and `fr` objects in translations.ts
+  - Arabic keys: title, subtitle, centres, addCentre, editCentre, centreName, centreEmail, centrePassword, contactPhone, contactWhatsapp, subscription*, trial*, pack*, activate*, deactivate, reactivate, deleteCentre, deleteConfirm, totalCentres, activeCentres, expiredCentres, trialCentres, createdSuccess, updatedSuccess, deletedSuccess, passwordResetSuccess, notes, selectPack, daysRemaining, expiresToday, alreadyExpired, noExpiry, saveChanges, viewDetails
+  - French keys: matching French translations for all above
+- Created `src/components/views/super-admin-view.tsx` (650+ lines) with:
+  1. **Stats Cards** (4 cards): Total centres (sky), Active (green), Expired (red), Trial (amber)
+  2. **Search Bar** with real-time filtering by name or email
+  3. **Add Centre Button** → opens Create Dialog
+  4. **Centres Table** with responsive columns:
+     - Centre name + icon (Building2)
+     - Email (hidden on mobile)
+     - Subscription status badge (color-coded: amber/blue/green/red/violet/gray)
+     - Pack type label
+     - Expiry date with days remaining calculation
+     - Users count with icon
+     - Actions: View/Edit, Reset Password, Activate/Deactivate, Delete
+  5. **Create Centre Dialog**: name, email, password (required), phone, whatsapp, notes
+  6. **Edit Centre Dialog**: all fields + subscription management section:
+     - Current status badge display
+     - Activate 7-day trial button (when status=none)
+     - Pack selector (radio cards: 1month, 1year, unlimited)
+     - Activate Pack button with auto-calculated dates
+  7. **Reset Password Dialog**: input + submit for selected centre
+  8. **Delete Confirmation Dialog**: AlertDialog with destructive action
+  9. **StatusBadge component**: 6 subscription statuses with icons and colors
+  10. **DaysRemainingDisplay component**: calculates days left, shows "expires today", "expired", or "no expiry"
+- All components use logical CSS properties (text-start, ms/me, ps/pe, end-3, start-*)
+- RTL/LTR: uses `dir="rtl"` on root, `dir="ltr"` on email/phone inputs
+- Responsive: table columns hidden on mobile (md:/lg:/sm: breakpoints)
+- Loading states: Skeleton components for table and cards
+- Empty states: Building2 icon + message when no centres or no search results
+- Toast notifications via sonner for all CRUD operations
+- Uses `useT()` hook with `t.superAdmin.*` keys for full i18n support
+- API calls use relative paths: `/api/super-admin/centres`, `/api/super-admin/stats`
+- Ran `bun run lint` — passed with zero errors
+
+Stage Summary:
+- 2 files modified/created
+- translations.ts: +104 lines (52 Arabic + 52 French superAdmin keys)
+- super-admin-view.tsx: NEW file, ~650 lines, comprehensive Super Admin panel
+- Features: CRUD centres, subscription management (trial/packs), password reset, activate/deactivate, stats dashboard
+- All text fully internationalized (Arabic + French)
+- RTL/LTR layout support with logical CSS properties
+- Responsive design for mobile/tablet/desktop
+- Lint: passed

@@ -11,7 +11,8 @@ export type ViewType =
   | 'schedule'
   | 'services'
   | 'classrooms'
-  | 'settings';
+  | 'settings'
+  | 'super-admin';
 
 export type Lang = 'ar' | 'fr';
 
