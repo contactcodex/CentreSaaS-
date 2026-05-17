@@ -1266,12 +1266,12 @@ export function PaymentsView() {
           {/* Student search row */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
             <div className="relative flex-1 w-full">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t.payments.searchPaymentPlaceholder}
                 value={paymentSearch}
                 onChange={(e) => setPaymentSearch(e.target.value)}
-                className="pr-9"
+                className="ps-9"
               />
             </div>
           </div>
@@ -1371,7 +1371,7 @@ export function PaymentsView() {
                   setFilterLevelId('all');
                 }}
               >
-                <X className="h-3 w-3 mr-1" />
+                <X className="h-3 w-3 ms-1" />
                 {t.common.clear}
               </Button>
             </div>
@@ -1397,35 +1397,35 @@ export function PaymentsView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">{t.payments.studentCol}</TableHead>
-                    <TableHead className="text-right">{t.payments.monthYearCol}</TableHead>
+                    <TableHead className="text-start">{t.payments.studentCol}</TableHead>
+                    <TableHead className="text-start">{t.payments.monthYearCol}</TableHead>
                     {isAdmin && (
                     <>
-                    <TableHead className="text-right hidden md:table-cell">
+                    <TableHead className="text-start hidden md:table-cell">
                       {t.payments.amountCol}
                     </TableHead>
-                    <TableHead className="text-right hidden md:table-cell">
+                    <TableHead className="text-start hidden md:table-cell">
                       {t.payments.paidCol}
                     </TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">
+                    <TableHead className="text-start hidden lg:table-cell">
                       {t.payments.remainingCol}
                     </TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">
+                    <TableHead className="text-start hidden lg:table-cell">
                       {t.payments.discountCol}
                     </TableHead>
                     </>
                     )}
-                    <TableHead className="text-right hidden lg:table-cell">
+                    <TableHead className="text-start hidden lg:table-cell">
                       {t.payments.dateCol}
                     </TableHead>
-                    <TableHead className="text-right">{t.common.status}</TableHead>
-                    <TableHead className="text-right">{t.common.actions}</TableHead>
+                    <TableHead className="text-start">{t.common.status}</TableHead>
+                    <TableHead className="text-start">{t.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPayments.map((payment) => (
                     <TableRow key={payment.id}>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div>
                           <div className="flex items-center gap-1.5">
                             <p className="font-medium text-sm">
@@ -1454,7 +1454,7 @@ export function PaymentsView() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-sm">
+                      <TableCell className="text-start text-sm">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span>
                             {MONTH_NAMES[payment.month] || payment.month}{' '}
@@ -1469,19 +1469,19 @@ export function PaymentsView() {
                       </TableCell>
                       {isAdmin && (
                       <>
-                      <TableCell className="text-right hidden md:table-cell font-medium">
+                      <TableCell className="text-start hidden md:table-cell font-medium">
                         {payment.amount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
-                      <TableCell className="text-right hidden md:table-cell text-blue-700">
+                      <TableCell className="text-start hidden md:table-cell text-blue-700">
                         {payment.paidAmount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell text-red-600">
+                      <TableCell className="text-start hidden lg:table-cell text-red-600">
                         {payment.remainingAmount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell text-cyan-600">
+                      <TableCell className="text-start hidden lg:table-cell text-cyan-600">
                         {payment.discount > 0 ? (
                           <span>
                             {payment.discount.toLocaleString()}{' '}
@@ -1493,15 +1493,15 @@ export function PaymentsView() {
                       </TableCell>
                       </>
                       )}
-                      <TableCell className="text-right hidden lg:table-cell text-sm text-muted-foreground">
+                      <TableCell className="text-start hidden lg:table-cell text-sm text-muted-foreground">
                         {payment.paymentDate
                           ? formatDate(payment.paymentDate)
                           : '—'}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         {getStatusBadge(payment.status)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -1567,14 +1567,14 @@ export function PaymentsView() {
                     {t.payments.searchStudent}
                   </Label>
                   <div className="relative">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder={t.payments.searchStudentPlaceholder}
                       value={studentSearchQuery}
                       onChange={(e) =>
                         setStudentSearchQuery(e.target.value)
                       }
-                      className="pr-10"
+                      className="ps-10"
                     />
                   </div>
 
@@ -1594,7 +1594,7 @@ export function PaymentsView() {
                             key={s.id}
                             type="button"
                             onClick={() => handleSelectStudent(s)}
-                            className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors text-right w-full"
+                            className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors text-start w-full"
                           >
                             <div className="h-9 w-9 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
                               <User className="h-4 w-4" />
@@ -1655,7 +1655,7 @@ export function PaymentsView() {
                         onClick={handleClearStudent}
                         className="h-7 text-xs text-muted-foreground"
                       >
-                        <X className="h-3 w-3 ml-1" />
+                        <X className="h-3 w-3 me-1" />
                         {t.common.edit}
                       </Button>
                     )}
@@ -1810,7 +1810,7 @@ export function PaymentsView() {
                       <span dir="ltr">
                         {Math.max(0, remainingAmount).toLocaleString()}
                       </span>
-                      <span className="mr-1 text-muted-foreground text-xs">
+                      <span className="ms-1 text-muted-foreground text-xs">
                         {t.common.dh}
                       </span>
                     </div>
@@ -1938,7 +1938,7 @@ export function PaymentsView() {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handlePromoDelete(promo.id); }}
-                            className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-1.5 -end-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="h-2.5 w-2.5" />
                           </button>
@@ -2019,7 +2019,7 @@ export function PaymentsView() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handlePackDiscountDelete(opt.packDiscountId); }}
-                              className="absolute -top-1.5 -left-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute -top-1.5 -start-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="h-2.5 w-2.5" />
                             </button>
@@ -2257,7 +2257,7 @@ export function PaymentsView() {
                       {service.levels.map((level) => (
                         <div
                           key={level.level}
-                          className="mb-4 mr-4"
+                          className="mb-4 ms-4"
                         >
                           <h4 className="text-sm font-semibold text-muted-foreground mb-2">
                             {level.level}
@@ -2508,7 +2508,7 @@ export function PaymentsView() {
                         borderColor: promoForm.color + '40',
                       }}
                     >
-                      <PreviewIcon className="h-3 w-3 inline ml-1" />
+                      <PreviewIcon className="h-3 w-3 inline me-1" />
                       {promoForm.nameAr || '...'}
                       {promoForm.type === 'percentage' && promoForm.value > 0 && ` -${promoForm.value}%`}
                       {promoForm.type === 'fixed' && promoForm.value > 0 && ` -${promoForm.value}`}
@@ -2524,7 +2524,7 @@ export function PaymentsView() {
               {t.common.cancel}
             </Button>
             <Button onClick={handlePromoCreate} disabled={!promoForm.nameAr.trim()}>
-              <Plus className="h-4 w-4 ml-1" />
+              <Plus className="h-4 w-4 me-1" />
               {t.common.add}
             </Button>
           </DialogFooter>
@@ -2553,7 +2553,7 @@ export function PaymentsView() {
                       <div key={pd.id} className="flex items-center justify-between px-3 py-2 rounded-lg border bg-muted/30 text-sm">
                         <div>
                           <span className="font-medium">{pd.nameAr}</span>
-                          <span className="text-muted-foreground mr-2">— {pd.months} {t.payments.packMonthsUnit}</span>
+                          <span className="text-muted-foreground ms-2">— {pd.months} {t.payments.packMonthsUnit}</span>
                           {pd.discountPercent > 0 && (
                             <span className="text-green-600 font-medium">-{pd.discountPercent}%</span>
                           )}
@@ -2624,7 +2624,7 @@ export function PaymentsView() {
                         </div>
                         <div className="text-sky-700 font-semibold">
                           {t.payments.packPreviewDiscount} = {((selectedStudent?.monthlyFee || 300) * packForm.months * (100 - packForm.discountPercent) / 100).toLocaleString()} {t.common.dh}
-                          <span className="font-normal mr-1">
+                          <span className="font-normal ms-1">
                             ({Math.round((selectedStudent?.monthlyFee || 300) * (100 - packForm.discountPercent) / 100).toLocaleString()} {t.common.dh}/{t.common.month})
                           </span>
                         </div>
@@ -2645,7 +2645,7 @@ export function PaymentsView() {
               disabled={!packForm.nameAr.trim() || packForm.months < 2}
               className="bg-sky-600 hover:bg-sky-700"
             >
-              <Plus className="h-4 w-4 ml-1" />
+              <Plus className="h-4 w-4 me-1" />
               {t.common.add}
             </Button>
           </DialogFooter>

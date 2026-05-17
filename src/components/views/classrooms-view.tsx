@@ -544,7 +544,7 @@ export function ClassroomsView() {
                   <span className="font-bold text-red-600 mx-1">{overdueData.studentCount}</span>
                   <span className="text-xs text-muted-foreground">{t.common.dh}</span>
                 </div>
-                <div className="text-left">
+                <div className="text-start">
                   <span className="text-xs text-muted-foreground">{t.classrooms.totalOverdue}:</span>
                   <span className="font-bold text-red-700 mx-1 text-lg">
                     {overdueData.totalOverdue.toLocaleString()}

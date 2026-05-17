@@ -583,12 +583,12 @@ export function TeacherPaymentsView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">{t.teacherPayments.teacherCol}</TableHead>
-                    <TableHead className="text-right">{t.teacherPayments.amountCol}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.teacherPayments.monthCol}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.teacherPayments.dateCol}</TableHead>
-                    <TableHead className="text-right">{t.teacherPayments.statusCol}</TableHead>
-                    <TableHead className="text-right">{t.common.actions}</TableHead>
+                    <TableHead className="text-start">{t.teacherPayments.teacherCol}</TableHead>
+                    <TableHead className="text-start">{t.teacherPayments.amountCol}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.teacherPayments.monthCol}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.teacherPayments.dateCol}</TableHead>
+                    <TableHead className="text-start">{t.teacherPayments.statusCol}</TableHead>
+                    <TableHead className="text-start">{t.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -611,7 +611,7 @@ export function TeacherPaymentsView() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {payment.month ? getMonthName(payment.month) : '—'}
-                        <span className="text-xs text-muted-foreground mr-1">
+                        <span className="text-xs text-muted-foreground ms-1">
                           {payment.year}
                         </span>
                       </TableCell>

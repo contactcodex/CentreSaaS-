@@ -305,7 +305,7 @@ export function ScheduleView() {
       }
       const query = params.toString();
       const res = await fetch(`/api/schedules${query ? `?${query}` : ''}`);
-      if (!res.ok) throw new Error('فشل في تحميل البيانات');
+      if (!res.ok) throw new Error(t.common.fetchError);
       const data = await res.json();
       setSchedules(data);
     } catch {
@@ -318,7 +318,7 @@ export function ScheduleView() {
   const fetchServices = useCallback(async () => {
     try {
       const res = await fetch('/api/services');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setServices(data);
     } catch {
@@ -329,7 +329,7 @@ export function ScheduleView() {
   const fetchTeachers = useCallback(async () => {
     try {
       const res = await fetch('/api/teachers');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setTeachers(data);
     } catch {
@@ -340,7 +340,7 @@ export function ScheduleView() {
   const fetchClassrooms = useCallback(async () => {
     try {
       const res = await fetch('/api/classrooms');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setClassrooms(data);
     } catch {
@@ -668,7 +668,7 @@ export function ScheduleView() {
         return;
       }
 
-      if (!res.ok) throw new Error('فشل في حفظ البيانات');
+      if (!res.ok) throw new Error(t.common.saveError);
 
       toast.success(
         editingSchedule ? t.schedule.updateSuccess : t.schedule.addSuccess
@@ -688,7 +688,7 @@ export function ScheduleView() {
       const res = await fetch(`/api/schedules/${deletingSchedule.id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) throw new Error('فشل في الحذف');
+      if (!res.ok) throw new Error(t.common.deleteError);
       toast.success(t.schedule.deleteSuccess);
       setDeleteOpen(false);
       setDeletingSchedule(null);
@@ -750,9 +750,9 @@ export function ScheduleView() {
         @page { size: landscape; margin: 10mm; }
         @media print { body { padding: 5px; } }
       </style></head><body>`;
-    html += `<div class="header"><h1>CODEX CENTRE</h1><p>الجدول الأسبوعي</p></div>`;
-    html += `<div class="meta">${dateStr} | إجمالي الحصص: ${schedules.length}</div>`;
-    html += `<table><thead><tr><th class="time-cell">الوقت</th>`;
+    html += `<div class="header"><h1>CODEX CENTRE</h1><p>${t.schedule.title}</p></div>`;
+    html += `<div class="meta">${dateStr} | ${t.schedule.totalSessions}: ${schedules.length}</div>`;
+    html += `<table><thead><tr><th class="time-cell">${t.common.date}</th>`;
 
     days.forEach((d) => {
       const count = dayCounts[d.value] || 0;
@@ -803,7 +803,7 @@ export function ScheduleView() {
               ${sess.level ? `<br/>${sess.level?.nameAr || sess.level?.name}` : ''}
               ${sess.teacher ? `<br/><span style="color:#64748b;">${sess.teacher.fullName}</span>` : ''}
               ${sess.classroom ? `<br/><span style="color:#002A6C;font-size:8px;">📍 ${sess.classroom.nameAr || sess.classroom.name}</span>` : ''}
-              ${sess.sessionType === 'trial' ? `<br/><span style="color:#00A8E8;font-size:8px;">⚡ تجريبية${sess.trialDate ? ` (${new Date(sess.trialDate).toLocaleDateString('ar-MA')})` : ''}</span>` : ''}
+              ${sess.sessionType === 'trial' ? `<br/><span style="color:#00A8E8;font-size:8px;">⚡ ${t.schedule.trial}${sess.trialDate ? ` (${new Date(sess.trialDate).toLocaleDateString('ar-MA')})` : ''}</span>` : ''}
               ${sess.group ? `<br/><span style="color:#94a3b8;font-size:8px;">👥 ${sess.group}</span>` : ''}
               <br/><span style="font-size:8px;color:#94a3b8;">${sess.startTime}-${sess.endTime}</span>
             </div>`;
@@ -817,7 +817,7 @@ export function ScheduleView() {
     });
 
     html += `</tbody></table>`;
-    html += `<div class="footer">Codex Centre | الجدول الأسبوعي للحصص</div>`;
+    html += `<div class="footer">Codex Centre | ${t.schedule.title}</div>`;
     html += `</body></html>`;
 
     const printWindow = window.open('', '_blank');
@@ -936,7 +936,7 @@ export function ScheduleView() {
                       return (
                         <div
                           key={day.value}
-                          className="flex-1 border-l last:border-l-0 flex items-center justify-center gap-1.5 px-1 min-w-0"
+                          className="flex-1 border-s last:border-s-0 flex items-center justify-center gap-1.5 px-1 min-w-0"
                         >
                           <span className="text-xs font-bold truncate">
                             {day.label}
@@ -954,7 +954,7 @@ export function ScheduleView() {
                     })}
                     {/* Time header - on the left side */}
                     <div
-                      className="shrink-0 border-r flex items-center justify-center bg-muted/40"
+                      className="shrink-0 border-e flex items-center justify-center bg-muted/40"
                       style={{ width: `${TIME_COLUMN_WIDTH}px` }}
                     >
                       <Clock className="h-3.5 w-3.5 text-muted-foreground" />
@@ -969,7 +969,7 @@ export function ScheduleView() {
                       return (
                         <div
                           key={day.value}
-                          className="flex-1 border-l border-gray-300 last:border-l-0 relative min-w-0"
+                          className="flex-1 border-s border-gray-300 last:border-s-0 relative min-w-0"
                         >
                           {/* Grid lines */}
                           <div style={{ height: `${totalGridHeight}px` }}>
@@ -1043,7 +1043,7 @@ export function ScheduleView() {
                                         )}>
                                           {sched.subject?.nameAr || sched.subject?.name}
                                           {sched.level && !isOverlapping && (
-                                            <span className="font-normal opacity-80 mr-0.5">
+                                            <span className="font-normal opacity-80 ms-0.5">
                                               — {sched.level?.nameAr || sched.level?.name}
                                             </span>
                                           )}
@@ -1078,7 +1078,7 @@ export function ScheduleView() {
                                               {sched.startTime}-{sched.endTime}
                                             </span>
                                             {sched.group && (
-                                              <span className="text-[8px] opacity-60 truncate mr-1">
+                                              <span className="text-[8px] opacity-60 truncate ms-1">
                                                 👥 {sched.group}
                                               </span>
                                             )}
@@ -1103,7 +1103,7 @@ export function ScheduleView() {
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-md" />
 
                                         {/* Action buttons on hover */}
-                                        <div className="absolute top-0.5 left-0.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <div className="absolute top-0.5 start-0.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                           <Button
                                             variant="destructive"
                                             size="icon"
@@ -1119,7 +1119,7 @@ export function ScheduleView() {
                                         </div>
 
                                         {/* Edit icon on hover */}
-                                        <div className="absolute top-0.5 left-5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <div className="absolute top-0.5 start-5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                           <Edit2 className="h-2.5 w-2.5 opacity-40" />
                                         </div>
                                       </div>
@@ -1147,7 +1147,7 @@ export function ScheduleView() {
                     })}
                     {/* Time Labels Column - on the left side */}
                     <div
-                      className="shrink-0 border-r border-gray-400 bg-muted/10"
+                      className="shrink-0 border-e border-gray-400 bg-muted/10"
                       style={{ width: `${TIME_COLUMN_WIDTH}px` }}
                     >
                       {timeSlots.map((time, index) => (
@@ -1203,7 +1203,7 @@ export function ScheduleView() {
                   <span>{t.schedule.conflictError}</span>
                 </div>
                 {conflictErrors.map((err, idx) => (
-                  <p key={idx} className="text-xs text-destructive/90 flex items-start gap-1.5 mr-6">
+                  <p key={idx} className="text-xs text-destructive/90 flex items-start gap-1.5 ms-6">
                     <span className="shrink-0 mt-0.5">
                       {err.type === 'classroom' ? '🏫' : '👨‍🏫'}
                     </span>
@@ -1493,7 +1493,7 @@ export function ScheduleView() {
                   {t.common.delete}
                 </Button>
               )}
-              <div className="flex gap-2 w-full sm:w-auto sm:mr-auto">
+              <div className="flex gap-2 w-full sm:w-auto sm:ms-auto">
                 <Button
                   variant="outline"
                   onClick={() => {

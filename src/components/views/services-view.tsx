@@ -524,17 +524,17 @@ export function ServicesView() {
                   <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', config.bg)}>
                     <Icon className={cn('w-6 h-6', config.color)} />
                   </div>
-                  <div className="text-right">
+                  <div className="text-start">
                     <h3 className="text-lg font-bold">{service.nameAr}</h3>
                     <p className="text-sm text-muted-foreground">{service.nameFr}</p>
                   </div>
-                  <Badge variant="secondary" className="mr-auto text-xs">
+                  <Badge variant="secondary" className="ms-auto text-xs">
                     {service.subjects.length} {service.subjects.length === 1 ? t.services.subject : t.services.subjects}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive mr-1"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive me-1"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenDeleteService(service);
@@ -575,7 +575,7 @@ export function ServicesView() {
                           <ChevronLeft className={cn('w-4 h-4', config.color)} />
                           <h4 className="font-semibold">{subject.nameAr}</h4>
                           <span className="text-xs text-muted-foreground">({subject.nameFr})</span>
-                          <div className="flex items-center gap-1 mr-auto">
+                          <div className="flex items-center gap-1 ms-auto">
                             <Button
                               variant="ghost"
                               size="sm"

@@ -224,7 +224,7 @@ export function TeachersView() {
   const fetchTeachers = useCallback(async () => {
     try {
       const res = await fetch('/api/teachers');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setTeachers(data);
     } catch {
@@ -237,7 +237,7 @@ export function TeachersView() {
   const fetchStudents = useCallback(async () => {
     try {
       const res = await fetch('/api/students');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setStudents(data);
     } catch {
@@ -248,7 +248,7 @@ export function TeachersView() {
   const fetchServices = useCallback(async () => {
     try {
       const res = await fetch('/api/services');
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setServices(data);
     } catch {
@@ -382,7 +382,7 @@ export function TeachersView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       toast.success(editingTeacher ? t.teachers.updateSuccess : t.teachers.addSuccess);
       setFormOpen(false);
       fetchTeachers();
@@ -398,7 +398,7 @@ export function TeachersView() {
     if (!deletingTeacher) return;
     try {
       const res = await fetch(`/api/teachers/${deletingTeacher.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('فشل');
+      if (!res.ok) throw new Error(t.common.error);
       toast.success(t.teachers.deleteSuccess);
       setDeleteOpen(false);
       setDeletingTeacher(null);
@@ -469,12 +469,12 @@ export function TeachersView() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="relative flex-1 w-full sm:max-w-sm">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t.teachers.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pr-9"
+                className="ps-9"
               />
             </div>
             <div className="flex gap-2">
@@ -898,7 +898,7 @@ export function TeachersView() {
                                     </div>
 
                                     {assigned && subject.levels.length > 0 && (
-                                      <div className="mt-2 mr-6 space-y-1.5">
+                                      <div className="mt-2 ms-6 space-y-1.5">
                                         <p className="text-xs text-muted-foreground">{t.teachers.levelsLabel}</p>
                                         <div className="flex flex-wrap gap-1.5">
                                           {subject.levels.map((level) => {
@@ -1085,7 +1085,7 @@ export function TeachersView() {
                           <button
                             key={student.id}
                             type="button"
-                            className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-right"
+                            className="w-full flex items-center gap-3 p-3 hover:bg-muted/60 transition-colors text-start"
                             onClick={() => {
                               setDetailOpen(false);
                               setCurrentView('students');

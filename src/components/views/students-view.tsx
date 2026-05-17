@@ -989,7 +989,7 @@ export function StudentsView() {
                     <CardContent className="p-3 text-center relative">
                       {/* Checkmark overlay */}
                       {isSelected && (
-                        <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center z-10">
+                        <div className="absolute top-1.5 start-1.5 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center z-10">
                           <Check className="h-3 w-3 text-white" strokeWidth={3} />
                         </div>
                       )}
@@ -1515,12 +1515,12 @@ export function StudentsView() {
             <div className="flex flex-col gap-3">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder={t.students.searchPlaceholder}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pr-9"
+                    className="ps-9"
                   />
                 </div>
                 <TabsList>
@@ -1596,25 +1596,25 @@ export function StudentsView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">{t.students.fullName}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.students.level}</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">{t.students.teacher}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.common.phone}</TableHead>
+                    <TableHead className="text-start">{t.students.fullName}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.students.level}</TableHead>
+                    <TableHead className="text-start hidden lg:table-cell">{t.students.teacher}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.common.phone}</TableHead>
                                     {isAdmin && (
-                    <TableHead className="text-right hidden sm:table-cell">{t.students.fee}</TableHead>
+                    <TableHead className="text-start hidden sm:table-cell">{t.students.fee}</TableHead>
                     )}
                     {isAdmin && (
                     <TableHead className="text-center">{t.students.paymentCol}</TableHead>
                     )}
-                    <TableHead className="text-right">{t.common.status}</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">{t.students.enrollment}</TableHead>
-                    <TableHead className="text-right">{t.common.actions}</TableHead>
+                    <TableHead className="text-start">{t.common.status}</TableHead>
+                    <TableHead className="text-start hidden lg:table-cell">{t.students.enrollment}</TableHead>
+                    <TableHead className="text-start">{t.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayedStudents.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-medium text-right">
+                      <TableCell className="font-medium text-start">
                         <div className="flex items-center gap-2">
                           <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(student.fullName)}`}>
                             {student.fullName.charAt(0)}
@@ -1629,7 +1629,7 @@ export function StudentsView() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right hidden md:table-cell">
+                      <TableCell className="text-start hidden md:table-cell">
                         {student.enrollments && student.enrollments.length > 0 ? (
                           <div className="flex flex-col gap-0.5">
                             {student.enrollments.map((e) => (
@@ -1650,7 +1650,7 @@ export function StudentsView() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell">
+                      <TableCell className="text-start hidden lg:table-cell">
                         {student.enrollments && student.enrollments.length > 0 ? (() => {
                           const teachersWithSubject = student.enrollments
                             .filter((e) => e.teacherId && e.teacher)
@@ -1697,14 +1697,14 @@ export function StudentsView() {
                           <span className="text-muted-foreground text-sm">{t.students.withoutTeacher}</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right hidden md:table-cell">
+                      <TableCell className="text-start hidden md:table-cell">
                         <div className="flex items-center gap-1 text-sm">
                           <Phone className="h-3 w-3 text-muted-foreground" />
                           {student.phone || '—'}
                         </div>
                       </TableCell>
                       {isAdmin && (
-                      <TableCell className="text-right hidden sm:table-cell">
+                      <TableCell className="text-start hidden sm:table-cell">
                         {student.enrollments && student.enrollments.length > 0 ? (
                           <div className="flex flex-col gap-0.5">
                             {student.enrollments.map((e, idx) => (
@@ -1740,7 +1740,7 @@ export function StudentsView() {
                         )}
                       </TableCell>
                       )}
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={student.status === 'active'}
@@ -1749,12 +1749,12 @@ export function StudentsView() {
                           {getStatusBadge(student.status)}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell text-sm">
+                      <TableCell className="text-start hidden lg:table-cell text-sm">
                         {student.enrollmentDate
                           ? new Date(student.enrollmentDate).toLocaleDateString('ar-MA')
                           : '—'}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -1841,7 +1841,7 @@ export function StudentsView() {
                     variant="ghost"
                     size="sm"
                     onClick={handleSkipAllTeachers}
-                    className="gap-1 text-muted-foreground mr-2"
+                    className="gap-1 text-muted-foreground ms-2"
                   >
                     {t.students.skipAll}
                     <ChevronLeft className="h-3 w-3" />

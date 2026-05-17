@@ -137,7 +137,7 @@ function PasswordScreen({ onUnlock }: PasswordScreenProps) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -290,7 +290,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
       {/* ─── Stats Cards ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Filtered Revenue (Income) */}
-        <Card className="overflow-hidden border-r-4 border-r-blue-500">
+        <Card className="overflow-hidden border-s-4 border-s-blue-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="p-2.5 rounded-lg bg-blue-100">
@@ -310,7 +310,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </Card>
 
         {/* Filtered Expenses (Teacher Payments) */}
-        <Card className="overflow-hidden border-r-4 border-r-rose-500">
+        <Card className="overflow-hidden border-s-4 border-s-rose-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="p-2.5 rounded-lg bg-rose-100">
@@ -330,7 +330,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </Card>
 
         {/* Net Profit */}
-        <Card className="overflow-hidden border-r-4 border-r-cyan-500">
+        <Card className="overflow-hidden border-s-4 border-s-cyan-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="p-2.5 rounded-lg bg-cyan-100">
@@ -358,7 +358,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </Card>
 
         {/* Current Month Income (always shows current month) */}
-        <Card className="overflow-hidden border-r-4 border-r-sky-500">
+        <Card className="overflow-hidden border-s-4 border-s-sky-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="p-2.5 rounded-lg bg-sky-100">

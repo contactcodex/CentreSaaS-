@@ -208,14 +208,14 @@ export default function UsersView() {
     if (role === 'ADMIN') {
       return (
         <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
-          <ShieldCheck className="h-3 w-3 ml-1" />
+          <ShieldCheck className="h-3 w-3 ms-1" />
           {t.users.adminRole}
         </Badge>
       );
     }
     return (
       <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
-        <Shield className="h-3 w-3 ml-1" />
+        <Shield className="h-3 w-3 ms-1" />
         {t.users.secretaryRole}
       </Badge>
     );
@@ -370,12 +370,12 @@ export default function UsersView() {
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t.users.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
+              className="pe-10"
             />
           </div>
           <Button onClick={() => handleOpenDialog()} className="gap-2 shrink-0">
@@ -439,18 +439,18 @@ export default function UsersView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">{t.common.name}</TableHead>
-                    <TableHead className="text-right">{t.common.email}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.users.role}</TableHead>
-                    <TableHead className="text-right hidden sm:table-cell">{t.common.status}</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">{t.users.createdDate}</TableHead>
-                    <TableHead className="text-right">{t.common.actions}</TableHead>
+                    <TableHead className="text-start">{t.common.name}</TableHead>
+                    <TableHead className="text-start">{t.common.email}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.users.role}</TableHead>
+                    <TableHead className="text-start hidden sm:table-cell">{t.common.status}</TableHead>
+                    <TableHead className="text-start hidden lg:table-cell">{t.users.createdDate}</TableHead>
+                    <TableHead className="text-start">{t.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div className="flex items-center gap-2.5">
                           <div
                             className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
@@ -471,16 +471,16 @@ export default function UsersView() {
                       <TableCell className="text-right text-sm text-muted-foreground" dir="ltr">
                         {user.email}
                       </TableCell>
-                      <TableCell className="text-right hidden md:table-cell">
+                      <TableCell className="text-start hidden md:table-cell">
                         {getRoleBadge(user.role)}
                       </TableCell>
-                      <TableCell className="text-right hidden sm:table-cell">
+                      <TableCell className="text-start hidden sm:table-cell">
                         {getStatusBadge(user.status)}
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell text-sm text-muted-foreground">
+                      <TableCell className="text-start hidden lg:table-cell text-sm text-muted-foreground">
                         {formatDate(user.createdAt)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-start">
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
@@ -647,7 +647,7 @@ export default function UsersView() {
                 {formData.role === 'ADMIN' && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-sm text-blue-800">
-                      <ShieldCheck className="h-4 w-4 inline ml-1.5" />
+                      <ShieldCheck className="h-4 w-4 inline ms-1.5" />
                       {t.users.adminFullAccess}
                     </p>
                   </div>
@@ -728,7 +728,7 @@ export default function UsersView() {
               <Trash2 className="h-5 w-5 text-destructive" />
               {t.users.deleteConfirmTitle}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-right leading-relaxed pt-2">
+            <AlertDialogDescription className="text-start leading-relaxed pt-2">
               {t.users.deleteConfirmMsg}{' '}
               <span className="font-bold text-foreground">{deletingUser?.fullName}</span>
               ？ {t.common.cannotUndo}

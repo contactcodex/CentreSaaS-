@@ -292,7 +292,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
   return (
     <div className="space-y-6">
       {/* Students Stats Card */}
-      <Card className="overflow-hidden border-r-4 border-r-sky-500">
+      <Card className="overflow-hidden border-s-4 border-s-sky-500">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="p-2.5 rounded-lg bg-sky-100">
@@ -321,7 +321,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => onNavigate('schedule')}>
               {t.common.viewAll}
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+              <ArrowLeft className="h-3.5 w-3.5 ms-1" />
             </Button>
           </div>
         </CardHeader>
@@ -415,7 +415,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => onNavigate('students')}>
               {t.common.viewAll}
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+              <ArrowLeft className="h-3.5 w-3.5 ms-1" />
             </Button>
           </div>
           {/* Month/Year filter */}
@@ -488,7 +488,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                         )}
                       </div>
                     </div>
-                    <div className="text-left shrink-0">
+                    <div className="text-start shrink-0">
                       <span className="text-xs text-muted-foreground">{fmtDate(student.enrollmentDate)}</span>
                     </div>
                   </div>
@@ -514,7 +514,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => onNavigate('payments')}>
               {t.common.viewAll}
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+              <ArrowLeft className="h-3.5 w-3.5 ms-1" />
             </Button>
           </div>
         </CardHeader>
@@ -529,11 +529,11 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">{t.dashboard.studentCol}</TableHead>
-                    <TableHead className="text-right hidden sm:table-cell">{t.dashboard.levelCol}</TableHead>
-                    <TableHead className="text-right">{t.dashboard.amountCol}</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">{t.dashboard.dateCol}</TableHead>
-                    <TableHead className="text-right">{t.common.status}</TableHead>
+                    <TableHead className="text-start">{t.dashboard.studentCol}</TableHead>
+                    <TableHead className="text-start hidden sm:table-cell">{t.dashboard.levelCol}</TableHead>
+                    <TableHead className="text-start">{t.dashboard.amountCol}</TableHead>
+                    <TableHead className="text-start hidden md:table-cell">{t.dashboard.dateCol}</TableHead>
+                    <TableHead className="text-start">{t.common.status}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
