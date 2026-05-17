@@ -1446,12 +1446,12 @@ export function PaymentsView() {
                             </p>
                             {payment.promotion && (
                               <Badge
-                                className="text-[10px] px-1.5 py-0 hover:bg-opacity-80"
+                                className="text-[10px] px-2 py-0.5 font-medium shrink-0"
                                 style={{
                                   backgroundColor: payment.promotion.color + '20',
                                   color: payment.promotion.color,
-                                  borderColor: payment.promotion.color + '40',
-                                  borderWidth: '1px',
+                                  borderColor: payment.promotion.color,
+                                  borderWidth: '1.5px',
                                   borderStyle: 'solid',
                                 }}
                               >
@@ -1461,13 +1461,21 @@ export function PaymentsView() {
                             )}
                             {!payment.promotion && payment.packDiscount && (
                               <Badge
-                                className="text-[10px] px-1.5 py-0 bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100"
+                                className="text-[10px] px-2 py-0.5 font-medium bg-violet-100 text-violet-700 border border-violet-400 shrink-0"
                               >
-                                <Package className="h-2.5 w-2.5 me-1" />
+                                <Package className="h-2.5 w-2.5 me-1 inline" />
                                 {isAr ? payment.packDiscount.nameAr : payment.packDiscount.nameFr}
                                 {payment.packDiscount.discountPercent > 0 && (
                                   <span className="ms-1 opacity-75">(-{payment.packDiscount.discountPercent}%)</span>
                                 )}
+                              </Badge>
+                            )}
+                            {!payment.promotion && !payment.packDiscount && payment.discount > 0 && payment.discountReason && (
+                              <Badge
+                                className="text-[10px] px-2 py-0.5 font-medium bg-emerald-100 text-emerald-700 border border-emerald-400 shrink-0"
+                              >
+                                <Tag className="h-2.5 w-2.5 me-1 inline" />
+                                {payment.discountReason}
                               </Badge>
                             )}
                           </div>
