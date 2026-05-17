@@ -135,10 +135,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const enrollments: { levelId: string; teacherId?: string | null }[] = body.enrollments || [];
+    const enrollments: { levelId: string; teacherId?: string | null; monthlyFee?: number }[] = body.enrollments || [];
 
     // Create student with first enrollment as primary level/teacher
     const firstEnrollment = enrollments[0] || {};
+    const totalFee = enrollments.reduce((sum: number, e: { monthlyFee?: number }) => sum + (e.monthlyFee || 0), 0);
     const student = await db.student.create({
       data: {
         fullName: body.fullName,
@@ -149,14 +150,15 @@ export async function POST(request: NextRequest) {
         teacherId: firstEnrollment.teacherId || null,
         parentName: body.parentName,
         parentPhone: body.parentPhone,
-        monthlyFee: body.monthlyFee ?? 0,
+        monthlyFee: totalFee,
         packMonths: body.packMonths ?? 1,
         status: body.status || 'active',
         enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : new Date(),
         enrollments: {
-          create: enrollments.map((e: { levelId: string; teacherId?: string | null }) => ({
+          create: enrollments.map((e: { levelId: string; teacherId?: string | null; monthlyFee?: number }) => ({
             levelId: e.levelId,
             teacherId: e.teacherId || null,
+            monthlyFee: e.monthlyFee ?? 0,
           })),
         },
       },
