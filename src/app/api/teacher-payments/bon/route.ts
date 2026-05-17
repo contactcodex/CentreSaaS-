@@ -87,9 +87,11 @@ export async function GET(request: NextRequest) {
     const yearStr = String(payment.year);
 
     // ─── Use StudentLevel records (multi-subject enrollments) ─────────
-    const studentLevels = await db.studentLevel.findMany({
+    // Fetch ALL studentLevels (not just this teacher's) to correctly calculate
+    // totalFeeByStudent for proportional splitting across teachers.
+    const allStudentLevels = await db.studentLevel.findMany({
       where: {
-        teacherId: teacher.id,
+        teacherId: { not: null },
         student: { status: 'active' },
       },
       include: {
@@ -104,7 +106,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Get unique student IDs
+    // Filter to only this teacher's enrollments for display
+    const studentLevels = allStudentLevels.filter((sl) => sl.teacherId === teacher.id);
+
+    // Get unique student IDs from ALL enrollments (for payment fetching)
     const uniqueStudentIds = [...new Set(studentLevels.map((sl) => sl.studentId))];
     const totalStudents = uniqueStudentIds.length;
 
@@ -150,9 +155,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build total fee map per student (for proportional splitting)
+    // Build total fee map per student using ALL enrollments (not just this teacher's)
+    // CRITICAL: This ensures proportional splitting works correctly when a student
+    // has multiple teachers with different subjects.
     const totalFeeByStudent = new Map<string, number>();
-    for (const sl of studentLevels) {
+    for (const sl of allStudentLevels) {
       const fee = sl.monthlyFee || 0;
       if (fee > 0) {
         const existing = totalFeeByStudent.get(sl.studentId) || 0;
@@ -171,7 +178,7 @@ export async function GET(request: NextRequest) {
         enrollmentContribution = (enrollmentFee / studentTotalFee) * studentTotalContribution;
       } else if (studentTotalFee === 0 && studentTotalContribution > 0) {
         const teachersForStudent = [...new Set(
-          studentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
+          allStudentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
         )].length;
         enrollmentContribution = studentTotalContribution / teachersForStudent;
       }
@@ -199,7 +206,7 @@ export async function GET(request: NextRequest) {
         enrollmentContribution = (enrollmentFee / studentTotalFee) * studentTotalContribution;
       } else if (studentTotalFee === 0 && studentTotalContribution > 0) {
         const teachersForStudent = [...new Set(
-          studentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
+          allStudentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
         )].length;
         enrollmentContribution = studentTotalContribution / teachersForStudent;
       }

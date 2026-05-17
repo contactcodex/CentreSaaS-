@@ -42,18 +42,15 @@ export async function GET(request: NextRequest) {
       // instead of Student.teacherId (single teacher field)
       // ─────────────────────────────────────────────────────────
 
-      // Fetch all StudentLevel records with their teacher, level, subject, and student info
-      // This gives us the true per-subject teacher assignments
-      const enrollmentsWhere: Record<string, unknown> = {
-        student: { status: 'active' },
-        teacherId: { not: null }, // Only enrollments with assigned teachers
-      };
-      if (specificTeacherId) {
-        enrollmentsWhere.teacherId = specificTeacherId;
-      }
-
-      const studentLevels = await db.studentLevel.findMany({
-        where: Object.keys(enrollmentsWhere).length > 0 ? enrollmentsWhere : undefined,
+      // Fetch ALL StudentLevel records (NOT filtered by teacher) to correctly
+      // calculate totalFeeByStudent for proportional splitting across teachers.
+      // Without this, a multi-subject student's fees get attributed 100% to
+      // whichever teacher is selected, instead of being split proportionally.
+      const allStudentLevels = await db.studentLevel.findMany({
+        where: {
+          student: { status: 'active' },
+          teacherId: { not: null },
+        },
         include: {
           student: {
             select: { id: true, fullName: true, status: true },
@@ -66,6 +63,11 @@ export async function GET(request: NextRequest) {
           teacher: true,
         },
       });
+
+      // Also keep a teacher-filtered subset for grouping (if specific teacher)
+      const studentLevels = specificTeacherId
+        ? allStudentLevels.filter((sl) => sl.teacherId === specificTeacherId)
+        : allStudentLevels;
 
       // Fetch all active teachers (or specific one)
       const teacherWhere: Record<string, unknown> = { status: 'active' };
@@ -103,8 +105,8 @@ export async function GET(request: NextRequest) {
       // 5. Calculate teacher share = totalCollected * percentage / 100
       // =============================================
 
-      // Get unique student IDs from all relevant enrollments
-      const uniqueStudentIds = [...new Set(studentLevels.map((sl) => sl.studentId))];
+      // Get unique student IDs from ALL enrollments (not just filtered ones)
+      const uniqueStudentIds = [...new Set(allStudentLevels.map((sl) => sl.studentId))];
 
       // Fetch ALL payments for these students
       const studentPayments = uniqueStudentIds.length > 0
@@ -151,9 +153,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Build a map: studentId → total monthlyFee across ALL their enrollments
-      // This is used to calculate the proportional split for multi-teacher students
+      // CRITICAL: Must use allStudentLevels (ALL teachers) not just the filtered set,
+      // so the proportional split is correct when a student has multiple teachers.
       const totalFeeByStudent = new Map<string, number>();
-      for (const sl of studentLevels) {
+      for (const sl of allStudentLevels) {
         const fee = sl.monthlyFee || 0;
         if (fee > 0) {
           const existing = totalFeeByStudent.get(sl.studentId) || 0;
@@ -161,9 +164,9 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Group enrollments by teacherId
-      const enrollmentsByTeacher = new Map<string, typeof studentLevels>();
-      for (const sl of studentLevels) {
+      // Group enrollments by teacherId (from ALL enrollments, not just filtered)
+      const enrollmentsByTeacher = new Map<string, typeof allStudentLevels>();
+      for (const sl of allStudentLevels) {
         if (!sl.teacherId) continue;
         const arr = enrollmentsByTeacher.get(sl.teacherId) || [];
         arr.push(sl);
@@ -218,7 +221,7 @@ export async function GET(request: NextRequest) {
             // No fee breakdown available, equal split among all teachers
             // Count how many different teachers this student has
             const teachersForStudent = [...new Set(
-              studentLevels.filter((s) => s.studentId === sl.studentId && s.teacherId).map((s) => s.teacherId)
+              allStudentLevels.filter((s) => s.studentId === sl.studentId && s.teacherId).map((s) => s.teacherId)
             )].length;
             enrollmentContribution = studentTotalContribution / teachersForStudent;
           }
