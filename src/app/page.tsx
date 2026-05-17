@@ -1,11 +1,12 @@
 'use client';
 
 import { useAppStore, ViewType } from '@/store/store';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import LoginPage from '@/components/login-page';
 import { cn } from '@/lib/utils';
 import { useT } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,6 +32,7 @@ import {
   Clock,
   Crown,
   MessageCircle,
+  Lock,
 } from 'lucide-react';
 import { FinancialReportsView } from '@/components/views/financial-reports-view';
 import { DashboardView } from '@/components/views/dashboard-view';
@@ -261,6 +263,61 @@ function LanguageToggle() {
   );
 }
 
+function SubscriptionExpiredPage({ onLogout }: { onLogout: () => void }) {
+  const { lang } = useAppStore();
+  const t = useT();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <Card className="w-full max-w-md shadow-xl border-0 text-center">
+        <CardHeader className="space-y-4 pb-2">
+          <div className="mx-auto">
+            <img src="/logo.png" alt="Codex" className="h-16 w-auto object-contain mx-auto" />
+          </div>
+          <div className="h-16 w-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+            <Lock className="h-8 w-8 text-red-600" />
+          </div>
+          <CardTitle className="text-xl">
+            {lang === 'ar' ? 'انتهت فترة الاشتراك' : 'Abonnement expiré'}
+          </CardTitle>
+          <CardDescription className="text-sm leading-relaxed">
+            {lang === 'ar'
+              ? 'انتهت فترة التجربة الخاصة بك. يرجى التواصل مع دعم Codex لتفعيل اشتراكك.'
+              : 'Votre période d\'essai est terminée. Veuillez contacter le support Codex pour activer votre abonnement.'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+            <p className="text-sm text-emerald-800 font-medium mb-1">
+              {lang === 'ar' ? 'تواصل مع الدعم' : 'Contacter le support'}
+            </p>
+            <a
+              href="https://wa.me/212606060606"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-2xl font-bold text-emerald-700"
+              dir="ltr"
+            >
+              0606060606
+            </a>
+          </div>
+          <a
+            href="https://wa.me/212606060606"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl transition-colors text-center"
+          >
+            {lang === 'ar' ? 'تواصل عبر واتساب' : 'Contacter via WhatsApp'}
+          </a>
+          <Button variant="outline" onClick={onLogout} className="w-full mt-2">
+            {t.sidebar.logout}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Home() {
   const { currentView, setCurrentView, lang, userRole, setUserRole: setStoreUserRole } = useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -318,6 +375,13 @@ export default function Home() {
     }
   }, [isAuthenticated, isSuperAdmin]);
 
+  // Check if subscription is expired (must be before early returns due to rules of hooks)
+  const isSubscriptionExpired = useMemo(() => {
+    if (!centre || centre.subscriptionStatus === 'unlimited') return false;
+    if (!centre.subscriptionEnd) return false;
+    return new Date(centre.subscriptionEnd) < new Date();
+  }, [centre]);
+
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -330,6 +394,11 @@ export default function Home() {
     return <LoginPage />;
   }
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setIsAuthenticated(false);
+  };
+
   // Super Admin sees its own panel
   if (isSuperAdmin) {
     return (
@@ -341,10 +410,9 @@ export default function Home() {
     );
   }
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    setIsAuthenticated(false);
-  };
+  if (isSubscriptionExpired) {
+    return <SubscriptionExpiredPage onLogout={handleLogout} />;
+  }
 
   const renderView = () => {
     switch (currentView) {

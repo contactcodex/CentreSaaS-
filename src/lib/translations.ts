@@ -772,6 +772,9 @@ const ar = {
     expiresToday: 'ينتهي اليوم',
     noExpiry: 'بدون انتهاء',
     superAdminTitle: 'لوحة التحكم الرئيسية',
+    expiredMessage: 'انتهت فترة التجربة الخاصة بك. يرجى التواصل مع دعم Codex على الرقم التالي لتفعيل اشتراكك:',
+    supportPhone: '0606060606',
+    contactSupport: 'تواصل مع الدعم',
   },
 
   // ── Login ──
@@ -841,6 +844,8 @@ const ar = {
     expiryDate: 'تاريخ الانتهاء',
     users: 'عدد المستخدمين',
     actions: 'الإجراءات',
+    trial1min: 'تجربة 1 دقيقة',
+    trial1minTest: 'تجربة 1 دقيقة (للاختبار)',
     trial24h: 'تجربة 24 ساعة',
     trial7d: 'تجربة 7 أيام',
     active: 'نشط',
@@ -875,6 +880,7 @@ const ar = {
     noExpiry: 'بدون انتهاء',
     saveChanges: 'حفظ التعديلات',
     viewDetails: 'عرض التفاصيل',
+    logout: 'تسجيل الخروج',
   },
 
   // ── Subscription Banner ──
@@ -1659,6 +1665,9 @@ const fr: typeof ar = {
     expiresToday: "Expire aujourd'hui",
     noExpiry: "Sans expiration",
     superAdminTitle: 'Tableau de Bord Principal',
+    expiredMessage: 'Votre période d\'essai est terminée. Veuillez contacter le support Codex au numéro suivant pour activer votre abonnement :',
+    supportPhone: '0606060606',
+    contactSupport: 'Contacter le support',
   },
 
   // ── Login ──
@@ -1728,6 +1737,8 @@ const fr: typeof ar = {
     expiryDate: "Date d'expiration",
     users: 'Utilisateurs',
     actions: 'Actions',
+    trial1min: 'Essai 1 minute',
+    trial1minTest: 'Essai 1 minute (test)',
     trial24h: 'Essai 24h',
     trial7d: 'Essai 7 jours',
     active: 'Actif',
@@ -1762,6 +1773,7 @@ const fr: typeof ar = {
     noExpiry: 'Sans expiration',
     saveChanges: 'Enregistrer',
     viewDetails: 'Voir les détails',
+    logout: 'Déconnexion',
   },
 
   // ── Subscription Banner ──

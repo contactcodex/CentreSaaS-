@@ -61,12 +61,15 @@ import {
   HourglassIcon,
   Infinity,
   CalendarClock,
+  LogOut,
+  LayoutDashboard,
+  Timer,
 } from 'lucide-react';
 import { useT } from '@/hooks/use-translation';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type SubscriptionStatus = 'trial_24h' | 'trial_7d' | 'active' | 'expired' | 'unlimited' | 'none';
+type SubscriptionStatus = 'trial_1min' | 'trial_24h' | 'trial_7d' | 'active' | 'expired' | 'unlimited' | 'none';
 type PackType = '1month' | '1year' | 'unlimited';
 
 interface Centre {
@@ -156,6 +159,10 @@ function CardSkeleton() {
 
 function StatusBadge({ status, label }: { status: SubscriptionStatus; label: string }) {
   const config: Record<SubscriptionStatus, { className: string; icon: React.ReactNode }> = {
+    trial_1min: {
+      className: 'bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-100',
+      icon: <Timer className="h-3 w-3" />,
+    },
     trial_24h: {
       className: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100',
       icon: <HourglassIcon className="h-3 w-3" />,
@@ -318,6 +325,7 @@ function getPackLabel(pack: PackType | null, t: ReturnType<typeof useT>['superAd
 
 function getStatusLabel(status: SubscriptionStatus, t: ReturnType<typeof useT>['superAdmin']): string {
   const map: Record<SubscriptionStatus, string> = {
+    trial_1min: t.trial1min,
     trial_24h: t.trial24h,
     trial_7d: t.trial7d,
     active: t.active,
@@ -494,21 +502,35 @@ export default function SuperAdminView() {
 
       // If pack is selected, update subscription
       if (selectedPack) {
-        payload.subscriptionPack = selectedPack;
-        payload.subscriptionStatus = selectedPack === 'unlimited' ? 'unlimited' : 'active';
-        if (selectedPack === '1month') {
-          const start = new Date();
-          const end = new Date();
+        const start = new Date();
+        let end: Date | null = null;
+        let status: string = 'active';
+
+        if (selectedPack === 'trial_1min') {
+          end = new Date(start.getTime() + 60 * 1000); // +1 minute
+          status = 'trial_1min';
+        } else if (selectedPack === 'trial_24h') {
+          end = new Date(start.getTime() + 24 * 60 * 60 * 1000); // +24 hours
+          status = 'trial_24h';
+        } else if (selectedPack === 'trial_7d') {
+          end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 days
+          status = 'trial_7d';
+        } else if (selectedPack === '1month') {
+          end = new Date(start);
           end.setMonth(end.getMonth() + 1);
-          payload.subscriptionStart = start.toISOString();
-          payload.subscriptionEnd = end.toISOString();
+          payload.subscriptionPack = '1month';
         } else if (selectedPack === '1year') {
-          const start = new Date();
-          const end = new Date();
+          end = new Date(start);
           end.setFullYear(end.getFullYear() + 1);
-          payload.subscriptionStart = start.toISOString();
-          payload.subscriptionEnd = end.toISOString();
+          payload.subscriptionPack = '1year';
+        } else if (selectedPack === 'unlimited') {
+          payload.subscriptionPack = 'unlimited';
+          status = 'unlimited';
         }
+
+        payload.subscriptionStatus = status;
+        payload.subscriptionStart = start.toISOString();
+        payload.subscriptionEnd = end ? end.toISOString() : null;
       }
 
       const res = await fetch(`/api/super-admin/centres/${editingCentre.id}`, {
@@ -624,30 +646,62 @@ export default function SuperAdminView() {
 
   // ── Render ─────────────────────────────────────────────────────────────
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.reload();
+  };
+
   return (
-    <div dir="rtl" className="space-y-4">
-      {/* Header & Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">{sa.title}</h2>
-          <p className="text-sm text-muted-foreground">{sa.subtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={`${sa.centres}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pe-10"
-            />
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Top Header Bar */}
+      <div className="bg-gradient-to-l from-emerald-700 to-emerald-900 text-white px-4 sm:px-6 py-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+              <LayoutDashboard className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">Codex SaaS</h1>
+              <p className="text-xs text-emerald-200">{sa.subtitle}</p>
+            </div>
           </div>
-          <Button onClick={handleOpenCreateDialog} className="gap-2 shrink-0">
-            <Plus className="h-4 w-4" />
-            {sa.addCentre}
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="text-white/80 hover:text-white hover:bg-white/10 gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.sidebar.logout}</span>
           </Button>
         </div>
       </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Header & Actions */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <ShieldAlert className="h-6 w-6 text-emerald-600" />
+              {sa.title}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">{sa.subtitle}</p>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none sm:w-64">
+              <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={`${sa.centres}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pe-10"
+              />
+            </div>
+            <Button onClick={handleOpenCreateDialog} className="gap-2 bg-emerald-600 hover:bg-emerald-700 shrink-0">
+              <Plus className="h-4 w-4" />
+              {sa.addCentre}
+            </Button>
+          </div>
+        </div>
 
       {/* Stats Cards */}
       <StatsCards stats={stats} loading={statsLoading} t={sa} />
@@ -928,21 +982,24 @@ export default function SuperAdminView() {
                       </Button>
                     )}
 
-                    {/* Pack selector */}
+                    {/* Pack/Trial selector */}
                     <div className="space-y-3">
                       <Label className="text-sm font-semibold">{sa.selectPack}</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {([
+                          { value: 'trial_1min', label: sa.trial1min },
+                          { value: 'trial_24h', label: sa.trial24h },
+                          { value: 'trial_7d', label: sa.trial7d },
                           { value: '1month', label: sa.pack1month },
                           { value: '1year', label: sa.pack1year },
                           { value: 'unlimited', label: sa.packUnlimited },
                         ] as const).map((pack) => (
                           <label
                             key={pack.value}
-                            className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            className={`flex items-center gap-2 p-2.5 rounded-lg border-2 cursor-pointer transition-all text-sm ${
                               selectedPack === pack.value
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/30 hover:bg-accent/50'
+                                ? 'border-emerald-500 bg-emerald-50'
+                                : 'border-border hover:border-emerald-200 hover:bg-accent/50'
                             }`}
                           >
                             <input
@@ -951,15 +1008,15 @@ export default function SuperAdminView() {
                               value={pack.value}
                               checked={selectedPack === pack.value}
                               onChange={(e) => setSelectedPack(e.target.value)}
-                              className="accent-primary"
+                              className="accent-emerald-600"
                             />
-                            <span className="text-sm font-medium">{pack.label}</span>
+                            <span className="font-medium">{pack.label}</span>
                           </label>
                         ))}
                       </div>
                       {selectedPack && (
                         <Button
-                          className="gap-2 w-full sm:w-auto"
+                          className="gap-2 w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700"
                           onClick={() => {
                             handleEditSubmit();
                           }}
@@ -1081,6 +1138,7 @@ export default function SuperAdminView() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
