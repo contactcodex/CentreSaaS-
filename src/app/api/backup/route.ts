@@ -46,9 +46,11 @@ export async function POST(request: NextRequest) {
     const auth = await getCentreAuth(request);
     if (!auth.success) return auth.response;
 
+    const { centreId } = auth.auth;
+
     ensureBackupDir();
 
-    // Export all data from database
+    // Export only this centre's data from database
     const [
       settings,
       services,
@@ -61,27 +63,26 @@ export async function POST(request: NextRequest) {
       payments,
       teacherPayments,
       users,
-      sessions,
       schedules,
     ] = await Promise.all([
       db.setting.findMany(),
-      db.service.findMany(),
-      db.subject.findMany(),
-      db.level.findMany(),
-      db.teacher.findMany(),
-      db.teacherSubject.findMany(),
-      db.classroom.findMany(),
-      db.student.findMany(),
-      db.payment.findMany(),
-      db.teacherPayment.findMany(),
-      db.user.findMany({ select: { id: true, email: true, fullName: true, role: true, status: true, createdAt: true, updatedAt: true } }),
-      db.session.findMany(),
-      db.schedule.findMany(),
+      db.service.findMany({ where: { centreId } }),
+      db.subject.findMany({ where: { service: { centreId } } }),
+      db.level.findMany({ where: { subject: { service: { centreId } } } }),
+      db.teacher.findMany({ where: { centreId } }),
+      db.teacherSubject.findMany({ where: { teacher: { centreId } } }),
+      db.classroom.findMany({ where: { centreId } }),
+      db.student.findMany({ where: { centreId } }),
+      db.payment.findMany({ where: { student: { centreId } } }),
+      db.teacherPayment.findMany({ where: { teacher: { centreId } } }),
+      db.user.findMany({ where: { centreId }, select: { id: true, email: true, fullName: true, role: true, status: true, centreId: true, createdAt: true, updatedAt: true } }),
+      db.schedule.findMany({ where: { subject: { service: { centreId } } } }),
     ]);
 
     const backup = {
       version: '1.0',
       timestamp: new Date().toISOString(),
+      centreId,
       data: {
         settings,
         services,
@@ -94,7 +95,6 @@ export async function POST(request: NextRequest) {
         payments,
         teacherPayments,
         users,
-        sessions,
         schedules,
       },
     };

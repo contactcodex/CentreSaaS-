@@ -501,36 +501,31 @@ export default function SuperAdminView() {
       };
 
       // If pack is selected, update subscription
+      // Timer starts on FIRST LOGIN, not when super admin assigns the pack
       if (selectedPack) {
-        const start = new Date();
-        let end: Date | null = null;
         let status: string = 'active';
+        let pack: string | null = null;
 
         if (selectedPack === 'trial_1min') {
-          end = new Date(start.getTime() + 60 * 1000); // +1 minute
           status = 'trial_1min';
         } else if (selectedPack === 'trial_24h') {
-          end = new Date(start.getTime() + 24 * 60 * 60 * 1000); // +24 hours
           status = 'trial_24h';
         } else if (selectedPack === 'trial_7d') {
-          end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 days
           status = 'trial_7d';
         } else if (selectedPack === '1month') {
-          end = new Date(start);
-          end.setMonth(end.getMonth() + 1);
-          payload.subscriptionPack = '1month';
+          status = 'active';
+          pack = '1month';
         } else if (selectedPack === '1year') {
-          end = new Date(start);
-          end.setFullYear(end.getFullYear() + 1);
-          payload.subscriptionPack = '1year';
+          status = 'active';
+          pack = '1year';
         } else if (selectedPack === 'unlimited') {
-          payload.subscriptionPack = 'unlimited';
           status = 'unlimited';
+          pack = 'unlimited';
         }
 
         payload.subscriptionStatus = status;
-        payload.subscriptionStart = start.toISOString();
-        payload.subscriptionEnd = end ? end.toISOString() : null;
+        if (pack) payload.subscriptionPack = pack;
+        // Do NOT set subscriptionStart/subscriptionEnd — timer starts on first login
       }
 
       const res = await fetch(`/api/super-admin/centres/${editingCentre.id}`, {
@@ -552,16 +547,12 @@ export default function SuperAdminView() {
 
   const handleActivateTrial = async (centreId: string) => {
     try {
-      const start = new Date();
-      const end = new Date();
-      end.setDate(end.getDate() + 7);
+      // Timer starts on FIRST LOGIN, not when super admin assigns trial
       const res = await fetch(`/api/super-admin/centres/${centreId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subscriptionStatus: 'trial_7d',
-          subscriptionStart: start.toISOString(),
-          subscriptionEnd: end.toISOString(),
         }),
       });
       if (!res.ok) throw new Error();

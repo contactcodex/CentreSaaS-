@@ -49,9 +49,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing payment id' }, { status: 400 });
     }
 
-    // Fetch payment with teacher info
-    const payment = await db.teacherPayment.findUnique({
-      where: { id: paymentId },
+    const { centreId } = auth.auth;
+
+    // Fetch payment with teacher info, filtered by centreId
+    const payment = await db.teacherPayment.findFirst({
+      where: { id: paymentId, teacher: { centreId } },
       include: {
         teacher: {
           include: {
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
     const allStudentLevels = await db.studentLevel.findMany({
       where: {
         teacherId: { not: null },
-        student: { status: 'active' },
+        student: { status: 'active', centreId },
       },
       include: {
         student: {
