@@ -16,6 +16,16 @@ export async function GET(
           },
         },
         teacher: true,
+        enrollments: {
+          include: {
+            level: {
+              include: {
+                subject: { include: { service: true } },
+              },
+            },
+            teacher: true,
+          },
+        },
         payments: {
           orderBy: { createdAt: 'desc' },
         },
@@ -40,7 +50,10 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+    const enrollments: { levelId: string; teacherId?: string | null }[] = body.enrollments || [];
 
+    // Update student basic info
+    const firstEnrollment = enrollments[0] || {};
     const student = await db.student.update({
       where: { id },
       data: {
@@ -48,14 +61,22 @@ export async function PUT(
         phone: body.phone,
         email: body.email,
         address: body.address,
-        levelId: body.levelId,
-        teacherId: body.teacherId,
+        levelId: firstEnrollment.levelId || null,
+        teacherId: firstEnrollment.teacherId || null,
         parentName: body.parentName,
         parentPhone: body.parentPhone,
         monthlyFee: body.monthlyFee ?? 0,
         packMonths: body.packMonths ?? 1,
         status: body.status,
         enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : undefined,
+        // Replace all enrollments
+        enrollments: {
+          deleteMany: {},
+          create: enrollments.map((e: { levelId: string; teacherId?: string | null }) => ({
+            levelId: e.levelId,
+            teacherId: e.teacherId || null,
+          })),
+        },
       },
       include: {
         level: {
@@ -64,6 +85,16 @@ export async function PUT(
           },
         },
         teacher: true,
+        enrollments: {
+          include: {
+            level: {
+              include: {
+                subject: { include: { service: true } },
+              },
+            },
+            teacher: true,
+          },
+        },
       },
     });
 
