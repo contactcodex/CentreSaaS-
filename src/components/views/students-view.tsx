@@ -58,9 +58,23 @@ import {
   Sparkles,
   CircleCheck,
   CircleAlert,
+  Check,
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
+
+interface Enrollment {
+  id: string;
+  levelId: string;
+  level: {
+    id: string;
+    name: string;
+    nameAr: string;
+    subject: { id: string; name: string; nameAr: string; service?: { id: string; nameAr: string } };
+  };
+  teacherId: string | null;
+  teacher: { id: string; fullName: string } | null;
+}
 
 interface Student {
   id: string;
@@ -85,6 +99,7 @@ interface Student {
   enrollmentDate: string;
   isPackPaid?: boolean;
   nextDueDate?: string | null;
+  enrollments?: Enrollment[];
 }
 
 interface Service {
@@ -102,7 +117,7 @@ interface Subject {
   id: string;
   name: string;
   nameAr: string;
-  nameFr: string;
+  nameFr?: string;
   levels: Level[];
   order: number;
 }
@@ -111,7 +126,7 @@ interface Level {
   id: string;
   name: string;
   nameAr: string;
-  nameFr: string;
+  nameFr?: string;
 }
 
 interface Teacher {
@@ -200,7 +215,11 @@ export function StudentsView() {
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([]);
+  const [enrollmentLevels, setEnrollmentLevels] = useState<Record<string, Level>>({});
+  const [enrollmentTeachers, setEnrollmentTeachers] = useState<Record<string, Teacher | null>>({});
+  const [noTeacherFor, setNoTeacherFor] = useState<Record<string, boolean>>({});
+  // Backward compat single-select fields (used in edit mode fallback)
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [noTeacher, setNoTeacher] = useState(false);
@@ -226,7 +245,13 @@ export function StudentsView() {
   const studentCountsMap = useMemo(() => {
     const map: Record<string, number> = {};
     for (const s of students) {
-      if (s.teacherId) {
+      if (s.enrollments && s.enrollments.length > 0) {
+        for (const e of s.enrollments) {
+          if (e.teacherId) {
+            map[e.teacherId] = (map[e.teacherId] || 0) + 1;
+          }
+        }
+      } else if (s.teacherId) {
         map[s.teacherId] = (map[s.teacherId] || 0) + 1;
       }
     }
@@ -251,9 +276,24 @@ export function StudentsView() {
   // ── Computed: displayed students after all filters ──────────────────
   const displayedStudents = useMemo(() => {
     return students.filter((s) => {
-      if (filterServiceId && s.level?.subject?.service?.id !== filterServiceId) return false;
-      if (filterSubjectId && s.level?.subject?.id !== filterSubjectId) return false;
-      if (filterLevelId && s.levelId !== filterLevelId) return false;
+      if (filterServiceId) {
+        const hasMatch = (s.enrollments?.length > 0)
+          ? s.enrollments.some(e => e.level?.subject?.service?.id === filterServiceId)
+          : s.level?.subject?.service?.id === filterServiceId;
+        if (!hasMatch) return false;
+      }
+      if (filterSubjectId) {
+        const hasMatch = (s.enrollments?.length > 0)
+          ? s.enrollments.some(e => e.level?.subject?.id === filterSubjectId)
+          : s.level?.subject?.id === filterSubjectId;
+        if (!hasMatch) return false;
+      }
+      if (filterLevelId) {
+        const hasMatch = (s.enrollments?.length > 0)
+          ? s.enrollments.some(e => e.levelId === filterLevelId)
+          : s.levelId === filterLevelId;
+        if (!hasMatch) return false;
+      }
       return true;
     });
   }, [students, filterServiceId, filterSubjectId, filterLevelId]);
@@ -275,11 +315,9 @@ export function StudentsView() {
     return selectedService.subjects || [];
   }, [selectedService]);
 
-  // ── Computed: filtered levels for step 3 (deduplicated by name) ───────
-  const filteredLevels = useMemo(() => {
-    if (!selectedSubject) return [];
-    const levels = selectedSubject.levels || [];
-    // Deduplicate by name in case of duplicate DB entries
+  // ── Computed: get deduplicated levels for a subject ─────────────────
+  const getLevelsForSubject = useCallback((subject: Subject): Level[] => {
+    const levels = subject.levels || [];
     const seen = new Map<string, Level>();
     for (const lvl of levels) {
       if (!seen.has(lvl.name)) {
@@ -287,17 +325,34 @@ export function StudentsView() {
       }
     }
     return Array.from(seen.values());
-  }, [selectedSubject]);
+  }, []);
 
-  // ── Computed: filtered teachers for step 4 ─────────────────────────────
-  const filteredTeachers = useMemo(() => {
-    if (!selectedSubject) return [];
+  // ── Computed: get filtered teachers for a subject ───────────────────
+  const getFilteredTeachers = useCallback((subjectId: string): Teacher[] => {
     return teachers.filter(
       (teacher) =>
         teacher.status === 'active' &&
-        teacher.subjects.some((ts) => ts.subjectId === selectedSubject.id)
+        teacher.subjects.some((ts) => ts.subjectId === subjectId)
     );
-  }, [teachers, selectedSubject]);
+  }, [teachers]);
+
+  // ── Computed: check if "Next" button should be disabled ─────────────
+  const isNextDisabled = useCallback((): boolean => {
+    if (wizardStep === 2) {
+      return selectedSubjects.length === 0;
+    }
+    if (wizardStep === 3) {
+      return selectedSubjects.some((sub) => !enrollmentLevels[sub.id]);
+    }
+    if (wizardStep === 4) {
+      return selectedSubjects.some((sub) => {
+        const hasTeacher = enrollmentTeachers[sub.id] !== undefined && enrollmentTeachers[sub.id] !== null;
+        const isSkipped = noTeacherFor[sub.id] === true;
+        return !hasTeacher && !isSkipped;
+      });
+    }
+    return false;
+  }, [wizardStep, selectedSubjects, enrollmentLevels, enrollmentTeachers, noTeacherFor]);
 
   // ── Data fetching ──────────────────────────────────────────────────────
 
@@ -363,7 +418,10 @@ export function StudentsView() {
   const resetWizard = useCallback(() => {
     setWizardStep(1);
     setSelectedService(null);
-    setSelectedSubject(null);
+    setSelectedSubjects([]);
+    setEnrollmentLevels({});
+    setEnrollmentTeachers({});
+    setNoTeacherFor({});
     setSelectedLevel(null);
     setSelectedTeacher(null);
     setNoTeacher(false);
@@ -386,48 +444,149 @@ export function StudentsView() {
           ? new Date(student.enrollmentDate).toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0],
       });
-      // Pre-select service, subject, level, teacher from student data
-      if (student.level?.subject) {
-        const svc = services.find(
-          (s) => s.id === student.level?.subject?.service?.id
-        );
+
+      // Check if student has enrollments (multi-subject)
+      if (student.enrollments && student.enrollments.length > 0) {
+        const enrollments = student.enrollments;
+
+        // Build unique subjects map from enrollments
+        const subjectsMap = new Map<string, Subject>();
+        const levelsMap: Record<string, Level> = {};
+        const teachersMap: Record<string, Teacher | null> = {};
+        const noTeacherMap: Record<string, boolean> = {};
+        let svcId: string | undefined;
+
+        for (const e of enrollments) {
+          if (e.level?.subject) {
+            svcId = e.level.subject.service?.id;
+            if (!subjectsMap.has(e.level.subject.id)) {
+              // Find the full subject from services data
+              const svc = services.find((s) => s.id === svcId);
+              const fullSubject = svc?.subjects.find((sub) => sub.id === e.level.subject.id);
+              subjectsMap.set(e.level.subject.id, {
+                id: e.level.subject.id,
+                name: e.level.subject.name,
+                nameAr: e.level.subject.nameAr,
+                nameFr: '',
+                levels: fullSubject?.levels || [],
+                order: 0,
+              });
+            }
+            levelsMap[e.level.subject.id] = {
+              id: e.level.id,
+              name: e.level.name,
+              nameAr: e.level.nameAr,
+              nameFr: '',
+            };
+
+            if (e.teacherId && e.teacher) {
+              teachersMap[e.level.subject.id] = {
+                id: e.teacher.id,
+                fullName: e.teacher.fullName,
+                phone: null,
+                email: null,
+                status: 'active',
+                subjects: [],
+              };
+              noTeacherMap[e.level.subject.id] = false;
+            } else {
+              teachersMap[e.level.subject.id] = null;
+              noTeacherMap[e.level.subject.id] = true;
+            }
+          }
+        }
+
+        const svc = services.find((s) => s.id === svcId);
         setSelectedService(svc || null);
-        // Find the full subject from services data to get ALL levels
-        const fullSubject = svc?.subjects.find(
-          (sub) => sub.id === student.level?.subject?.id
-        );
-        setSelectedSubject({
-          id: student.level.subject.id,
-          name: student.level.subject.name,
-          nameAr: student.level.subject.nameAr,
-          nameFr: student.level.subject.nameFr,
-          levels: fullSubject?.levels || [],
-          order: 0,
-        });
-        setSelectedLevel({
-          id: student.level.id,
-          name: student.level.name,
-          nameAr: student.level.nameAr,
-          nameFr: '',
-        });
+        setSelectedSubjects(Array.from(subjectsMap.values()));
+        setEnrollmentLevels(levelsMap);
+        setEnrollmentTeachers(teachersMap);
+        setNoTeacherFor(noTeacherMap);
+
+        // Backward compat
+        const firstEnrollment = enrollments[0];
+        if (firstEnrollment?.level) {
+          setSelectedLevel({
+            id: firstEnrollment.level.id,
+            name: firstEnrollment.level.name,
+            nameAr: firstEnrollment.level.nameAr,
+            nameFr: '',
+          });
+        }
+        if (firstEnrollment?.teacherId && firstEnrollment.teacher) {
+          setSelectedTeacher({
+            id: firstEnrollment.teacher.id,
+            fullName: firstEnrollment.teacher.fullName,
+            phone: null,
+            email: null,
+            status: 'active',
+            subjects: [],
+          });
+          setNoTeacher(false);
+        } else if (enrollments.some(e => e.teacherId)) {
+          setSelectedTeacher(null);
+          setNoTeacher(false);
+        } else {
+          setSelectedTeacher(null);
+          setNoTeacher(true);
+        }
       } else {
-        setSelectedService(null);
-        setSelectedSubject(null);
-        setSelectedLevel(null);
-      }
-      if (student.teacherId && student.teacher) {
-        setSelectedTeacher({
-          id: student.teacher.id,
-          fullName: student.teacher.fullName,
-          phone: null,
-          email: null,
-          status: 'active',
-          subjects: [],
-        });
-        setNoTeacher(false);
-      } else {
-        setSelectedTeacher(null);
-        setNoTeacher(!student.teacherId);
+        // Fallback: use old single-subject fields
+        if (student.level?.subject) {
+          const svc = services.find(
+            (s) => s.id === student.level?.subject?.service?.id
+          );
+          setSelectedService(svc || null);
+          const fullSubject = svc?.subjects.find(
+            (sub) => sub.id === student.level?.subject?.id
+          );
+          const subj = {
+            id: student.level.subject.id,
+            name: student.level.subject.name,
+            nameAr: student.level.subject.nameAr,
+            nameFr: '',
+            levels: fullSubject?.levels || [],
+            order: 0,
+          };
+          setSelectedSubjects([subj]);
+          setSelectedSubject_global(subj);
+          setSelectedLevel({
+            id: student.level.id,
+            name: student.level.name,
+            nameAr: student.level.nameAr,
+            nameFr: '',
+          });
+          setEnrollmentLevels({ [student.level.subject.id]: { id: student.level.id, name: student.level.name, nameAr: student.level.nameAr, nameFr: '' } });
+        } else {
+          setSelectedService(null);
+          setSelectedSubjects([]);
+          setSelectedLevel(null);
+          setEnrollmentLevels({});
+        }
+        if (student.teacherId && student.teacher) {
+          const subId = student.level?.subject?.id;
+          setSelectedTeacher({
+            id: student.teacher.id,
+            fullName: student.teacher.fullName,
+            phone: null,
+            email: null,
+            status: 'active',
+            subjects: [],
+          });
+          setNoTeacher(false);
+          if (subId) {
+            setEnrollmentTeachers({ [subId]: { id: student.teacher.id, fullName: student.teacher.fullName, phone: null, email: null, status: 'active', subjects: [] } });
+            setNoTeacherFor({ [subId]: false });
+          }
+        } else {
+          setSelectedTeacher(null);
+          setNoTeacher(!student.teacherId);
+          const subId = student.level?.subject?.id;
+          if (subId) {
+            setEnrollmentTeachers({ [subId]: null });
+            setNoTeacherFor({ [subId]: true });
+          }
+        }
       }
       setWizardStep(5);
     } else {
@@ -437,47 +596,80 @@ export function StudentsView() {
     setDialogOpen(true);
   };
 
+  // Helper for backward compat to set a single subject
+  const setSelectedSubject_global = (subject: Subject | null) => {
+    if (subject) {
+      setSelectedSubjects([subject]);
+    } else {
+      setSelectedSubjects([]);
+    }
+  };
+
   const handleSelectService = (service: Service) => {
     setSelectedService(service);
-    setSelectedSubject(null);
+    setSelectedSubjects([]);
+    setEnrollmentLevels({});
+    setEnrollmentTeachers({});
+    setNoTeacherFor({});
     setSelectedLevel(null);
     setSelectedTeacher(null);
     setNoTeacher(false);
     setWizardStep(2);
   };
 
-  const handleSelectSubject = (subject: Subject) => {
-    setSelectedSubject(subject);
-    setSelectedLevel(null);
-    setSelectedTeacher(null);
-    setNoTeacher(false);
-    setWizardStep(3);
+  const handleToggleSubject = (subject: Subject) => {
+    setSelectedSubjects((prev) => {
+      const exists = prev.some((s) => s.id === subject.id);
+      if (exists) {
+        // Remove subject and its related level/teacher data
+        const newSubjects = prev.filter((s) => s.id !== subject.id);
+        setEnrollmentLevels((prevLevels) => {
+          const { [subject.id]: _, ...rest } = prevLevels;
+          return rest;
+        });
+        setEnrollmentTeachers((prevTeachers) => {
+          const { [subject.id]: __, ...rest } = prevTeachers;
+          return rest;
+        });
+        setNoTeacherFor((prevNo) => {
+          const { [subject.id]: ___, ...rest } = prevNo;
+          return rest;
+        });
+        return newSubjects;
+      } else {
+        return [...prev, subject];
+      }
+    });
   };
 
-  const handleSelectLevel = (level: Level) => {
-    setSelectedLevel(level);
-    setSelectedTeacher(null);
-    setNoTeacher(false);
-    setWizardStep(4);
+  const handleSelectLevelForSubject = (subjectId: string, level: Level) => {
+    setEnrollmentLevels((prev) => ({ ...prev, [subjectId]: level }));
   };
 
-  const handleSelectTeacher = (teacher: Teacher | null) => {
+  const handleSelectTeacherForSubject = (subjectId: string, teacher: Teacher | null) => {
+    setEnrollmentTeachers((prev) => ({ ...prev, [subjectId]: teacher }));
     if (teacher === null) {
-      // "بدون أستاذ" option
-      setSelectedTeacher(null);
-      setNoTeacher(true);
-      setWizardStep(5);
+      setNoTeacherFor((prev) => ({ ...prev, [subjectId]: true }));
     } else {
-      setSelectedTeacher(teacher);
-      setNoTeacher(false);
-      setWizardStep(5);
+      setNoTeacherFor((prev) => ({ ...prev, [subjectId]: false }));
     }
   };
 
-  const handleSkipTeacher = () => {
-    setSelectedTeacher(null);
-    setNoTeacher(true);
-    setWizardStep(5);
+  const handleSkipAllTeachers = () => {
+    const newNoTeacherFor: Record<string, boolean> = {};
+    const newEnrollmentTeachers: Record<string, Teacher | null> = {};
+    for (const sub of selectedSubjects) {
+      newNoTeacherFor[sub.id] = true;
+      newEnrollmentTeachers[sub.id] = null;
+    }
+    setNoTeacherFor(newNoTeacherFor);
+    setEnrollmentTeachers(newEnrollmentTeachers);
+  };
+
+  const handleNextStep = () => {
+    if (wizardStep < 5) {
+      setWizardStep((wizardStep + 1) as WizardStep);
+    }
   };
 
   const goToStep = (step: WizardStep) => {
@@ -493,7 +685,12 @@ export function StudentsView() {
       toast.error(t.students.nameRequired);
       return;
     }
-    if (!selectedLevel) {
+    if (selectedSubjects.length === 0) {
+      toast.error(t.students.selectLevel);
+      return;
+    }
+    const allHaveLevels = selectedSubjects.every((sub) => enrollmentLevels[sub.id]);
+    if (!allHaveLevels) {
       toast.error(t.students.selectLevel);
       return;
     }
@@ -507,8 +704,10 @@ export function StudentsView() {
         parentPhone: form.parentPhone || null,
         monthlyFee: parseFloat(form.monthlyFee) || 0,
         packMonths: form.packMonths || 1,
-        levelId: selectedLevel.id,
-        teacherId: noTeacher ? null : (selectedTeacher?.id || null),
+        enrollments: selectedSubjects.map((sub) => ({
+          levelId: enrollmentLevels[sub.id].id,
+          teacherId: noTeacherFor[sub.id] ? null : (enrollmentTeachers[sub.id]?.id || null),
+        })),
         status: editingStudent?.status || 'active',
         enrollmentDate: form.enrollmentDate || new Date().toISOString(),
       };
@@ -553,6 +752,14 @@ export function StudentsView() {
   const handleToggleStatus = async (student: Student) => {
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
     try {
+      // Get levelId and teacherId from first enrollment or existing values for backward compat
+      let levelId = student.levelId;
+      let teacherId = student.teacherId;
+      if (student.enrollments && student.enrollments.length > 0) {
+        levelId = student.enrollments[0].levelId;
+        teacherId = student.enrollments[0].teacherId;
+      }
+
       const res = await fetch(`/api/students/${student.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -561,8 +768,8 @@ export function StudentsView() {
           phone: student.phone,
           email: student.email,
           address: student.address,
-          levelId: student.levelId,
-          teacherId: student.teacherId,
+          levelId,
+          teacherId,
           parentName: student.parentName,
           parentPhone: student.parentPhone,
           monthlyFee: student.monthlyFee,
@@ -724,34 +931,47 @@ export function StudentsView() {
       case 2:
         return (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => goToStep(1)}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <h4 className="text-sm font-semibold text-muted-foreground">
-                {t.students.subjectsAvailable}
-              </h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => goToStep(1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <h4 className="text-sm font-semibold text-muted-foreground">
+                  {t.students.subjectsAvailable}
+                </h4>
+              </div>
+              {selectedSubjects.length > 0 && (
+                <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 text-xs">
+                  {selectedSubjects.length} {t.students.subjectCount}
+                </Badge>
+              )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {filteredSubjects.map((subj) => {
-                const isSelected = selectedSubject?.id === subj.id;
+                const isSelected = selectedSubjects.some((s) => s.id === subj.id);
                 return (
                   <Card
                     key={subj.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
+                    className={`cursor-pointer transition-all hover:shadow-md relative ${
                       isSelected
                         ? 'border-cyan-500 bg-cyan-50 shadow-md ring-1 ring-cyan-200'
                         : 'border-border hover:border-cyan-300 hover:bg-cyan-50/50'
                     }`}
-                    onClick={() => handleSelectSubject(subj)}
+                    onClick={() => handleToggleSubject(subj)}
                   >
-                    <CardContent className="p-3 text-center">
+                    <CardContent className="p-3 text-center relative">
+                      {/* Checkmark overlay */}
+                      {isSelected && (
+                        <div className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-emerald-500 flex items-center justify-center z-10">
+                          <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                        </div>
+                      )}
                       <div
                         className={`h-10 w-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
                           isSelected
@@ -787,7 +1007,7 @@ export function StudentsView() {
 
       case 3:
         return (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -802,174 +1022,214 @@ export function StudentsView() {
                 {t.students.levelsAvailable}
               </h4>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filteredLevels.map((lvl) => {
-                const isSelected = selectedLevel?.id === lvl.id;
-                return (
-                  <Card
-                    key={lvl.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      isSelected
-                        ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
-                        : 'border-border hover:border-sky-300 hover:bg-sky-50/50'
-                    }`}
-                    onClick={() => handleSelectLevel(lvl)}
-                  >
-                    <CardContent className="p-3 text-center">
-                      <div
-                        className={`h-10 w-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
-                          isSelected
-                            ? 'bg-sky-100 text-sky-700'
-                            : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        <GraduationCap className="h-5 w-5" />
-                      </div>
-                      <p
-                        className={`text-xs font-medium leading-tight ${
-                          isSelected ? 'text-sky-800' : ''
-                        }`}
-                      >
-                        {lvl.nameAr}
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-            {filteredLevels.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <GraduationCap className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">{t.services.noLevels}</p>
-              </div>
-            )}
+            {selectedSubjects.map((subj, subIdx) => {
+              const levels = getLevelsForSubject(subj);
+              const selectedLvl = enrollmentLevels[subj.id];
+              return (
+                <div key={subj.id} className="space-y-2">
+                  {subIdx > 0 && <div className="border-t border-dashed my-2" />}
+                  <h4 className="text-sm font-semibold flex items-center gap-2 text-cyan-700">
+                    <BookOpen className="h-4 w-4" />
+                    {subj.nameAr}
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {levels.map((lvl) => {
+                      const isSelected = selectedLvl?.id === lvl.id;
+                      return (
+                        <Card
+                          key={lvl.id}
+                          className={`cursor-pointer transition-all hover:shadow-md ${
+                            isSelected
+                              ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
+                              : 'border-border hover:border-sky-300 hover:bg-sky-50/50'
+                          }`}
+                          onClick={() => handleSelectLevelForSubject(subj.id, lvl)}
+                        >
+                          <CardContent className="p-3 text-center">
+                            <div
+                              className={`h-10 w-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
+                                isSelected
+                                  ? 'bg-sky-100 text-sky-700'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}
+                            >
+                              <GraduationCap className="h-5 w-5" />
+                            </div>
+                            <p
+                              className={`text-xs font-medium leading-tight ${
+                                isSelected ? 'text-sky-800' : ''
+                              }`}
+                            >
+                              {lvl.nameAr}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {levels.length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      {t.services.noLevels}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         );
 
       case 4:
         return (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => goToStep(3)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <h4 className="text-sm font-semibold text-muted-foreground">
+                  {t.students.teachersAvailable}
+                </h4>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => goToStep(3)}
+                size="sm"
+                onClick={handleSkipAllTeachers}
+                className="gap-1 text-violet-600 hover:text-violet-800 text-xs h-7"
               >
-                <ChevronRight className="h-4 w-4" />
+                <UserMinus className="h-3 w-3" />
+                تخطي الكل
               </Button>
-              <h4 className="text-sm font-semibold text-muted-foreground">
-                {t.students.teachersAvailable}
-              </h4>
             </div>
+            {selectedSubjects.map((subj, subIdx) => {
+              const teachers = getFilteredTeachers(subj.id);
+              const selectedTchr = enrollmentTeachers[subj.id];
+              const isNoTeacher = noTeacherFor[subj.id] === true;
+              const isResolved = isNoTeacher || (selectedTchr !== undefined && selectedTchr !== null);
+              return (
+                <div key={subj.id} className="space-y-2">
+                  {subIdx > 0 && <div className="border-t border-dashed my-2" />}
+                  <h4 className="text-sm font-semibold flex items-center gap-2 text-cyan-700">
+                    <BookOpen className="h-4 w-4" />
+                    {subj.nameAr}
+                    {isResolved && (
+                      <Check className="h-4 w-4 text-emerald-500" />
+                    )}
+                  </h4>
 
-            {/* Without teacher option */}
-            <Card
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                noTeacher
-                  ? 'border-violet-500 bg-violet-50 shadow-md ring-1 ring-violet-200'
-                  : 'border-border hover:border-violet-300'
-              }`}
-              onClick={() => handleSelectTeacher(null)}
-            >
-              <CardContent className="p-3 flex items-center gap-3">
-                <div
-                  className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
-                    noTeacher
-                      ? 'bg-violet-100 text-violet-700'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <UserMinus className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <p
-                    className={`text-sm font-medium ${
-                      noTeacher ? 'text-violet-800' : ''
-                    }`}
-                  >
-                    {t.students.withoutTeacher}
-                  </p>
-                </div>
-                {noTeacher && (
-                  <div className="h-5 w-5 rounded-full bg-violet-500 flex items-center justify-center">
-                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Teacher list */}
-            <div className="space-y-2">
-              {filteredTeachers.map((teacher) => {
-                const isSelected = selectedTeacher?.id === teacher.id && !noTeacher;
-                const count = studentCountsMap[teacher.id] || 0;
-                return (
+                  {/* Without teacher option */}
                   <Card
-                    key={teacher.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
-                      isSelected
-                        ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
-                        : 'border-border hover:border-sky-300'
+                      isNoTeacher
+                        ? 'border-violet-500 bg-violet-50 shadow-md ring-1 ring-violet-200'
+                        : 'border-border hover:border-violet-300'
                     }`}
-                    onClick={() => handleSelectTeacher(teacher)}
+                    onClick={() => handleSelectTeacherForSubject(subj.id, null)}
                   >
                     <CardContent className="p-3 flex items-center gap-3">
                       <div
-                        className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                          isSelected
-                            ? 'bg-sky-100 text-sky-700'
-                            : getAvatarColor(teacher.fullName)
+                        className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
+                          isNoTeacher
+                            ? 'bg-violet-100 text-violet-700'
+                            : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {teacher.fullName.charAt(0)}
+                        <UserMinus className="h-5 w-5" />
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1">
                         <p
-                          className={`text-sm font-medium truncate ${
-                            isSelected ? 'text-sky-800' : ''
+                          className={`text-sm font-medium ${
+                            isNoTeacher ? 'text-violet-800' : ''
                           }`}
                         >
-                          {teacher.fullName}
+                          {t.students.withoutTeacher}
                         </p>
-                        {teacher.phone && (
-                          <p className="text-xs text-muted-foreground truncate" dir="ltr">
-                            {teacher.phone}
-                          </p>
-                        )}
                       </div>
-                      <Badge
-                        variant="secondary"
-                        className={`shrink-0 text-xs ${
-                          count > 0
-                            ? 'bg-sky-100 text-sky-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {count} {t.students.studentCountLabel}
-                      </Badge>
+                      {isNoTeacher && (
+                        <div className="h-5 w-5 rounded-full bg-violet-500 flex items-center justify-center">
+                          <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
-                );
-              })}
-            </div>
 
-            {filteredTeachers.length === 0 && !noTeacher && (
-              <div className="text-center py-8 text-muted-foreground">
-                <UserCheck className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">{t.common.noData}</p>
-              </div>
-            )}
+                  {/* Teacher list */}
+                  <div className="space-y-2">
+                    {teachers.map((teacher) => {
+                      const isSelected = selectedTchr?.id === teacher.id && !isNoTeacher;
+                      const count = studentCountsMap[teacher.id] || 0;
+                      return (
+                        <Card
+                          key={teacher.id}
+                          className={`cursor-pointer transition-all hover:shadow-md ${
+                            isSelected
+                              ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
+                              : 'border-border hover:border-sky-300'
+                          }`}
+                          onClick={() => handleSelectTeacherForSubject(subj.id, teacher)}
+                        >
+                          <CardContent className="p-3 flex items-center gap-3">
+                            <div
+                              className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                                isSelected
+                                  ? 'bg-sky-100 text-sky-700'
+                                  : getAvatarColor(teacher.fullName)
+                              }`}
+                            >
+                              {teacher.fullName.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`text-sm font-medium truncate ${
+                                  isSelected ? 'text-sky-800' : ''
+                                }`}
+                              >
+                                {teacher.fullName}
+                              </p>
+                              {teacher.phone && (
+                                <p className="text-xs text-muted-foreground truncate" dir="ltr">
+                                  {teacher.phone}
+                                </p>
+                              )}
+                            </div>
+                            <Badge
+                              variant="secondary"
+                              className={`shrink-0 text-xs ${
+                                count > 0
+                                  ? 'bg-sky-100 text-sky-700'
+                                  : 'bg-gray-100 text-gray-500'
+                              }`}
+                            >
+                              {count} {t.students.studentCountLabel}
+                            </Badge>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+
+                  {teachers.length === 0 && !isNoTeacher && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <UserCheck className="h-8 w-8 mx-auto mb-1 opacity-30" />
+                      <p className="text-xs">{t.common.noData}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         );
 
       case 5:
         return (
           <div className="space-y-4">
-            {/* Summary badges */}
+            {/* Summary badges - multi-subject */}
             <div className="flex flex-wrap gap-2 p-3 rounded-lg bg-muted/50 border">
               {selectedService && (
                 <Badge variant="outline" className="gap-1 text-xs">
@@ -977,29 +1237,41 @@ export function StudentsView() {
                   {selectedService.nameAr}
                 </Badge>
               )}
-              {selectedSubject && (
-                <Badge variant="outline" className="gap-1 text-xs">
-                  <BookOpen className="h-3 w-3" />
-                  {selectedSubject.nameAr}
-                </Badge>
-              )}
-              {selectedLevel && (
-                <Badge variant="outline" className="gap-1 text-xs border-sky-300 text-sky-700">
-                  <GraduationCap className="h-3 w-3" />
-                  {selectedLevel.nameAr}
-                </Badge>
-              )}
-              {!noTeacher && selectedTeacher ? (
-                <Badge variant="outline" className="gap-1 text-xs border-sky-300 text-sky-700">
-                  <UserCheck className="h-3 w-3" />
-                  {selectedTeacher.fullName}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="gap-1 text-xs border-violet-300 text-violet-700">
-                  <UserMinus className="h-3 w-3" />
-                  {t.students.withoutTeacher}
-                </Badge>
-              )}
+              {selectedSubjects.map((sub) => {
+                const lvl = enrollmentLevels[sub.id];
+                const tchr = enrollmentTeachers[sub.id];
+                const isNoTchr = noTeacherFor[sub.id] === true;
+                return (
+                  <Badge
+                    key={sub.id}
+                    variant="outline"
+                    className="gap-1 text-xs border-sky-300 text-sky-700 flex-wrap"
+                  >
+                    <BookOpen className="h-3 w-3" />
+                    {sub.nameAr}
+                    {lvl && (
+                      <>
+                        <span className="mx-0.5">—</span>
+                        <GraduationCap className="h-3 w-3" />
+                        {lvl.nameAr}
+                      </>
+                    )}
+                    {!isNoTchr && tchr ? (
+                      <>
+                        <span className="mx-0.5">—</span>
+                        <UserCheck className="h-3 w-3" />
+                        {tchr.fullName}
+                      </>
+                    ) : (
+                      <>
+                        <span className="mx-0.5">—</span>
+                        <UserMinus className="h-3 w-3" />
+                        {t.students.withoutTeacher}
+                      </>
+                    )}
+                  </Badge>
+                );
+              })}
             </div>
 
             {/* Back to change selections */}
@@ -1009,7 +1281,7 @@ export function StudentsView() {
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1"
-                onClick={() => goToStep(selectedTeacher ? 4 : 3)}
+                onClick={() => goToStep(2)}
               >
                 <Pencil className="h-3 w-3" />
                 {t.common.edit}
@@ -1305,7 +1577,17 @@ export function StudentsView() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right hidden md:table-cell">
-                        {student.level ? (
+                        {student.enrollments && student.enrollments.length > 0 ? (
+                          <div className="flex flex-col gap-0.5">
+                            {student.enrollments.map((e) => (
+                              <div key={e.id} className="text-xs">
+                                <span className="text-muted-foreground">{e.level?.subject?.nameAr}</span>
+                                <span className="mx-0.5">—</span>
+                                <span className="font-medium">{e.level?.nameAr}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : student.level ? (
                           <div className="text-sm">
                             <span className="text-muted-foreground">{student.level.subject?.nameAr}</span>
                             <span className="mx-1">—</span>
@@ -1316,7 +1598,24 @@ export function StudentsView() {
                         )}
                       </TableCell>
                       <TableCell className="text-right hidden lg:table-cell">
-                        {student.teacher ? (
+                        {student.enrollments && student.enrollments.length > 0 ? (() => {
+                          const firstWithTeacher = student.enrollments.find((e) => e.teacherId && e.teacher);
+                          const allNoTeacher = student.enrollments.every((e) => !e.teacherId);
+                          if (allNoTeacher) {
+                            return <span className="text-muted-foreground text-sm">{t.students.withoutTeacher}</span>;
+                          }
+                          if (firstWithTeacher?.teacher) {
+                            return (
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(firstWithTeacher.teacher.fullName)}`}>
+                                  {firstWithTeacher.teacher.fullName.charAt(0)}
+                                </div>
+                                <span>{firstWithTeacher.teacher.fullName}</span>
+                              </div>
+                            );
+                          }
+                          return <span className="text-muted-foreground text-sm">{t.students.withoutTeacher}</span>;
+                        })() : student.teacher ? (
                           <div className="flex items-center gap-1.5 text-sm">
                             <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(student.teacher.fullName)}`}>
                               {student.teacher.fullName.charAt(0)}
@@ -1450,17 +1749,17 @@ export function StudentsView() {
           {/* Footer - sticky */}
           <DialogFooter className="px-8 py-4 border-t shrink-0">
             <div className="flex items-center justify-between w-full gap-2">
-              {/* Left side: back or skip */}
+              {/* Left side: back / skip / skip all */}
               <div>
                 {wizardStep === 4 && !editingStudent && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={handleSkipTeacher}
-                    className="gap-1 text-muted-foreground"
+                    onClick={handleSkipAllTeachers}
+                    className="gap-1 text-muted-foreground mr-2"
                   >
-                    {t.common.skip}
+                    تخطي الكل
                     <ChevronLeft className="h-3 w-3" />
                   </Button>
                 )}
@@ -1478,7 +1777,7 @@ export function StudentsView() {
                 )}
               </div>
 
-              {/* Right side: cancel + save */}
+              {/* Right side: cancel + save / next */}
               <div className="flex items-center gap-2">
                 {editingStudent && (
                   <AlertDialog>
@@ -1525,11 +1824,22 @@ export function StudentsView() {
                   <Button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={submitting || !form.fullName.trim() || !selectedLevel}
+                    disabled={submitting || !form.fullName.trim() || selectedSubjects.length === 0 || selectedSubjects.some((sub) => !enrollmentLevels[sub.id])}
                     className="gap-1"
                   >
                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                     {editingStudent ? t.common.saveChanges : t.students.addStudent}
+                  </Button>
+                )}
+                {wizardStep >= 2 && wizardStep < 5 && !editingStudent && (
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={isNextDisabled()}
+                    className="gap-1"
+                  >
+                    {t.common.next || 'التالي'}
+                    <ChevronLeft className="h-3 w-3" />
                   </Button>
                 )}
               </div>
