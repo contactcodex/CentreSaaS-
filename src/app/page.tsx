@@ -43,7 +43,7 @@ import { ServicesView } from '@/components/views/services-view';
 import { ClassroomsView } from '@/components/views/classrooms-view';
 import { SettingsView } from '@/components/views/settings-view';
 import UsersView from '@/components/views/users-view';
-import { SuperAdminView } from '@/components/views/super-admin-view';
+import SuperAdminView from '@/components/views/super-admin-view';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 interface CentreInfo {
