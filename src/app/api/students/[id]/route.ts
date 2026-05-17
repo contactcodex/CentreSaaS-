@@ -50,10 +50,11 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const enrollments: { levelId: string; teacherId?: string | null }[] = body.enrollments || [];
+    const enrollments: { levelId: string; teacherId?: string | null; monthlyFee?: number }[] = body.enrollments || [];
 
     // Update student basic info
     const firstEnrollment = enrollments[0] || {};
+    const totalFee = enrollments.reduce((sum: number, e: { monthlyFee?: number }) => sum + (e.monthlyFee || 0), 0);
     const student = await db.student.update({
       where: { id },
       data: {
@@ -65,16 +66,17 @@ export async function PUT(
         teacherId: firstEnrollment.teacherId || null,
         parentName: body.parentName,
         parentPhone: body.parentPhone,
-        monthlyFee: body.monthlyFee ?? 0,
+        monthlyFee: totalFee,
         packMonths: body.packMonths ?? 1,
         status: body.status,
         enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : undefined,
         // Replace all enrollments
         enrollments: {
           deleteMany: {},
-          create: enrollments.map((e: { levelId: string; teacherId?: string | null }) => ({
+          create: enrollments.map((e: { levelId: string; teacherId?: string | null; monthlyFee?: number }) => ({
             levelId: e.levelId,
             teacherId: e.teacherId || null,
+            monthlyFee: e.monthlyFee ?? 0,
           })),
         },
       },
