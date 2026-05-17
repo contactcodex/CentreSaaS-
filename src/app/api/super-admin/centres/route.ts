@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   if (!auth.success) return auth.response;
 
   try {
-    const { name, email, password, contactPhone, contactWhatsapp } = await request.json();
+    const { name, email, password, contactPhone, contactWhatsapp, subscriptionStatus, notes } = await request.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -63,11 +63,10 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Set subscription dates
-    const now = new Date();
-    const subscriptionEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +24h
+    // Determine subscription status - default to trial_24h or whatever super admin chose
+    const subStatus = subscriptionStatus || 'trial_24h';
 
-    // Create centre
+    // Create centre - subscriptionStart/End stay NULL (timer starts on first login)
     const centre = await db.centre.create({
       data: {
         name,
@@ -75,9 +74,10 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         contactPhone: contactPhone || null,
         contactWhatsapp: contactWhatsapp || null,
-        subscriptionStatus: 'trial_24h',
-        subscriptionStart: now,
-        subscriptionEnd,
+        notes: notes || null,
+        subscriptionStatus: subStatus,
+        // subscriptionStart: null - starts on first login
+        // subscriptionEnd: null - calculated on first login
       },
     });
 

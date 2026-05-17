@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 const MONTH_NAMES_AR = [
   'يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو',
@@ -39,6 +40,8 @@ function formatMoney(amount: number): string {
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     const { searchParams } = new URL(request.url);
     const paymentId = searchParams.get('id');
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/session';
+import { getCentreAuth } from '@/lib/centre-auth';
 import { db } from '@/lib/db';
 import { st } from '@/lib/server-t';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -10,8 +10,8 @@ const BACKUP_DIR = join(process.cwd(), 'backups');
 // POST /api/backup/restore — Restore from a backup file
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
-    if (auth instanceof NextResponse) return auth;
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
 
     const body = await request.json();
     const { filename } = body;

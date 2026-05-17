@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
-    const student = await db.student.findUnique({
-      where: { id },
+    const student = await db.student.findFirst({
+      where: { id, centreId: auth.auth.centreId },
       include: {
         level: {
           include: {
@@ -48,9 +52,20 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
     const body = await request.json();
     const enrollments: { levelId: string; teacherId?: string | null; monthlyFee?: number }[] = body.enrollments || [];
+
+    // Verify student belongs to centre
+    const existing = await db.student.findFirst({
+      where: { id, centreId: auth.auth.centreId },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
 
     // Update student basic info
     const firstEnrollment = enrollments[0] || {};
@@ -112,7 +127,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { id } = await params;
+    const existing = await db.student.findFirst({
+      where: { id, centreId: auth.auth.centreId },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
     await db.student.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 import bcrypt from 'bcryptjs';
 import { st } from '@/lib/server-t';
 
 const SALT_ROUNDS = 12;
 
-// GET /api/users/[id]
-export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     const { id } = await params;
-    const user = await db.user.findUnique({
-      where: { id },
-      select: {
-        id: true, email: true, fullName: true, role: true, status: true, accessPages: true, createdAt: true,
-      },
-    });
+    const user = await db.user.findFirst({ where: { id, centreId: auth.auth.centreId }, select: { id: true, email: true, fullName: true, role: true, status: true, accessPages: true, createdAt: true } });
     if (!user) {
       return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }
@@ -27,16 +24,16 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 // PUT /api/users/[id]
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     const { id } = await params;
-    const data = await request.json();
-    const { email, password, fullName, role, status, accessPages } = data;
-
-    const existing = await db.user.findUnique({ where: { id } });
+    const existing = await db.user.findFirst({ where: { id, centreId: auth.auth.centreId } });
     if (!existing) {
       return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }
 
-    // Check email uniqueness
+    const data = await request.json();
+    const { email, password, fullName, role, status, accessPages } = data;
     if (email && email !== existing.email) {
       const emailTaken = await db.user.findFirst({ where: { email, id: { not: id } } });
       if (emailTaken) {
@@ -71,10 +68,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 }
 
 // DELETE /api/users/[id]
-export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     const { id } = await params;
-    const existing = await db.user.findUnique({ where: { id } });
+    const existing = await db.user.findFirst({ where: { id, centreId: auth.auth.centreId } });
     if (!existing) {
       return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }

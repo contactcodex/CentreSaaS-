@@ -61,8 +61,6 @@ export async function PUT(
       contactWhatsapp,
       subscriptionStatus,
       subscriptionPack,
-      subscriptionStart,
-      subscriptionEnd,
       isActive,
       notes,
     } = body;
@@ -82,74 +80,23 @@ export async function PUT(
     if (isActive !== undefined) updateData.isActive = isActive;
     if (notes !== undefined) updateData.notes = notes;
 
-    // Handle subscription updates
+    // ── Handle subscription updates ────────────────────────────────────────
+    // When super admin assigns a pack/trial:
+    // - Set subscriptionStatus (e.g., "trial_1min", "active", "unlimited")
+    // - Set subscriptionPack (e.g., "1month", "1year") for active status
+    // - Keep subscriptionStart = null → timer starts on FIRST LOGIN
+    // - Keep subscriptionEnd = null → calculated on first login based on status/pack
     if (subscriptionStatus !== undefined) {
       updateData.subscriptionStatus = subscriptionStatus;
+      updateData.subscriptionStart = null;
+      updateData.subscriptionEnd = null;
 
-      // When subscription changes to active with a pack, auto-calculate end date
-      if (subscriptionStatus === 'active' && subscriptionPack) {
-        updateData.subscriptionPack = subscriptionPack;
-
-        if (subscriptionStart) {
-          updateData.subscriptionStart = new Date(subscriptionStart);
-        } else {
-          updateData.subscriptionStart = new Date();
-        }
-
-        const start = new Date(updateData.subscriptionStart as Date);
-
-        switch (subscriptionPack) {
-          case '1month':
-            updateData.subscriptionEnd = new Date(
-              start.getTime() + 30 * 24 * 60 * 60 * 1000
-            );
-            break;
-          case '1year':
-            updateData.subscriptionEnd = new Date(
-              start.getTime() + 365 * 24 * 60 * 60 * 1000
-            );
-            break;
-          case 'unlimited':
-            updateData.subscriptionEnd = null; // never expires
-            break;
-          default:
-            // For other packs, use provided subscriptionEnd or default to +30 days
-            if (subscriptionEnd) {
-              updateData.subscriptionEnd = new Date(subscriptionEnd);
-            } else {
-              updateData.subscriptionEnd = new Date(
-                start.getTime() + 30 * 24 * 60 * 60 * 1000
-              );
-            }
-        }
-      } else {
-        // If pack is not specified with active status, just set the dates if provided
-        if (subscriptionStart !== undefined) {
-          updateData.subscriptionStart = subscriptionStart
-            ? new Date(subscriptionStart)
-            : null;
-        }
-        if (subscriptionEnd !== undefined) {
-          updateData.subscriptionEnd = subscriptionEnd
-            ? new Date(subscriptionEnd)
-            : null;
-        }
-      }
-    } else {
-      // subscriptionStatus not changing but individual fields might be
-      if (subscriptionStart !== undefined) {
-        updateData.subscriptionStart = subscriptionStart
-          ? new Date(subscriptionStart)
-          : null;
-      }
-      if (subscriptionEnd !== undefined) {
-        updateData.subscriptionEnd = subscriptionEnd
-          ? new Date(subscriptionEnd)
-          : null;
-      }
-      if (subscriptionPack !== undefined) {
+      if (subscriptionPack) {
         updateData.subscriptionPack = subscriptionPack;
       }
+    } else if (subscriptionPack !== undefined) {
+      // Only pack changed, not status
+      updateData.subscriptionPack = subscriptionPack;
     }
 
     const updatedCentre = await db.centre.update({
@@ -175,13 +122,11 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Check centre exists
     const existing = await db.centre.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'Centre not found' }, { status: 404 });
     }
 
-    // Delete the centre (cascade will handle related records via schema relations)
     await db.centre.delete({
       where: { id },
     });

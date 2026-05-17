@@ -1,23 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    const { centreId } = auth.auth;
+
     const teachers = await db.teacher.findMany({
-      include: {
-        subjects: {
-          include: {
-            subject: {
-              include: {
-                levels: true,
-              },
-            },
-          },
-        },
-      },
+      where: { centreId },
+      include: { subjects: { include: { subject: { include: { levels: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-
     return NextResponse.json(teachers);
   } catch (error) {
     console.error('Error fetching teachers:', error);
@@ -27,41 +22,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const teacher = await db.teacher.create({
       data: {
-        fullName: body.fullName,
-        phone: body.phone,
-        email: body.email,
-        address: body.address,
-        salary: body.salary || 0,
-        percentage: body.percentage || 0,
-        notes: body.notes,
-        status: body.status || 'active',
-        subjects: body.subjects
-          ? {
-              create: body.subjects.map(
-                (ts: { subjectId: string; levelIds?: string }) => ({
-                  subjectId: ts.subjectId,
-                  levelIds: ts.levelIds || '',
-                })
-              ),
-            }
-          : undefined,
+        fullName: body.fullName, phone: body.phone, email: body.email, address: body.address,
+        salary: body.salary || 0, percentage: body.percentage || 0, notes: body.notes,
+        status: body.status || 'active', centreId: auth.auth.centreId,
+        subjects: body.subjects ? { create: body.subjects.map((ts: { subjectId: string; levelIds?: string }) => ({ subjectId: ts.subjectId, levelIds: ts.levelIds || '' })) } : undefined,
       },
-      include: {
-        subjects: {
-          include: {
-            subject: {
-              include: {
-                levels: true,
-              },
-            },
-          },
-        },
-      },
+      include: { subjects: { include: { subject: { include: { levels: true } } } } },
     });
-
     return NextResponse.json(teacher, { status: 201 });
   } catch (error) {
     console.error('Error creating teacher:', error);

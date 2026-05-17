@@ -1,42 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    // Auto-delete expired trial sessions (trialDate is before today)
-    const nowCasablanca = new Date().toLocaleString('en-US', { timeZone: 'Africa/Casablanca' });
-    const todayCasablanca = new Date(nowCasablanca);
-    todayCasablanca.setHours(0, 0, 0, 0);
-
-    await db.schedule.deleteMany({
-      where: {
-        sessionType: 'trial',
-        trialDate: {
-          lt: todayCasablanca,
-        },
-      },
-    });
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    const { centreId } = auth.auth;
 
     const classrooms = await db.classroom.findMany({
-      include: {
-        schedules: {
-          where: {
-            OR: [
-              { sessionType: 'fixed' },
-              { sessionType: 'trial', trialDate: { gte: todayCasablanca } },
-              { sessionType: 'trial', trialDate: null },
-            ],
-          },
-          include: {
-            subject: true,
-            teacher: true,
-            level: true,
-          },
-        },
-      },
+      where: { centreId },
       orderBy: { createdAt: 'desc' },
     });
-
     return NextResponse.json(classrooms);
   } catch (error) {
     console.error('Error fetching classrooms:', error);
@@ -46,18 +21,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const classroom = await db.classroom.create({
-      data: {
-        name: body.name,
-        nameAr: body.nameAr,
-        capacity: body.capacity || 20,
-      },
-      include: {
-        schedules: true,
-      },
+      data: { name: body.name, nameAr: body.nameAr, capacity: body.capacity || 20, centreId: auth.auth.centreId },
     });
-
     return NextResponse.json(classroom, { status: 201 });
   } catch (error) {
     console.error('Error creating classroom:', error);

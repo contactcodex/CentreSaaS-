@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 const TZ = 'Africa/Casablanca';
 
@@ -15,8 +16,11 @@ function casablancaParts(date: Date) {
   return { year: parseInt(parts[0]), month: parseInt(parts[1]), day: parseInt(parts[2]) };
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    const { centreId } = auth.auth;
     const { searchParams } = new URL(request.url);
     const nowParts = casablancaParts(new Date());
     const year = searchParams.get('year') ? parseInt(searchParams.get('year')!) : nowParts.year;
@@ -35,6 +39,7 @@ export async function GET(request: Request) {
 
     const students = await db.student.findMany({
       where: {
+        centreId,
         enrollmentDate: {
           gte: utcStart,
           lte: utcEnd,

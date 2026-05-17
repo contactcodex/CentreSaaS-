@@ -1,16 +1,10 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server';
+import { getCentreAuth } from '@/lib/centre-auth';
 
-// GET /api/notifications/unread-count — Quick unread count
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const unreadCount = await db.notification.count({
-      where: { isRead: false },
-    });
-
-    return NextResponse.json({ unreadCount });
-  } catch (error) {
-    console.error('Error fetching unread count:', error);
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     return NextResponse.json({ unreadCount: 0 });
-  }
+  } catch { return NextResponse.json({ unreadCount: 0 }); }
 }

@@ -1,26 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 import bcrypt from 'bcryptjs';
 import { st } from '@/lib/server-t';
 
 const SALT_ROUNDS = 12;
 
-// GET /api/users — list all users (admin only check via cookie)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const users = await db.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        status: true,
-        accessPages: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      orderBy: { createdAt: 'asc' },
-    });
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    const users = await db.user.findMany({ where: { centreId: auth.auth.centreId }, select: { id: true, email: true, fullName: true, role: true, status: true, accessPages: true, createdAt: true, updatedAt: true }, orderBy: { createdAt: 'asc' } });
     return NextResponse.json(users);
   } catch (error) {
     console.error('Get users error:', error);
@@ -29,8 +19,10 @@ export async function GET() {
 }
 
 // POST /api/users — create new user
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
     const { email, password, fullName, role, status, accessPages } = await request.json();
 
     if (!email || !password || !fullName) {
@@ -53,6 +45,7 @@ export async function POST(request: Request) {
         role: role || 'SECRETARY',
         status: status || 'active',
         accessPages: accessPages || '',
+        centreId: auth.auth.centreId,
       },
       select: {
         id: true, email: true, fullName: true, role: true, status: true, accessPages: true, createdAt: true,

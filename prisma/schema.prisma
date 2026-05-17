@@ -22,7 +22,7 @@ model Centre {
    contactPhone      String?
   contactWhatsapp   String?
   logoUrl           String?
-  subscriptionStatus String    @default("none") // none, trial_24h, trial_7d, active, expired, unlimited
+  subscriptionStatus String    @default("none") // none, trial_1min, trial_24h, trial_7d, active, expired, unlimited
   subscriptionPack   String    @default("")     // "1month", "1year", "unlimited"
   subscriptionStart  DateTime?
   subscriptionEnd    DateTime?
@@ -31,6 +31,12 @@ model Centre {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   users             User[]
+  services          Service[]
+  teachers          Teacher[]
+  classrooms        Classroom[]
+  students          Student[]
+  promotions        Promotion[]
+  packDiscounts     PackDiscount[]
 }
 
 model Service {
@@ -41,6 +47,8 @@ model Service {
   description String?
   icon        String?
   order       Int      @default(0)
+  centreId    String
+  centre      Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
   subjects    Subject[]
   createdAt   DateTime @default(now())
 }
@@ -82,6 +90,8 @@ model Teacher {
   percentage    Float            @default(0)
   notes         String?
   status        String           @default("active")
+  centreId      String
+  centre        Centre           @relation(fields: [centreId], references: [id], onDelete: Cascade)
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   subjects       TeacherSubject[]
@@ -105,6 +115,8 @@ model Classroom {
   name      String
   nameAr    String
   capacity  Int       @default(20)
+  centreId  String
+  centre    Centre    @relation(fields: [centreId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   schedules Schedule[]
@@ -125,6 +137,8 @@ model Student {
   monthlyFee     Float    @default(0)
   packMonths     Int      @default(1)
   status        String   @default("active")
+  centreId      String
+  centre        Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
   enrollmentDate DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -137,11 +151,13 @@ model Promotion {
   name        String
   nameAr      String
   nameFr      String
-  type        String   @default("badge") // "badge" = just a label, "percentage" = % discount, "fixed" = fixed amount discount
-  value       Float    @default(0)       // percentage value (e.g., 20 for 20%) or fixed amount
-  color       String   @default("#6366f1") // badge color
-  icon        String   @default("Tag")   // lucide icon name
+  type        String   @default("badge")
+  value       Float    @default(0)
+  color       String   @default("#6366f1")
+  icon        String   @default("Tag")
   active      Boolean  @default(true)
+  centreId    String
+  centre      Centre   @relation(fields: [centreId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   payments    Payment[]
@@ -152,9 +168,11 @@ model PackDiscount {
   name            String
   nameAr          String
   nameFr          String
-  months          Int                 // 3, 6, 9 etc.
-  discountPercent Float     @default(0) // 10, 20 etc.
+  months          Int
+  discountPercent Float     @default(0)
   active          Boolean   @default(true)
+  centreId        String
+  centre          Centre    @relation(fields: [centreId], references: [id], onDelete: Cascade)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   payments        Payment[]

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/session';
+import { getCentreAuth } from '@/lib/centre-auth';
 import { db } from '@/lib/db';
 import { st } from '@/lib/server-t';
 import { execSync } from 'child_process';
@@ -43,8 +43,8 @@ function cleanOldBackups() {
 // POST /api/backup — Create a new backup (JSON dump of all data)
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
-    if (auth instanceof NextResponse) return auth;
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
 
     ensureBackupDir();
 
@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
 // GET /api/backup — List all backups
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
-    if (auth instanceof NextResponse) return auth;
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
 
     ensureBackupDir();
 

@@ -1,265 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 import { DAY_NAMES } from '@/lib/server-t';
 
-// Helper functions
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
+function timeToMinutes(time: string): number { const [h, m] = time.split(':').map(Number); return h * 60 + m; }
+function timesOverlap(s1: string, e1: string, s2: string, e2: string): boolean { return timeToMinutes(s1) < timeToMinutes(e2) && timeToMinutes(s2) < timeToMinutes(e1); }
 
-function timesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
-  const s1 = timeToMinutes(start1);
-  const e1 = timeToMinutes(end1);
-  const s2 = timeToMinutes(start2);
-  const e2 = timeToMinutes(end2);
-  return s1 < e2 && s2 < e1;
-}
+interface ConflictInfo { type: 'classroom' | 'teacher'; day: string; dayLabel: string; startTime: string; endTime: string; classroomName?: string; teacherName?: string; subjectName?: string; message: string; }
 
-interface ConflictInfo {
-  type: 'classroom' | 'teacher';
-  day: string;
-  dayLabel: string;
-  startTime: string;
-  endTime: string;
-  classroomName?: string;
-  teacherName?: string;
-  subjectName?: string;
-  message: string;
-}
-
-async function checkConflicts(
-  dayOfWeek: string,
-  startTime: string,
-  endTime: string,
-  classroomId: string | null,
-  teacherId: string | null,
-  excludeScheduleId?: string
-): Promise<ConflictInfo[]> {
+async function checkConflicts(dayOfWeek: string, startTime: string, endTime: string, classroomId: string | null, teacherId: string | null, excludeId?: string): Promise<ConflictInfo[]> {
   const conflicts: ConflictInfo[] = [];
-
-  const existingSchedules = await db.schedule.findMany({
-    where: {
-      dayOfWeek,
-      ...(excludeScheduleId ? { id: { not: excludeScheduleId } } : {}),
-    },
-    include: {
-      classroom: true,
-      teacher: true,
-      subject: true,
-    },
-  });
-
-  for (const existing of existingSchedules) {
-    if (!timesOverlap(startTime, endTime, existing.startTime, existing.endTime)) continue;
-
-    if (classroomId && existing.classroomId === classroomId) {
-      conflicts.push({
-        type: 'classroom',
-        day: dayOfWeek,
-        dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek,
-        startTime: existing.startTime,
-        endTime: existing.endTime,
-        classroomName: existing.classroom?.nameAr || existing.classroom?.name,
-        subjectName: existing.subject?.nameAr || existing.subject?.name,
-        message: `هذه القاعة مشغولة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
-      });
-    }
-
-    if (teacherId && existing.teacherId === teacherId) {
-      conflicts.push({
-        type: 'teacher',
-        day: dayOfWeek,
-        dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek,
-        startTime: existing.startTime,
-        endTime: existing.endTime,
-        teacherName: existing.teacher?.fullName,
-        subjectName: existing.subject?.nameAr || existing.subject?.name,
-        message: `هذا الأستاذ لديه حصة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
-      });
-    }
+  const existing = await db.schedule.findMany({ where: { dayOfWeek, ...(excludeId ? { id: { not: excludeId } } : {}) }, include: { classroom: true, teacher: true, subject: true } });
+  for (const e of existing) {
+    if (!timesOverlap(startTime, endTime, e.startTime, e.endTime)) continue;
+    if (classroomId && e.classroomId === classroomId) conflicts.push({ type: 'classroom', day: dayOfWeek, dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek, startTime: e.startTime, endTime: e.endTime, classroomName: e.classroom?.nameAr || e.classroom?.name, subjectName: e.subject?.nameAr || e.subject?.name, message: `هذه القاعة مشغولة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${e.startTime} إلى ${e.endTime}` });
+    if (teacherId && e.teacherId === teacherId) conflicts.push({ type: 'teacher', day: dayOfWeek, dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek, startTime: e.startTime, endTime: e.endTime, teacherName: e.teacher?.fullName, subjectName: e.subject?.nameAr || e.subject?.name, message: `هذا الأستاذ لديه حصة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${e.startTime} إلى ${e.endTime}` });
   }
-
   return conflicts;
 }
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { searchParams } = new URL(request.url);
     const dayOfWeek = searchParams.get('dayOfWeek');
     const classroomId = searchParams.get('classroomId');
     const teacherId = searchParams.get('teacherId');
     const subjectId = searchParams.get('subjectId');
-    const sessionType = searchParams.get('sessionType');
-    const includeExpired = searchParams.get('includeExpired') === 'true';
 
-    // Auto-delete expired trial sessions (trialDate is before today)
-    const nowCasablanca = new Date().toLocaleString('en-US', { timeZone: 'Africa/Casablanca' });
-    const todayCasablanca = new Date(nowCasablanca);
-    todayCasablanca.setHours(0, 0, 0, 0);
-
-    await db.schedule.deleteMany({
-      where: {
-        sessionType: 'trial',
-        trialDate: {
-          lt: todayCasablanca,
-        },
-      },
-    });
-
-    const where: Record<string, unknown> = {};
-
-    if (dayOfWeek) {
-      where.dayOfWeek = dayOfWeek;
-    }
-    if (classroomId) {
-      where.classroomId = classroomId;
-    }
-    if (teacherId) {
-      where.teacherId = teacherId;
-    }
-    if (subjectId) {
-      where.subjectId = subjectId;
-    }
-    if (sessionType) {
-      where.sessionType = sessionType;
-    }
-
-    // If not including expired, filter out trial sessions without a future trialDate
-    if (!includeExpired) {
-      where.OR = [
-        { sessionType: 'fixed' },
-        { sessionType: 'trial', trialDate: { gte: todayCasablanca } },
-        { sessionType: 'trial', trialDate: null },
-      ];
-    }
+    const where: Record<string, unknown> = { subject: { service: { centreId: auth.auth.centreId } } };
+    if (dayOfWeek) where.dayOfWeek = dayOfWeek;
+    if (classroomId) where.classroomId = classroomId;
+    if (teacherId) where.teacherId = teacherId;
+    if (subjectId) where.subjectId = subjectId;
 
     const schedules = await db.schedule.findMany({
-      where: Object.keys(where).length > 0 ? where : undefined,
-      include: {
-        subject: { include: { service: true } },
-        teacher: true,
-        classroom: true,
-        level: true,
-      },
-      orderBy: [
-        { dayOfWeek: 'asc' },
-        { startTime: 'asc' },
-      ],
+      where, include: { subject: { include: { service: true } }, teacher: true, classroom: true, level: true },
+      orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
     });
-
     return NextResponse.json(schedules);
-  } catch (error) {
-    console.error('Error fetching schedules:', error);
-    return NextResponse.json({ error: 'Failed to fetch schedules' }, { status: 500 });
-  }
+  } catch (error) { return NextResponse.json({ error: 'Failed to fetch schedules' }, { status: 500 }); }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
+    const daysToCreate: string[] = body.isRecurring && body.daysOfWeek ? body.daysOfWeek : body.dayOfWeek ? [body.dayOfWeek] : [];
+    if (daysToCreate.length === 0) return NextResponse.json({ error: 'يرجى تحديد يوم واحد على الأقل' }, { status: 400 });
 
-    const {
-      dayOfWeek,
-      startTime,
-      endTime,
-      classroomId,
-      teacherId,
-      sessionType,
-      isRecurring,
-      daysOfWeek,
-    } = body;
-
-    // Determine which days to check/create
-    const daysToCreate: string[] = [];
-    if (isRecurring && daysOfWeek && Array.isArray(daysOfWeek) && daysOfWeek.length > 0) {
-      daysToCreate.push(...daysOfWeek);
-    } else if (dayOfWeek) {
-      daysToCreate.push(dayOfWeek);
-    }
-
-    if (daysToCreate.length === 0) {
-      return NextResponse.json(
-        { error: 'يرجى تحديد يوم واحد على الأقل' },
-        { status: 400 }
-      );
-    }
-
-    // Check conflicts for all days
     const allConflicts: ConflictInfo[] = [];
-    for (const day of daysToCreate) {
-      const dayConflicts = await checkConflicts(
-        day,
-        startTime,
-        endTime,
-        classroomId || null,
-        teacherId || null
-      );
-      allConflicts.push(...dayConflicts);
-    }
+    for (const day of daysToCreate) allConflicts.push(...await checkConflicts(day, body.startTime, body.endTime, body.classroomId || null, body.teacherId || null));
+    if (allConflicts.length > 0) return NextResponse.json({ error: 'conflict', message: 'يوجد تعارض في الجدول', conflicts: allConflicts }, { status: 409 });
 
-    if (allConflicts.length > 0) {
-      return NextResponse.json(
-        {
-          error: 'conflict',
-          message: 'يوجد تعارض في الجدول',
-          conflicts: allConflicts,
-        },
-        { status: 409 }
-      );
-    }
+    const scheduleData = { subjectId: body.subjectId, teacherId: body.teacherId || null, classroomId: body.classroomId || null, levelId: body.levelId || null, dayOfWeek: daysToCreate[0], startTime: body.startTime, endTime: body.endTime, group: body.group || null, sessionType: body.sessionType || 'fixed', isRecurring: body.isRecurring || false, trialDate: body.sessionType === 'trial' && body.trialDate ? new Date(body.trialDate) : null };
+    const schedule = await db.schedule.create({ data: scheduleData, include: { subject: { include: { service: true } }, teacher: true, classroom: true, level: true } });
 
-    // Create schedules
-    const scheduleData = {
-      subjectId: body.subjectId,
-      teacherId: body.teacherId || null,
-      classroomId: body.classroomId || null,
-      levelId: body.levelId || null,
-      dayOfWeek: daysToCreate[0],
-      startTime: body.startTime,
-      endTime: body.endTime,
-      group: body.group || null,
-      sessionType: body.sessionType || 'fixed',
-      isRecurring: body.isRecurring || false,
-      trialDate: body.sessionType === 'trial' && body.trialDate ? new Date(body.trialDate) : null,
-    };
-
-    const schedule = await db.schedule.create({
-      data: scheduleData,
-      include: {
-        subject: { include: { service: true } },
-        teacher: true,
-        classroom: true,
-        level: true,
-      },
-    });
-
-    // If recurring, create copies for all other days of the week
-    const createdSchedules = [schedule];
-    if (body.isRecurring && body.daysOfWeek && Array.isArray(body.daysOfWeek)) {
+    const created = [schedule];
+    if (body.isRecurring && body.daysOfWeek) {
       for (const day of body.daysOfWeek) {
-        if (day !== body.dayOfWeek) {
-          const recurring = await db.schedule.create({
-            data: {
-              ...scheduleData,
-              dayOfWeek: day,
-              isRecurring: true,
-            },
-            include: {
-              subject: { include: { service: true } },
-              teacher: true,
-              classroom: true,
-              level: true,
-            },
-          });
-          createdSchedules.push(recurring);
-        }
+        if (day !== body.dayOfWeek) created.push(await db.schedule.create({ data: { ...scheduleData, dayOfWeek: day, isRecurring: true }, include: { subject: { include: { service: true } }, teacher: true, classroom: true, level: true } }));
       }
     }
-
-    return NextResponse.json(createdSchedules.length === 1 ? schedule : createdSchedules, { status: 201 });
-  } catch (error) {
-    console.error('Error creating schedule:', error);
-    return NextResponse.json({ error: 'Failed to create schedule' }, { status: 500 });
-  }
+    return NextResponse.json(created.length === 1 ? schedule : created, { status: 201 });
+  } catch (error) { return NextResponse.json({ error: 'Failed to create schedule' }, { status: 500 }); }
 }

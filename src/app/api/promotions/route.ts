@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    const { centreId } = auth.auth;
+
     const promotions = await db.promotion.findMany({
-      where: { active: true },
+      where: { active: true, centreId },
       orderBy: { createdAt: 'desc' },
     });
     return NextResponse.json(promotions);
@@ -16,6 +21,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const promotion = await db.promotion.create({
       data: {
@@ -27,6 +35,7 @@ export async function POST(request: NextRequest) {
         color: body.color || '#6366f1',
         icon: body.icon || 'Tag',
         active: body.active !== false,
+        centreId: auth.auth.centreId,
       },
     });
     return NextResponse.json(promotion, { status: 201 });

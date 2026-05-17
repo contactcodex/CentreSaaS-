@@ -128,7 +128,7 @@ function SubscriptionBanner({ centre }: { centre: CentreInfo }) {
 
   const days = getDaysRemaining(subscriptionEnd);
   const isExpired = subscriptionStatus === 'expired' || (days !== null && days < 0);
-  const isTrial = subscriptionStatus === 'trial_24h' || subscriptionStatus === 'trial_7d';
+  const isTrial = subscriptionStatus === 'trial_1min' || subscriptionStatus === 'trial_24h' || subscriptionStatus === 'trial_7d';
   const isExpiring = subscriptionStatus === 'active' && days !== null && days <= 7 && days >= 0;
 
   const whatsappUrl = contactWhatsapp
@@ -377,7 +377,9 @@ export default function Home() {
 
   // Check if subscription is expired (must be before early returns due to rules of hooks)
   const isSubscriptionExpired = useMemo(() => {
-    if (!centre || centre.subscriptionStatus === 'unlimited') return false;
+    if (!centre) return false;
+    if (centre.subscriptionStatus === 'unlimited') return false;
+    if (centre.subscriptionStatus === 'none' || centre.subscriptionStatus === 'expired') return true;
     if (!centre.subscriptionEnd) return false;
     return new Date(centre.subscriptionEnd) < new Date();
   }, [centre]);

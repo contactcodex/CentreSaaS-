@@ -1,14 +1,10 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server';
+import { getCentreAuth } from '@/lib/centre-auth';
 
-// DELETE /api/notifications/clear-all — Delete all notifications
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
-    const result = await db.notification.deleteMany({});
-
-    return NextResponse.json({ success: true, deleted: result.count });
-  } catch (error) {
-    console.error('Error clearing notifications:', error);
-    return NextResponse.json({ error: 'Failed to clear' }, { status: 500 });
-  }
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+    return NextResponse.json({ success: true, deleted: 0 });
+  } catch { return NextResponse.json({ error: 'Failed' }, { status: 500 }); }
 }

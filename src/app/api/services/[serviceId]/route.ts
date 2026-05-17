@@ -1,26 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getCentreAuth } from '@/lib/centre-auth';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ serviceId: string }> }
 ) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { serviceId } = await params;
     const body = await request.json();
-    const { name, nameAr, nameFr, icon, order } = body;
+    const existing = await db.service.findFirst({ where: { id: serviceId, centreId: auth.auth.centreId } });
+    if (!existing) return NextResponse.json({ error: 'Service not found' }, { status: 404 });
 
     const service = await db.service.update({
       where: { id: serviceId },
       data: {
-        ...(name !== undefined && { name }),
-        ...(nameAr !== undefined && { nameAr }),
-        ...(nameFr !== undefined && { nameFr }),
-        ...(icon !== undefined && { icon }),
-        ...(order !== undefined && { order }),
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.nameAr !== undefined && { nameAr: body.nameAr }),
+        ...(body.nameFr !== undefined && { nameFr: body.nameFr }),
+        ...(body.icon !== undefined && { icon: body.icon }),
+        ...(body.order !== undefined && { order: body.order }),
       },
     });
-
     return NextResponse.json(service);
   } catch (error) {
     console.error('Error updating service:', error);
@@ -33,13 +37,15 @@ export async function DELETE(
   { params }: { params: Promise<{ serviceId: string }> }
 ) {
   try {
+    const auth = await getCentreAuth(request);
+    if (!auth.success) return auth.response;
+
     const { serviceId } = await params;
+    const existing = await db.service.findFirst({ where: { id: serviceId, centreId: auth.auth.centreId } });
+    if (!existing) return NextResponse.json({ error: 'Service not found' }, { status: 404 });
 
-    const service = await db.service.delete({
-      where: { id: serviceId },
-    });
-
-    return NextResponse.json(service);
+    await db.service.delete({ where: { id: serviceId } });
+    return NextResponse.json(existing);
   } catch (error) {
     console.error('Error deleting service:', error);
     return NextResponse.json({ error: 'Failed to delete service' }, { status: 500 });
