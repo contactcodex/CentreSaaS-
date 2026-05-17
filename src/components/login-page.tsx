@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('codexadmin@gmail.com');
-  const [password, setPassword] = useState('Codex');
+  const [password, setPassword] = useState('Codex@123');
 
   // Ensure admin account exists on mount
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function LoginPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: 'codexadmin@gmail.com',
-              password: 'Codex',
+              password: 'Codex@123',
               fullName: 'Codex Admin',
             }),
           });
