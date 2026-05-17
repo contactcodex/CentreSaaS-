@@ -763,12 +763,21 @@ export function StudentsView() {
   const handleToggleStatus = async (student: Student) => {
     const newStatus = student.status === 'active' ? 'inactive' : 'active';
     try {
+      // Preserve ALL enrollments to avoid deleting them during status toggle
+      const enrollments = (student.enrollments && student.enrollments.length > 0)
+        ? student.enrollments.map((e) => ({
+            levelId: e.levelId,
+            teacherId: e.teacherId,
+            monthlyFee: e.monthlyFee || 0,
+          }))
+        : [];
+
       // Get levelId and teacherId from first enrollment or existing values for backward compat
       let levelId = student.levelId;
       let teacherId = student.teacherId;
-      if (student.enrollments && student.enrollments.length > 0) {
-        levelId = student.enrollments[0].levelId;
-        teacherId = student.enrollments[0].teacherId;
+      if (enrollments.length > 0) {
+        levelId = enrollments[0].levelId;
+        teacherId = enrollments[0].teacherId;
       }
 
       const res = await fetch(`/api/students/${student.id}`, {
@@ -786,6 +795,7 @@ export function StudentsView() {
           monthlyFee: student.monthlyFee,
           status: newStatus,
           enrollmentDate: student.enrollmentDate,
+          enrollments,
         }),
       });
       if (!res.ok) throw new Error();
@@ -1642,22 +1652,40 @@ export function StudentsView() {
                       </TableCell>
                       <TableCell className="text-right hidden lg:table-cell">
                         {student.enrollments && student.enrollments.length > 0 ? (() => {
-                          const firstWithTeacher = student.enrollments.find((e) => e.teacherId && e.teacher);
-                          const allNoTeacher = student.enrollments.every((e) => !e.teacherId);
-                          if (allNoTeacher) {
+                          const teachersWithSubject = student.enrollments
+                            .filter((e) => e.teacherId && e.teacher)
+                            .map((e) => ({
+                              name: e.teacher!.fullName,
+                              subject: e.level?.subject?.nameAr || '',
+                            }));
+                          if (teachersWithSubject.length === 0) {
                             return <span className="text-muted-foreground text-sm">{t.students.withoutTeacher}</span>;
                           }
-                          if (firstWithTeacher?.teacher) {
-                            return (
-                              <div className="flex items-center gap-1.5 text-sm">
-                                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(firstWithTeacher.teacher.fullName)}`}>
-                                  {firstWithTeacher.teacher.fullName.charAt(0)}
+                          // Deduplicate teachers (a teacher might appear in multiple enrollments for same subject)
+                          const seen = new Set<string>();
+                          const uniqueTeachers = teachersWithSubject.filter((t) => {
+                            const key = `${t.name}-${t.subject}`;
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                          });
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              {uniqueTeachers.map((t, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5 text-sm">
+                                  <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(t.name)}`}>
+                                    {t.name.charAt(0)}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium leading-tight">{t.name}</span>
+                                    {t.subject && (
+                                      <span className="text-[10px] text-muted-foreground leading-tight">{t.subject}</span>
+                                    )}
+                                  </div>
                                 </div>
-                                <span>{firstWithTeacher.teacher.fullName}</span>
-                              </div>
-                            );
-                          }
-                          return <span className="text-muted-foreground text-sm">{t.students.withoutTeacher}</span>;
+                              ))}
+                            </div>
+                          );
                         })() : student.teacher ? (
                           <div className="flex items-center gap-1.5 text-sm">
                             <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${getAvatarColor(student.teacher.fullName)}`}>

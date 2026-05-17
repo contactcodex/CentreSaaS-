@@ -86,14 +86,16 @@ export async function GET(request: NextRequest) {
     const monthStr = getMonthName(payment.month);
     const yearStr = String(payment.year);
 
-    // ─── Inline calculation (no self-fetch) ────────────────────
-    // Fetch all active students for this teacher with levels
-    const teacherStudents = await db.student.findMany({
+    // ─── Use StudentLevel records (multi-subject enrollments) ─────────
+    const studentLevels = await db.studentLevel.findMany({
       where: {
         teacherId: teacher.id,
-        status: 'active',
+        student: { status: 'active' },
       },
       include: {
+        student: {
+          select: { id: true, fullName: true, status: true },
+        },
         level: {
           include: {
             subject: { include: { service: true } },
@@ -102,30 +104,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const totalStudents = teacherStudents.length;
+    // Get unique student IDs
+    const uniqueStudentIds = [...new Set(studentLevels.map((sl) => sl.studentId))];
+    const totalStudents = uniqueStudentIds.length;
 
     // Fetch all relevant payments for these students
-    const allStudentIds = teacherStudents.map((s) => s.id);
-    const studentPayments = allStudentIds.length > 0
+    const studentPayments = uniqueStudentIds.length > 0
       ? await db.payment.findMany({
           where: {
-            studentId: { in: allStudentIds },
+            studentId: { in: uniqueStudentIds },
             status: { in: ['paid', 'partial'] },
             paidAmount: { gt: 0 },
-          },
-          include: {
-            student: {
-              select: { id: true, fullName: true, level: true },
-            },
           },
         })
       : [];
 
     // Calculate monthly contribution per student for this calcMonth
-    // Using the coverage algorithm:
-    // - Paid 1st-15th → effective start = next month
-    // - Paid 16th-end → effective start = month after next
-    // - Pack covers N months starting from effective start
     const monthlyContributionByStudent = new Map<string, number>();
 
     for (const p of studentPayments) {
@@ -141,10 +135,8 @@ export async function GET(request: NextRequest) {
 
       let effectiveStart: { month: number; year: number };
       if (payDay >= 1 && payDay <= 15) {
-        // Paid 1st-15th → teacher gets paid for this student THIS month
         effectiveStart = { month: payMonth, year: payYear };
       } else {
-        // Paid 16th-end → teacher gets paid for this student NEXT month
         effectiveStart = getNextMonth(payMonth, payYear);
       }
 
@@ -158,42 +150,78 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build student detail list
-    const studentDetails = teacherStudents
-      .map((student) => {
-        const contribution = monthlyContributionByStudent.get(student.id) || 0;
-        return {
-          studentId: student.id,
-          studentName: student.fullName,
-          levelNameAr: student.level?.nameAr || '—',
-          subjectNameAr: student.level?.subject?.nameAr || '—',
-          monthlyAmount: Math.round(contribution * 100) / 100,
-          paid: contribution > 0,
-        };
-      })
-      .sort((a, b) => a.paid === b.paid ? 0 : a.paid ? -1 : 1);
+    // Build total fee map per student (for proportional splitting)
+    const totalFeeByStudent = new Map<string, number>();
+    for (const sl of studentLevels) {
+      const fee = sl.monthlyFee || 0;
+      if (fee > 0) {
+        const existing = totalFeeByStudent.get(sl.studentId) || 0;
+        totalFeeByStudent.set(sl.studentId, existing + fee);
+      }
+    }
+
+    // Calculate contribution per enrollment (with proportional splitting)
+    const studentDetails = studentLevels.map((sl) => {
+      const studentTotalContribution = monthlyContributionByStudent.get(sl.studentId) || 0;
+      const studentTotalFee = totalFeeByStudent.get(sl.studentId) || 0;
+      const enrollmentFee = sl.monthlyFee || 0;
+
+      let enrollmentContribution = 0;
+      if (studentTotalFee > 0 && enrollmentFee > 0) {
+        enrollmentContribution = (enrollmentFee / studentTotalFee) * studentTotalContribution;
+      } else if (studentTotalFee === 0 && studentTotalContribution > 0) {
+        const teachersForStudent = [...new Set(
+          studentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
+        )].length;
+        enrollmentContribution = studentTotalContribution / teachersForStudent;
+      }
+
+      return {
+        studentId: sl.studentId,
+        studentName: sl.student.fullName,
+        levelNameAr: sl.level?.nameAr || '—',
+        subjectNameAr: sl.level?.subject?.nameAr || '—',
+        monthlyAmount: Math.round(enrollmentContribution * 100) / 100,
+        paid: enrollmentContribution > 0,
+      };
+    }).filter((s) => s.paid).sort((a, b) => b.monthlyAmount - a.monthlyAmount);
 
     // Groups breakdown by level
     const groupsMap = new Map<string, { subjectNameAr: string; levelNameAr: string; studentCount: number; collected: number }>();
 
-    teacherStudents.forEach((student) => {
-      const contribution = monthlyContributionByStudent.get(student.id) || 0;
-      if (student.level) {
-        const key = student.level.id;
+    for (const sl of studentLevels) {
+      const studentTotalContribution = monthlyContributionByStudent.get(sl.studentId) || 0;
+      const studentTotalFee = totalFeeByStudent.get(sl.studentId) || 0;
+      const enrollmentFee = sl.monthlyFee || 0;
+
+      let enrollmentContribution = 0;
+      if (studentTotalFee > 0 && enrollmentFee > 0) {
+        enrollmentContribution = (enrollmentFee / studentTotalFee) * studentTotalContribution;
+      } else if (studentTotalFee === 0 && studentTotalContribution > 0) {
+        const teachersForStudent = [...new Set(
+          studentLevels.filter((s) => s.studentId === sl.studentId).map((s) => s.teacherId)
+        )].length;
+        enrollmentContribution = studentTotalContribution / teachersForStudent;
+      }
+
+      if (sl.level) {
+        const key = sl.level.id;
+        const contribution = Math.round(enrollmentContribution * 100) / 100;
         const existing = groupsMap.get(key);
         if (existing) {
           existing.studentCount += 1;
           existing.collected += contribution;
         } else {
           groupsMap.set(key, {
-            subjectNameAr: student.level.subject?.nameAr || '—',
-            levelNameAr: student.level.nameAr || '—',
+            subjectNameAr: sl.level.subject?.nameAr || '—',
+            levelNameAr: sl.level.nameAr || '—',
             studentCount: 1,
             collected: contribution,
           });
         }
       } else {
         const key = '_no_level';
+        const contribution = Math.round(enrollmentContribution * 100) / 100;
         const existing = groupsMap.get(key);
         if (existing) {
           existing.studentCount += 1;
@@ -207,7 +235,7 @@ export async function GET(request: NextRequest) {
           });
         }
       }
-    });
+    }
 
     const groups = Array.from(groupsMap.values());
     const totalCollected = Math.round(studentDetails.reduce((s, st) => s + st.monthlyAmount, 0) * 100) / 100;
@@ -244,9 +272,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Student details table (only students with contribution)
-    const paidStudents = studentDetails.filter((s) => s.paid);
     let studentsTableHTML = '';
-    if (paidStudents.length > 0) {
+    if (studentDetails.length > 0) {
       studentsTableHTML = `
         <h3 style="font-size:12px; color:#002A6C; font-weight:700; margin-bottom:4px;">تفاصيل المدفوعات - التلاميذ</h3>
         <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:11px;">
@@ -259,7 +286,7 @@ export async function GET(request: NextRequest) {
             </tr>
           </thead>
           <tbody>
-            ${paidStudents.map((s, i) => `
+            ${studentDetails.map((s, i) => `
               <tr>
                 <td style="border:1px solid #d1d5db; padding:4px 8px; text-align:right;">${i + 1}</td>
                 <td style="border:1px solid #d1d5db; padding:4px 8px; text-align:right; font-weight:500;">${s.studentName}</td>
@@ -496,7 +523,7 @@ export async function GET(request: NextRequest) {
     </div>` : ''}
 
     <!-- Student Details -->
-    ${paidStudents.length > 0 ? `
+    ${studentDetails.length > 0 ? `
     <div class="bon-section">
       ${studentsTableHTML}
     </div>` : ''}
