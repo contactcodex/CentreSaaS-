@@ -113,23 +113,41 @@ model Student {
   enrollments   StudentLevel[]
 }
 
+model Promotion {
+  id          String   @id @default(cuid())
+  name        String
+  nameAr      String
+  nameFr      String
+  type        String   @default("badge") // "badge" = just a label, "percentage" = % discount, "fixed" = fixed amount discount
+  value       Float    @default(0)       // percentage value (e.g., 20 for 20%) or fixed amount
+  color       String   @default("#6366f1") // badge color
+  icon        String   @default("Tag")   // lucide icon name
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  payments    Payment[]
+}
+
 model Payment {
-  id             String   @id @default(cuid())
-  studentId      String
-  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  amount         Float
-  paidAmount     Float    @default(0)
-  remainingAmount Float
-  month          String
-  year           Int
-  paymentDate    DateTime?
-  discount       Float    @default(0)
-  packMonths     Int      @default(1)
-  method         String?
-  notes          String?
-  status         String   @default("pending")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String     @id @default(cuid())
+  studentId        String
+  student          Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount           Float
+  paidAmount       Float      @default(0)
+  remainingAmount  Float
+  month            String
+  year             Int
+  paymentDate      DateTime?
+  discount         Float      @default(0)
+  discountReason   String?
+  packMonths       Int        @default(1)
+  method           String?
+  notes            String?
+  status           String     @default("pending")
+  promotionId      String?
+  promotion        Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 }
 
 model TeacherPayment {

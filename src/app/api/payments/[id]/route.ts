@@ -20,6 +20,7 @@ export async function GET(
             teacher: true,
           },
         },
+        promotion: true,
       },
     });
 
@@ -52,10 +53,12 @@ export async function PUT(
         year: body.year,
         paymentDate: body.paymentDate ? new Date(body.paymentDate) : null,
         discount: body.discount || 0,
+        discountReason: body.discountReason || null,
         packMonths: body.packMonths || 1,
         method: body.method,
         notes: body.notes,
         status: body.status,
+        promotionId: body.promotionId || null,
       },
       include: {
         student: {
@@ -68,6 +71,7 @@ export async function PUT(
             teacher: true,
           },
         },
+        promotion: true,
       },
     });
 

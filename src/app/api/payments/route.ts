@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
             teacher: true,
           },
         },
+        promotion: true,
       },
       orderBy: { paymentDate: 'desc' },
     });
@@ -78,10 +79,12 @@ export async function POST(request: NextRequest) {
         year: body.year,
         paymentDate: body.paymentDate ? new Date(body.paymentDate) : null,
         discount: body.discount || 0,
+        discountReason: body.discountReason || null,
         packMonths: body.packMonths || 1,
         method: body.method,
         notes: body.notes,
         status: body.status || 'pending',
+        promotionId: body.promotionId || null,
       },
       include: {
         student: {
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest) {
             teacher: true,
           },
         },
+        promotion: true,
       },
     });
 

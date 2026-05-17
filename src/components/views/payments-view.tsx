@@ -61,6 +61,18 @@ import {
   CalendarClock,
   X,
   ChevronDown,
+  Tag,
+  Percent,
+  Gift,
+  Sparkles,
+  Star,
+  Crown,
+  Zap,
+  Heart,
+  Rocket,
+  Flame,
+  Trophy,
+  GraduationCap,
 } from 'lucide-react';
 import { useT } from '@/hooks/use-translation';
 import { useAppStore } from '@/store/store';
@@ -87,6 +99,7 @@ interface Payment {
   paidAmount: number;
   remainingAmount: number;
   discount: number;
+  discountReason?: string | null;
   packMonths: number;
   month: string;
   year: number;
@@ -95,6 +108,17 @@ interface Payment {
   notes: string | null;
   status: string;
   createdAt: string;
+  promotionId?: string | null;
+  promotion?: {
+    id: string;
+    name: string;
+    nameAr: string;
+    nameFr: string;
+    type: string;
+    value: number;
+    color: string;
+    icon: string;
+  } | null;
 }
 
 interface StudentSearchResult {
@@ -133,6 +157,18 @@ interface Service {
   order: number;
 }
 
+interface Promotion {
+  id: string;
+  name: string;
+  nameAr: string;
+  nameFr: string;
+  type: 'badge' | 'percentage' | 'fixed';
+  value: number;
+  color: string;
+  icon: string;
+  active: boolean;
+}
+
 interface PaymentFormData {
   studentId: string;
   amount: number | '';
@@ -145,6 +181,7 @@ interface PaymentFormData {
   method: string;
   notes: string;
   status: string;
+  promotionId: string | '';
 }
 
 interface OverdueService {
@@ -195,7 +232,24 @@ const defaultFormData: PaymentFormData = {
   method: 'cash',
   notes: '',
   status: 'pending',
+  promotionId: '',
 };
+
+// ── Promotion icon map ──
+const PROMO_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Tag, Percent, Gift, Sparkles, Star, Crown, Zap, Heart, Rocket, Flame, Trophy, GraduationCap,
+};
+
+const PROMO_COLOR_OPTIONS = [
+  '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899',
+  '#f43f5e', '#ef4444', '#f97316', '#f59e0b', '#eab308',
+  '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4',
+  '#0ea5e9', '#3b82f6', '#2563eb', '#1d4ed8', '#4f46e5',
+];
+
+const PROMO_ICON_OPTIONS = [
+  'Tag', 'Percent', 'Gift', 'Sparkles', 'Star', 'Crown', 'Zap', 'Heart', 'Rocket', 'Flame', 'Trophy', 'GraduationCap',
+];
 
 const MONTH_KEYS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -582,7 +636,25 @@ export function PaymentsView() {
   const [overdueLoading, setOverdueLoading] = useState(false);
   const [creatingInvoice, setCreatingInvoice] = useState<string | null>(null);
 
+  // Promotions state
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [promoDialogOpen, setPromoDialogOpen] = useState(false);
+  const [promoForm, setPromoForm] = useState({
+    name: '', nameAr: '', nameFr: '', type: 'badge' as 'badge' | 'percentage' | 'fixed',
+    value: 0, color: '#6366f1', icon: 'Tag',
+  });
+
   // ── Data fetching ──────────────────────────────────────────────────────
+
+  const fetchPromotions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/promotions');
+      if (res.ok) {
+        const json = await res.json();
+        setPromotions(json);
+      }
+    } catch { /* silent */ }
+  }, []);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -608,6 +680,10 @@ export function PaymentsView() {
   useEffect(() => {
     fetchPayments();
   }, [fetchPayments]);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [fetchPromotions]);
 
   // Fetch services for filters
   useEffect(() => {
@@ -857,11 +933,15 @@ export function PaymentsView() {
         amount: Number(formData.amount),
         paidAmount: Number(formData.paidAmount) || 0,
         discount: Number(formData.discount) || 0,
+        discountReason: formData.promotionId
+          ? (promotions.find(p => p.id === formData.promotionId)?.nameAr || '')
+          : '',
         packMonths: formData.packMonths || 1,
         year: Number(formData.year),
         remainingAmount:
           netAmount - (Number(formData.paidAmount) || 0),
         status: autoStatus,
+        promotionId: formData.promotionId || null,
       };
 
       const url = editingPayment
@@ -915,6 +995,77 @@ export function PaymentsView() {
       toast.error(t.common.deleteError);
     }
   };
+
+  // ── Promotion handlers ──────────────────────────────────────────────────
+
+  const handlePromoCreate = async () => {
+    if (!promoForm.nameAr.trim()) {
+      toast.error(t.payments.promoNameRequired);
+      return;
+    }
+    try {
+      const res = await fetch('/api/promotions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(promoForm),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(t.payments.promoCreated);
+      setPromoDialogOpen(false);
+      setPromoForm({ name: '', nameAr: '', nameFr: '', type: 'badge', value: 0, color: '#6366f1', icon: 'Tag' });
+      fetchPromotions();
+    } catch {
+      toast.error(t.common.saveError);
+    }
+  };
+
+  const handlePromoDelete = async (id: string) => {
+    try {
+      await fetch(`/api/promotions/${id}`, { method: 'DELETE' });
+      toast.success(t.common.deleteSuccess);
+      fetchPromotions();
+      // Clear selection if deleted
+      if (formData.promotionId === id) {
+        setFormData({ ...formData, promotionId: '', discount: '' });
+      }
+    } catch {
+      toast.error(t.common.deleteError);
+    }
+  };
+
+  const handlePromotionSelect = (promoId: string) => {
+    if (!promoId) {
+      setFormData({ ...formData, promotionId: '', discount: '' });
+      return;
+    }
+    const promo = promotions.find(p => p.id === promoId);
+    if (!promo) return;
+
+    let newDiscount = 0;
+    if (promo.type === 'percentage' && typeof formData.amount === 'number' && formData.amount > 0) {
+      newDiscount = Math.round((formData.amount * promo.value) / 100 * 100) / 100;
+    } else if (promo.type === 'fixed') {
+      newDiscount = promo.value;
+    }
+    // badge type: no discount
+
+    setFormData({
+      ...formData,
+      promotionId: promoId,
+      discount: newDiscount > 0 ? newDiscount : '',
+    });
+  };
+
+  // Auto-calculate discount when amount changes and a percentage promo is selected
+  useEffect(() => {
+    if (formData.promotionId && typeof formData.amount === 'number' && formData.amount > 0) {
+      const promo = promotions.find(p => p.id === formData.promotionId);
+      if (promo?.type === 'percentage') {
+        const newDiscount = Math.round((formData.amount * promo.value) / 100 * 100) / 100;
+        setFormData(prev => ({ ...prev, discount: newDiscount }));
+      }
+    }
+  }, [formData.amount, formData.promotionId, promotions]);
 
   // ── Totals ─────────────────────────────────────────────────────────────
 
@@ -1166,9 +1317,23 @@ export function PaymentsView() {
                     <TableRow key={payment.id}>
                       <TableCell className="text-right">
                         <div>
-                          <p className="font-medium text-sm">
-                            {payment.student.fullName}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-medium text-sm">
+                              {payment.student.fullName}
+                            </p>
+                            {payment.promotion && (
+                              <Badge
+                                className="text-[10px] px-1.5 py-0 border-white/50 hover:bg-opacity-80"
+                                style={{
+                                  backgroundColor: payment.promotion.color + '20',
+                                  color: payment.promotion.color,
+                                  borderColor: payment.promotion.color + '40',
+                                }}
+                              >
+                                {payment.promotion.nameAr}
+                              </Badge>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {payment.student.level && payment.student.level.subject && (
                               <span>
@@ -1595,6 +1760,107 @@ export function PaymentsView() {
                 )}
               </div>
 
+              {/* ── Promotions ──────────────────────────────────────────── */}
+              {isAdmin && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-primary" />
+                    {t.payments.promoTitle}
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1 text-xs"
+                    onClick={() => setPromoDialogOpen(true)}
+                  >
+                    <Plus className="h-3 w-3" />
+                    {t.payments.promoAddNew}
+                  </Button>
+                </div>
+
+                {promotions.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {/* "No promotion" option */}
+                    <button
+                      type="button"
+                      onClick={() => handlePromotionSelect('')}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        !formData.promotionId
+                          ? 'border-muted-foreground bg-muted text-muted-foreground'
+                          : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      <X className="h-3 w-3" />
+                      {t.payments.promoNone}
+                    </button>
+                    {promotions.map((promo) => {
+                      const IconComp = PROMO_ICONS[promo.icon] || Tag;
+                      const isSelected = formData.promotionId === promo.id;
+                      return (
+                        <div key={promo.id} className="group relative">
+                          <button
+                            type="button"
+                            onClick={() => handlePromotionSelect(promo.id)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                              isSelected
+                                ? 'border-transparent shadow-sm ring-2 ring-offset-1 scale-105'
+                                : 'border-transparent hover:scale-105'
+                            }`}
+                            style={{
+                              backgroundColor: promo.color + '18',
+                              color: promo.color,
+                              ringColor: isSelected ? promo.color : 'transparent',
+                              ...(isSelected ? { '--tw-ring-color': promo.color } as React.CSSProperties : {}),
+                            }}
+                          >
+                            <IconComp className="h-3 w-3" />
+                            {promo.nameAr}
+                            {promo.type === 'percentage' && promo.value > 0 && (
+                              <span className="opacity-75">-{promo.value}%</span>
+                            )}
+                            {promo.type === 'fixed' && promo.value > 0 && (
+                              <span className="opacity-75">-{promo.value}</span>
+                            )}
+                          </button>
+                          {/* Delete button on hover */}
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handlePromoDelete(promo.id); }}
+                            className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3 text-center">
+                    {t.payments.promoEmpty}
+                  </div>
+                )}
+
+                {/* Show selected promotion info */}
+                {formData.promotionId && (
+                  <div className="text-xs rounded-md p-2" style={{
+                    backgroundColor: (promotions.find(p => p.id === formData.promotionId)?.color || '#6366f1') + '10',
+                    color: promotions.find(p => p.id === formData.promotionId)?.color || '#6366f1',
+                  }}>
+                    {(() => {
+                      const promo = promotions.find(p => p.id === formData.promotionId);
+                      if (!promo) return null;
+                      if (promo.type === 'badge') return `🏷️ ${promo.nameAr}`;
+                      if (promo.type === 'percentage') return `🏷️ ${promo.nameAr} — خصم ${promo.value}%${typeof formData.amount === 'number' && formData.amount > 0 ? ` = -${Math.round((formData.amount * promo.value) / 100 * 100) / 100} ${t.common.dh}` : ''}`;
+                      if (promo.type === 'fixed') return `🏷️ ${promo.nameAr} — خصم ${promo.value} ${t.common.dh}`;
+                      return null;
+                    })()}
+                  </div>
+                )}
+              </div>
+              )}
+
               {/* ── Pack Type (Langues only) ───────────────────────────── */}
               {isLanguesService && (
                 <div className="space-y-1.5">
@@ -1929,6 +2195,161 @@ export function PaymentsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Create Promotion Dialog ──────────────────────────────────── */}
+      <Dialog open={promoDialogOpen} onOpenChange={setPromoDialogOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="shrink-0 px-6 pt-5 pb-2">
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              {t.payments.promoCreateTitle}
+            </DialogTitle>
+            <DialogDescription>{t.payments.promoCreateDesc}</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto min-h-0 px-6 py-3 space-y-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label>{t.payments.promoNameLabel} *</Label>
+              <Input
+                value={promoForm.nameAr}
+                onChange={(e) => setPromoForm({ ...promoForm, nameAr: e.target.value, name: e.target.value, nameFr: e.target.value })}
+                placeholder={t.payments.promoNamePlaceholder}
+              />
+            </div>
+
+            {/* Type selector */}
+            <div className="space-y-1.5">
+              <Label>{t.payments.promoTypeLabel}</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'badge', label: t.payments.promoTypeBadge, icon: Tag, desc: t.payments.promoTypeBadgeDesc },
+                  { value: 'percentage', label: t.payments.promoTypePercentage, icon: Percent, desc: t.payments.promoTypePercentDesc },
+                  { value: 'fixed', label: t.payments.promoTypeFixed, icon: Gift, desc: t.payments.promoTypeFixedDesc },
+                ].map((opt) => {
+                  const OptIcon = opt.icon;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setPromoForm({ ...promoForm, type: opt.value as 'badge' | 'percentage' | 'fixed' })}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 text-xs transition-colors ${
+                        promoForm.type === opt.value
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-muted bg-card hover:border-primary/30'
+                      }`}
+                    >
+                      <OptIcon className="h-4 w-4" />
+                      <span className="font-medium">{opt.label}</span>
+                      <span className="text-[10px] opacity-60">{opt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Value (for percentage/fixed) */}
+            {promoForm.type !== 'badge' && (
+              <div className="space-y-1.5">
+                <Label>
+                  {promoForm.type === 'percentage' ? t.payments.promoPercentValue : t.payments.promoFixedValue}
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    max={promoForm.type === 'percentage' ? 100 : 99999}
+                    value={promoForm.value || ''}
+                    onChange={(e) => setPromoForm({ ...promoForm, value: Number(e.target.value) || 0 })}
+                    dir="ltr"
+                    className="text-left"
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    {promoForm.type === 'percentage' ? '%' : t.common.dh}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Color picker */}
+            <div className="space-y-1.5">
+              <Label>{t.payments.promoColorLabel}</Label>
+              <div className="flex flex-wrap gap-2">
+                {PROMO_COLOR_OPTIONS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setPromoForm({ ...promoForm, color })}
+                    className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                      promoForm.color === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-110'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Icon picker */}
+            <div className="space-y-1.5">
+              <Label>{t.payments.promoIconLabel}</Label>
+              <div className="flex flex-wrap gap-2">
+                {PROMO_ICON_OPTIONS.map((iconName) => {
+                  const IconComp = PROMO_ICONS[iconName] || Tag;
+                  return (
+                    <button
+                      key={iconName}
+                      type="button"
+                      onClick={() => setPromoForm({ ...promoForm, icon: iconName })}
+                      className={`w-9 h-9 rounded-lg border-2 flex items-center justify-center transition-colors ${
+                        promoForm.icon === iconName
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-muted bg-card hover:border-primary/30 text-muted-foreground'
+                      }`}
+                    >
+                      <IconComp className="h-4 w-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div className="space-y-1.5">
+              <Label className="text-muted-foreground">{t.payments.promoPreview}</Label>
+              <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30">
+                {(() => {
+                  const PreviewIcon = PROMO_ICONS[promoForm.icon] || Tag;
+                  return (
+                    <Badge
+                      className="text-xs px-2.5 py-1"
+                      style={{
+                        backgroundColor: promoForm.color + '20',
+                        color: promoForm.color,
+                        borderColor: promoForm.color + '40',
+                      }}
+                    >
+                      <PreviewIcon className="h-3 w-3 inline ml-1" />
+                      {promoForm.nameAr || '...'}
+                      {promoForm.type === 'percentage' && promoForm.value > 0 && ` -${promoForm.value}%`}
+                      {promoForm.type === 'fixed' && promoForm.value > 0 && ` -${promoForm.value}`}
+                    </Badge>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="shrink-0 px-6 py-3 border-t">
+            <Button variant="outline" onClick={() => setPromoDialogOpen(false)}>
+              {t.common.cancel}
+            </Button>
+            <Button onClick={handlePromoCreate} disabled={!promoForm.nameAr.trim()}>
+              <Plus className="h-4 w-4 ml-1" />
+              {t.common.add}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
