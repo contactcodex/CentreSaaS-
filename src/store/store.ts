@@ -1,0 +1,37 @@
+import { create } from 'zustand';
+
+export type ViewType =
+  | 'dashboard'
+  | 'user-management'
+  | 'financial-reports'
+  | 'students'
+  | 'teachers'
+  | 'payments'
+  | 'teacher-payments'
+  | 'schedule'
+  | 'services'
+  | 'classrooms'
+  | 'settings';
+
+export type Lang = 'ar' | 'fr';
+
+interface AppState {
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+  toggleLang: () => void;
+  userRole: string;
+  setUserRole: (role: string) => void;
+}
+
+export const useAppStore = create<AppState>((set) => ({
+  currentView: 'dashboard',
+  setCurrentView: (view) => set({ currentView: view }),
+  lang: 'ar',
+  setLang: (lang) => set({ lang }),
+  toggleLang: () =>
+    set((state) => ({ lang: state.lang === 'ar' ? 'fr' : 'ar' })),
+  userRole: '',
+  setUserRole: (role) => set({ userRole: role }),
+}));
