@@ -74,6 +74,7 @@ interface Enrollment {
   };
   teacherId: string | null;
   teacher: { id: string; fullName: string } | null;
+  monthlyFee?: number;
 }
 
 interface Student {
@@ -223,6 +224,7 @@ export function StudentsView() {
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [noTeacher, setNoTeacher] = useState(false);
+  const [enrollmentFees, setEnrollmentFees] = useState<Record<string, string>>({});
   const [form, setForm] = useState<FormState>(initialForm);
   const [submitting, setSubmitting] = useState(false);
 
@@ -425,6 +427,7 @@ export function StudentsView() {
     setSelectedLevel(null);
     setSelectedTeacher(null);
     setNoTeacher(false);
+    setEnrollmentFees({});
     setForm({ ...initialForm });
     setEditingStudent(null);
   }, []);
@@ -502,6 +505,14 @@ export function StudentsView() {
         setEnrollmentLevels(levelsMap);
         setEnrollmentTeachers(teachersMap);
         setNoTeacherFor(noTeacherMap);
+        // Load per-enrollment fees
+        const feesMap: Record<string, string> = {};
+        for (const e of enrollments) {
+          if (e.level?.subject) {
+            feesMap[e.level.subject.id] = e.monthlyFee ? String(e.monthlyFee) : '';
+          }
+        }
+        setEnrollmentFees(feesMap);
 
         // Backward compat
         const firstEnrollment = enrollments[0];
@@ -702,11 +713,11 @@ export function StudentsView() {
         phone: form.phone || null,
         parentName: form.parentName || null,
         parentPhone: form.parentPhone || null,
-        monthlyFee: parseFloat(form.monthlyFee) || 0,
         packMonths: form.packMonths || 1,
         enrollments: selectedSubjects.map((sub) => ({
           levelId: enrollmentLevels[sub.id].id,
           teacherId: noTeacherFor[sub.id] ? null : (enrollmentTeachers[sub.id]?.id || null),
+          monthlyFee: parseFloat(enrollmentFees[sub.id]) || 0,
         })),
         status: editingStudent?.status || 'active',
         enrollmentDate: form.enrollmentDate || new Date().toISOString(),
@@ -1369,26 +1380,58 @@ export function StudentsView() {
               </div>
             </div>
 
-            {/* Monthly Fee - Admin only */}
-            {isAdmin && (
+            {/* Monthly Fee per Subject - Admin only */}
+            {isAdmin && selectedSubjects.length > 0 && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-cyan-600" />
                 {t.students.monthlyFeeSection}
               </h4>
-              <div className="space-y-1.5">
-                <Label htmlFor="monthlyFee">{t.students.monthlyFeeLabel}</Label>
-                <Input
-                  id="monthlyFee"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.monthlyFee}
-                  onChange={(e) => setForm((prev) => ({ ...prev, monthlyFee: e.target.value }))}
-                  placeholder="0"
-                  dir="ltr"
-                  className="text-left"
-                />
+              <div className="space-y-2">
+                {selectedSubjects.map((sub) => {
+                  const fee = enrollmentFees[sub.id] || '';
+                  const teacherName = noTeacherFor[sub.id]
+                    ? t.students.withoutTeacher
+                    : enrollmentTeachers[sub.id]?.fullName || '—';
+                  return (
+                    <div key={sub.id} className="p-3 rounded-lg border bg-card space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4 text-cyan-600" />
+                          <span className="text-sm font-medium">{sub.nameAr}</span>
+                          {enrollmentLevels[sub.id] && (
+                            <Badge variant="outline" className="text-[10px] border-sky-200 text-sky-700">
+                              {enrollmentLevels[sub.id].nameAr}
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{teacherName}</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">{t.students.monthlyFeeLabel}</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={fee}
+                          onChange={(e) =>
+                            setEnrollmentFees((prev) => ({ ...prev, [sub.id]: e.target.value }))
+                          }
+                          placeholder="0"
+                          dir="ltr"
+                          className="text-left h-9"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Total Fee */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-cyan-50 border border-cyan-200">
+                <span className="text-sm font-semibold text-cyan-800">المجموع</span>
+                <span className="text-lg font-bold text-cyan-700" dir="ltr">
+                  {selectedSubjects.reduce((sum, sub) => sum + (parseFloat(enrollmentFees[sub.id]) || 0), 0).toLocaleString('ar-MA')} {t.common.dh}
+                </span>
               </div>
               {/* Pack Type (Langues only) */}
               {selectedService?.id === 'service_langues' && (
@@ -1634,7 +1677,20 @@ export function StudentsView() {
                       </TableCell>
                       {isAdmin && (
                       <TableCell className="text-right hidden sm:table-cell">
-                        {student.monthlyFee > 0 ? (
+                        {student.enrollments && student.enrollments.length > 0 ? (
+                          <div className="flex flex-col gap-0.5">
+                            {student.enrollments.map((e, idx) => (
+                              <span key={e.id || idx} className="text-xs" dir="ltr">
+                                {(e.monthlyFee || 0) > 0 ? (
+                                  <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100 font-medium text-[10px] px-1.5">
+                                    {e.level?.subject?.nameAr}:
+                                    {e.monthlyFee?.toLocaleString('ar-MA')} {t.common.dh}
+                                  </Badge>
+                                ) : null}
+                              </span>
+                            ))}
+                          </div>
+                        ) : student.monthlyFee > 0 ? (
                           <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100 font-medium">
                             {student.monthlyFee.toLocaleString('ar-MA')} {t.common.dh}
                           </Badge>
