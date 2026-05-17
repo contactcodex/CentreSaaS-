@@ -128,26 +128,41 @@ model Promotion {
   payments    Payment[]
 }
 
+model PackDiscount {
+  id              String    @id @default(cuid())
+  name            String
+  nameAr          String
+  nameFr          String
+  months          Int                 // 3, 6, 9 etc.
+  discountPercent Float     @default(0) // 10, 20 etc.
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  payments        Payment[]
+}
+
 model Payment {
-  id               String     @id @default(cuid())
+  id               String        @id @default(cuid())
   studentId        String
-  student          Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student          Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   amount           Float
-  paidAmount       Float      @default(0)
+  paidAmount       Float         @default(0)
   remainingAmount  Float
   month            String
   year             Int
   paymentDate      DateTime?
-  discount         Float      @default(0)
+  discount         Float         @default(0)
   discountReason   String?
-  packMonths       Int        @default(1)
+  packMonths       Int           @default(1)
   method           String?
   notes            String?
-  status           String     @default("pending")
+  status           String        @default("pending")
   promotionId      String?
-  promotion        Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  promotion        Promotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+  packDiscountId   String?
+  packDiscount     PackDiscount? @relation(fields: [packDiscountId], references: [id], onDelete: SetNull)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 }
 
 model TeacherPayment {

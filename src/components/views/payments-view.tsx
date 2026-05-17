@@ -73,6 +73,7 @@ import {
   Flame,
   Trophy,
   GraduationCap,
+  Package,
 } from 'lucide-react';
 import { useT } from '@/hooks/use-translation';
 import { useAppStore } from '@/store/store';
@@ -169,6 +170,16 @@ interface Promotion {
   active: boolean;
 }
 
+interface PackDiscount {
+  id: string;
+  name: string;
+  nameAr: string;
+  nameFr: string;
+  months: number;
+  discountPercent: number;
+  active: boolean;
+}
+
 interface PaymentFormData {
   studentId: string;
   amount: number | '';
@@ -182,6 +193,7 @@ interface PaymentFormData {
   notes: string;
   status: string;
   promotionId: string | '';
+  packDiscountId: string | '';
 }
 
 interface OverdueService {
@@ -233,6 +245,7 @@ const defaultFormData: PaymentFormData = {
   notes: '',
   status: 'pending',
   promotionId: '',
+  packDiscountId: '',
 };
 
 // ── Promotion icon map ──
@@ -302,12 +315,23 @@ export function PaymentsView() {
     { value: 'check', label: t.payments.check },
   ], [t]);
 
-  const PACK_OPTIONS = useMemo(() => [
-    { value: 1, label: t.payments.pack1 },
-    { value: 3, label: t.payments.pack3 },
-    { value: 6, label: t.payments.pack6 },
-    { value: 9, label: t.payments.pack9 },
-  ], [t]);
+  const PACK_OPTIONS = useMemo(() => {
+    // Build options: always start with 1 month (no pack), then add dynamic packs
+    const opts: { value: number; label: string; discountPercent: number; packDiscountId: string }[] = [
+      { value: 1, label: t.payments.pack1, discountPercent: 0, packDiscountId: '' },
+    ];
+    for (const pd of packDiscounts) {
+      const lang = useAppStore.getState().lang;
+      const label = (lang === 'fr' ? pd.nameFr : pd.nameAr) || pd.name;
+      opts.push({
+        value: pd.months,
+        label: `${label}${pd.discountPercent > 0 ? ` (-${pd.discountPercent}%)` : ''}`,
+        discountPercent: pd.discountPercent,
+        packDiscountId: pd.id,
+      });
+    }
+    return opts;
+  }, [t, packDiscounts]);
 
   const getStatusBadge = useCallback((status: string) => {
     switch (status) {
@@ -644,6 +668,13 @@ export function PaymentsView() {
     value: 0, color: '#6366f1', icon: 'Tag',
   });
 
+  // Pack discounts state
+  const [packDiscounts, setPackDiscounts] = useState<PackDiscount[]>([]);
+  const [packDialogOpen, setPackDialogOpen] = useState(false);
+  const [packForm, setPackForm] = useState({
+    name: '', nameAr: '', nameFr: '', months: 3, discountPercent: 0,
+  });
+
   // ── Data fetching ──────────────────────────────────────────────────────
 
   const fetchPromotions = useCallback(async () => {
@@ -652,6 +683,16 @@ export function PaymentsView() {
       if (res.ok) {
         const json = await res.json();
         setPromotions(json);
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  const fetchPackDiscounts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/pack-discounts');
+      if (res.ok) {
+        const json = await res.json();
+        setPackDiscounts(json);
       }
     } catch { /* silent */ }
   }, []);
@@ -684,6 +725,10 @@ export function PaymentsView() {
   useEffect(() => {
     fetchPromotions();
   }, [fetchPromotions]);
+
+  useEffect(() => {
+    fetchPackDiscounts();
+  }, [fetchPackDiscounts]);
 
   // Fetch services for filters
   useEffect(() => {
@@ -883,13 +928,15 @@ export function PaymentsView() {
       packMonths: student.level?.subject?.service?.id === 'service_langues'
         ? (student.packMonths || prev.packMonths)
         : 1,
+      discount: '',
+      packDiscountId: '',
     }));
   };
 
   const handleClearStudent = () => {
     setSelectedStudent(null);
     setStudentSearchQuery('');
-    setFormData((prev) => ({ ...prev, studentId: '', amount: '', packMonths: 1 }));
+    setFormData((prev) => ({ ...prev, studentId: '', amount: '', packMonths: 1, discount: '', packDiscountId: '' }));
   };
 
   // Computed amounts
@@ -935,13 +982,16 @@ export function PaymentsView() {
         discount: Number(formData.discount) || 0,
         discountReason: formData.promotionId
           ? (promotions.find(p => p.id === formData.promotionId)?.nameAr || '')
-          : '',
+          : (formData.packDiscountId
+            ? (packDiscounts.find(p => p.id === formData.packDiscountId)?.nameAr || t.payments.packDiscountApplied)
+            : ''),
         packMonths: formData.packMonths || 1,
         year: Number(formData.year),
         remainingAmount:
           netAmount - (Number(formData.paidAmount) || 0),
         status: autoStatus,
         promotionId: formData.promotionId || null,
+        packDiscountId: formData.packDiscountId || null,
       };
 
       const url = editingPayment
@@ -1066,6 +1116,64 @@ export function PaymentsView() {
       }
     }
   }, [formData.amount, formData.promotionId, promotions]);
+
+  // ── Pack discount handlers ─────────────────────────────────────────────
+
+  const handlePackDiscountCreate = async () => {
+    if (!packForm.name.trim() || !packForm.nameAr.trim()) {
+      toast.error(t.payments.packNameRequired);
+      return;
+    }
+    try {
+      const res = await fetch('/api/pack-discounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(packForm),
+      });
+      if (res.ok) {
+        toast.success(t.payments.packCreated);
+        setPackForm({ name: '', nameAr: '', nameFr: '', months: 3, discountPercent: 0 });
+        setPackDialogOpen(false);
+        fetchPackDiscounts();
+      }
+    } catch {
+      toast.error(t.common.saveError);
+    }
+  };
+
+  const handlePackDiscountDelete = async (id: string) => {
+    try {
+      await fetch(`/api/pack-discounts/${id}`, { method: 'DELETE' });
+      toast.success(t.common.deleteSuccess);
+      fetchPackDiscounts();
+      if (formData.packDiscountId === id) {
+        const monthlyFee = selectedStudent?.monthlyFee || 0;
+        setFormData(prev => ({
+          ...prev,
+          packMonths: 1,
+          packDiscountId: '',
+          amount: monthlyFee || prev.amount,
+          discount: '',
+        }));
+      }
+    } catch {
+      toast.error(t.common.deleteError);
+    }
+  };
+
+  const handlePackSelect = (opt: { value: number; discountPercent: number; packDiscountId: string }) => {
+    const monthlyFee = selectedStudent?.monthlyFee || (typeof formData.amount === 'number' ? formData.amount : 0);
+    const totalNormal = monthlyFee * opt.value;
+    const discount = totalNormal * opt.discountPercent / 100;
+
+    setFormData(prev => ({
+      ...prev,
+      packMonths: opt.value,
+      packDiscountId: opt.packDiscountId,
+      amount: Math.round(totalNormal * 100) / 100,
+      discount: discount > 0 ? Math.round(discount * 100) / 100 : prev.discount,
+    }));
+  };
 
   // ── Totals ─────────────────────────────────────────────────────────────
 
@@ -1863,26 +1971,96 @@ export function PaymentsView() {
 
               {/* ── Pack Type (Langues only) ───────────────────────────── */}
               {isLanguesService && (
-                <div className="space-y-1.5">
-                  <Label>{t.payments.packType}</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {PACK_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold flex items-center gap-2">
+                      <Package className="h-4 w-4 text-sky-600" />
+                      {t.payments.packType}
+                    </Label>
+                    {isAdmin && (
+                      <Button
                         type="button"
-                        onClick={() =>
-                          setFormData({ ...formData, packMonths: opt.value })
-                        }
-                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                          formData.packMonths === opt.value
-                            ? 'border-sky-500 bg-sky-50 text-sky-700'
-                            : 'border-muted bg-card hover:border-sky-200 hover:bg-sky-50/50 text-foreground'
-                        }`}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        onClick={() => setPackDialogOpen(true)}
                       >
-                        {opt.label}
-                      </button>
-                    ))}
+                        <Plus className="h-3 w-3" />
+                        {t.payments.packAddNew}
+                      </Button>
+                    )}
                   </div>
+                  {PACK_OPTIONS.length > 1 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {PACK_OPTIONS.map((opt) => (
+                        <div key={opt.value + '-' + opt.packDiscountId} className="group relative">
+                          <button
+                            type="button"
+                            onClick={() => handlePackSelect(opt)}
+                            className={`w-full px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all ${
+                              formData.packMonths === opt.value && formData.packDiscountId === opt.packDiscountId
+                                ? 'border-sky-500 bg-sky-50 text-sky-700 shadow-sm'
+                                : 'border-muted bg-card hover:border-sky-200 hover:bg-sky-50/50 text-foreground'
+                            }`}
+                          >
+                            <div className="text-center">
+                              <div className="text-sm font-semibold">{opt.label}</div>
+                              {opt.discountPercent > 0 && typeof formData.amount === 'number' && formData.amount > 0 && (
+                                <div className="text-[10px] text-sky-600 mt-0.5">
+                                  {Math.round(formData.amount * (1 - opt.discountPercent / 100) / opt.value).toLocaleString()} {t.common.dh}/{t.common.month}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                          {/* Delete button on hover (only for custom packs) */}
+                          {opt.value > 1 && opt.packDiscountId && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handlePackDiscountDelete(opt.packDiscountId); }}
+                              className="absolute -top-1.5 -left-1.5 h-4 w-4 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-3 text-center">
+                      {t.payments.packEmpty}
+                    </div>
+                  )}
+
+                  {/* Pack discount info */}
+                  {formData.packMonths > 1 && formData.packDiscountId && (
+                    (() => {
+                      const pd = packDiscounts.find(p => p.id === formData.packDiscountId);
+                      const monthlyFee = selectedStudent?.monthlyFee || 0;
+                      if (!pd || monthlyFee <= 0) return null;
+                      const totalNormal = monthlyFee * pd.months;
+                      const discount = totalNormal * pd.discountPercent / 100;
+                      const totalAfterDiscount = totalNormal - discount;
+                      const teacherMonthly = totalAfterDiscount / pd.months;
+                      return (
+                        <div className="bg-gradient-to-r from-sky-50 to-cyan-50 border border-sky-200 rounded-lg p-3 space-y-1.5 text-xs">
+                          <div className="font-semibold text-sky-700 flex items-center gap-1.5">
+                            <Package className="h-3.5 w-3.5" />
+                            {t.payments.packDiscountApplied}
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 text-sky-800">
+                            <div>{t.payments.packPreviewNormal}:</div>
+                            <div className="font-medium text-left" dir="ltr">{totalNormal.toLocaleString()} {t.common.dh}</div>
+                            <div>{t.payments.packSaving}:</div>
+                            <div className="font-medium text-left text-green-600" dir="ltr">-{discount.toLocaleString()} {t.common.dh}</div>
+                            <div>{t.payments.packPreviewDiscount}:</div>
+                            <div className="font-bold text-left text-sky-700" dir="ltr">{totalAfterDiscount.toLocaleString()} {t.common.dh}</div>
+                            <div>{t.payments.packTeacherMonthly}:</div>
+                            <div className="font-medium text-left" dir="ltr">{Math.round(teacherMonthly).toLocaleString()} {t.common.dh}/{t.common.month}</div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  )}
                 </div>
               )}
 
@@ -2344,6 +2522,127 @@ export function PaymentsView() {
               {t.common.cancel}
             </Button>
             <Button onClick={handlePromoCreate} disabled={!promoForm.nameAr.trim()}>
+              <Plus className="h-4 w-4 ml-1" />
+              {t.common.add}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Create Pack Discount Dialog ─────────────────────────────── */}
+      <Dialog open={packDialogOpen} onOpenChange={setPackDialogOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="shrink-0 px-6 pt-5 pb-2">
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-sky-600" />
+              {t.payments.packManageTitle}
+            </DialogTitle>
+            <DialogDescription>{t.payments.packManageDesc}</DialogDescription>
+          </DialogHeader>
+
+          <div className="overflow-y-auto flex-1 min-h-0 px-6 py-3">
+            <div className="grid gap-4">
+              {/* Existing packs list */}
+              {packDiscounts.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">الباقات الحالية / Forfaits actuels</Label>
+                  <div className="space-y-1">
+                    {packDiscounts.map((pd) => (
+                      <div key={pd.id} className="flex items-center justify-between px-3 py-2 rounded-lg border bg-muted/30 text-sm">
+                        <div>
+                          <span className="font-medium">{pd.nameAr}</span>
+                          <span className="text-muted-foreground mr-2">— {pd.months} {t.payments.packMonthsUnit}</span>
+                          {pd.discountPercent > 0 && (
+                            <span className="text-green-600 font-medium">-{pd.discountPercent}%</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handlePackDiscountDelete(pd.id)}
+                          className="h-6 w-6 rounded-full bg-destructive/10 text-destructive hover:bg-destructive hover:text-white flex items-center justify-center transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* New pack form */}
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">{t.payments.packAddNew}</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t.payments.packNameLabel} *</Label>
+                  <Input
+                    placeholder={t.payments.packNamePlaceholder}
+                    value={packForm.nameAr}
+                    onChange={(e) => setPackForm({ ...packForm, name: e.target.value, nameAr: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t.payments.packMonthsLabel}</Label>
+                    <Input
+                      type="number"
+                      min={2}
+                      max={24}
+                      value={packForm.months}
+                      onChange={(e) => setPackForm({ ...packForm, months: Math.max(2, Number(e.target.value) || 2) })}
+                      dir="ltr"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t.payments.packDiscountLabel}</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={packForm.discountPercent}
+                      onChange={(e) => setPackForm({ ...packForm, discountPercent: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground">{t.payments.packDiscountHint}</p>
+
+                {/* Preview */}
+                {packForm.nameAr && packForm.months >= 2 && (
+                  <div className="bg-sky-50 border border-sky-200 rounded-lg p-3 text-xs space-y-1">
+                    <div className="font-semibold text-sky-700">{t.payments.packPreview}:</div>
+                    <div className="text-sky-800">
+                      {t.payments.pack1} = {selectedStudent?.monthlyFee || 300} × {packForm.months} = <strong>{((selectedStudent?.monthlyFee || 300) * packForm.months).toLocaleString()} {t.common.dh}</strong>
+                    </div>
+                    {packForm.discountPercent > 0 && (
+                      <>
+                        <div className="text-green-600">
+                          {t.payments.packSaving} = -{((selectedStudent?.monthlyFee || 300) * packForm.months * packForm.discountPercent / 100).toLocaleString()} {t.common.dh}
+                        </div>
+                        <div className="text-sky-700 font-semibold">
+                          {t.payments.packPreviewDiscount} = {((selectedStudent?.monthlyFee || 300) * packForm.months * (100 - packForm.discountPercent) / 100).toLocaleString()} {t.common.dh}
+                          <span className="font-normal mr-1">
+                            ({Math.round((selectedStudent?.monthlyFee || 300) * (100 - packForm.discountPercent) / 100).toLocaleString()} {t.common.dh}/{t.common.month})
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="shrink-0 px-6 py-3 border-t">
+            <Button variant="outline" onClick={() => setPackDialogOpen(false)}>
+              {t.common.cancel}
+            </Button>
+            <Button
+              onClick={handlePackDiscountCreate}
+              disabled={!packForm.nameAr.trim() || packForm.months < 2}
+              className="bg-sky-600 hover:bg-sky-700"
+            >
               <Plus className="h-4 w-4 ml-1" />
               {t.common.add}
             </Button>

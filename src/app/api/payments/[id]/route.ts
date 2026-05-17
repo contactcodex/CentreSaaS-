@@ -21,6 +21,7 @@ export async function GET(
           },
         },
         promotion: true,
+        packDiscount: true,
       },
     });
 
@@ -59,6 +60,7 @@ export async function PUT(
         notes: body.notes,
         status: body.status,
         promotionId: body.promotionId || null,
+        packDiscountId: body.packDiscountId || null,
       },
       include: {
         student: {
@@ -72,6 +74,7 @@ export async function PUT(
           },
         },
         promotion: true,
+        packDiscount: true,
       },
     });
 

@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
           },
         },
         promotion: true,
+        packDiscount: true,
       },
       orderBy: { paymentDate: 'desc' },
     });
@@ -85,6 +86,7 @@ export async function POST(request: NextRequest) {
         notes: body.notes,
         status: body.status || 'pending',
         promotionId: body.promotionId || null,
+        packDiscountId: body.packDiscountId || null,
       },
       include: {
         student: {
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
           },
         },
         promotion: true,
+        packDiscount: true,
       },
     });
 
