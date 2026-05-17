@@ -52,7 +52,7 @@ interface DashboardData {
   monthlyTeacherPayments: Record<string, number>;
 }
 
-const CORRECT_PASSWORD = 'Aura@07';
+const CORRECT_PASSWORD = 'Codex';
 
 const MONTH_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
