@@ -309,7 +309,7 @@ export function ScheduleView() {
       const data = await res.json();
       setSchedules(data);
     } catch {
-      toast.error('فشل في تحميل الجدول');
+      toast.error(t.schedule.fetchError);
     } finally {
       setLoading(false);
     }
@@ -322,7 +322,7 @@ export function ScheduleView() {
       const data = await res.json();
       setServices(data);
     } catch {
-      toast.error('فشل في تحميل الخدمات');
+      toast.error(t.schedule.fetchServicesError);
     }
   }, []);
 
@@ -333,7 +333,7 @@ export function ScheduleView() {
       const data = await res.json();
       setTeachers(data);
     } catch {
-      toast.error('فشل في تحميل الأساتذة');
+      toast.error(t.schedule.fetchTeachersError);
     }
   }, []);
 
@@ -344,7 +344,7 @@ export function ScheduleView() {
       const data = await res.json();
       setClassrooms(data);
     } catch {
-      toast.error('فشل في تحميل القاعات');
+      toast.error(t.schedule.fetchClassroomsError);
     }
   }, []);
 
@@ -544,14 +544,14 @@ export function ScheduleView() {
       if (formData.classroomId && existing.classroomId === formData.classroomId) {
         errors.push({
           type: 'classroom',
-          message: `هذه القاعة مشغولة في ${dayLabel} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
+          message: `${t.schedule.classroomBusy} ${dayLabel} ${t.schedule.from} ${existing.startTime} ${t.schedule.to} ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
         });
       }
 
       if (formData.teacherId && existing.teacherId === formData.teacherId) {
         errors.push({
           type: 'teacher',
-          message: `هذا الأستاذ لديه حصة في ${dayLabel} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
+          message: `${t.schedule.teacherBusy} ${dayLabel} ${t.schedule.from} ${existing.startTime} ${t.schedule.to} ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
         });
       }
     }
@@ -591,31 +591,31 @@ export function ScheduleView() {
 
     // Validation
     if (!form.dayOfWeek) {
-      toast.error('يرجى اختيار يوم الأسبوع');
+      toast.error(t.schedule.dayRequired);
       return;
     }
     if (!form.startTime || !form.endTime) {
-      toast.error('يرجى تحديد أوقات الحصة');
+      toast.error(t.schedule.timesRequired);
       return;
     }
     if (!form.classroomId) {
-      toast.error('يرجى اختيار القاعة');
+      toast.error(t.schedule.classroomRequired);
       return;
     }
     if (!form.subjectId) {
-      toast.error('يرجى اختيار المادة');
+      toast.error(t.schedule.subjectRequired);
       return;
     }
     if (!form.teacherId) {
-      toast.error('يرجى اختيار الأستاذ');
+      toast.error(t.schedule.teacherRequired);
       return;
     }
     if (form.sessionType === 'trial' && !form.trialDate) {
-      toast.error('يرجى تحديد تاريخ الحصة التجريبية');
+      toast.error(t.schedule.trialDateRequired);
       return;
     }
     if (timeToMinutes(form.endTime) <= timeToMinutes(form.startTime)) {
-      toast.error('يجب أن يكون وقت النهاية بعد وقت البداية');
+      toast.error(t.schedule.endTimeError);
       return;
     }
 
@@ -623,7 +623,7 @@ export function ScheduleView() {
     const clientConflicts = checkClientConflicts(form, editingSchedule?.id);
     if (clientConflicts.length > 0) {
       setConflictErrors(clientConflicts);
-      toast.error('يوجد تعارض في الجدول!');
+      toast.error(t.schedule.conflictError);
       return;
     }
 
@@ -663,7 +663,7 @@ export function ScheduleView() {
           })
         );
         setConflictErrors(conflicts);
-        toast.error('يوجد تعارض في الجدول!');
+        toast.error(t.schedule.conflictError);
         setSubmitting(false);
         return;
       }
@@ -671,12 +671,12 @@ export function ScheduleView() {
       if (!res.ok) throw new Error('فشل في حفظ البيانات');
 
       toast.success(
-        editingSchedule ? 'تم تحديث الحصة بنجاح' : 'تم إضافة الحصة بنجاح'
+        editingSchedule ? t.schedule.updateSuccess : t.schedule.addSuccess
       );
       setFormOpen(false);
       fetchSchedules();
     } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
+      toast.error(t.schedule.saveErrorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -689,12 +689,12 @@ export function ScheduleView() {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('فشل في الحذف');
-      toast.success('تم حذف الحصة بنجاح');
+      toast.success(t.schedule.deleteSuccess);
       setDeleteOpen(false);
       setDeletingSchedule(null);
       fetchSchedules();
     } catch {
-      toast.error('حدث خطأ أثناء الحذف');
+      toast.error(t.schedule.deleteErrorMsg);
     }
   };
 
@@ -838,16 +838,16 @@ export function ScheduleView() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">جدول الحصص</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.schedule.title}</h2>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handlePrint}>
               <Printer className="h-4 w-4" />
-              <span className="hidden sm:inline">طباعة</span>
+              <span className="hidden sm:inline">{t.schedule.printSchedule}</span>
             </Button>
             <Button onClick={openCreateDialog} className="gap-2">
               <Plus className="h-4 w-4" />
-              إضافة حصة
+              {t.schedule.addSession}
             </Button>
           </div>
         </div>
@@ -858,7 +858,7 @@ export function ScheduleView() {
             <CardContent className="p-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">إجمالي الحصص</p>
+                <p className="text-xs text-muted-foreground">{t.schedule.totalSessions}</p>
               </div>
               <p className="text-lg font-bold mt-0.5">{schedules.length}</p>
             </CardContent>
@@ -867,7 +867,7 @@ export function ScheduleView() {
             <CardContent className="p-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
                 <CalendarDays className="h-4 w-4 text-sky-500" />
-                <p className="text-xs text-muted-foreground">حصص تابتةٌ</p>
+                <p className="text-xs text-muted-foreground">{t.schedule.fixedSessions}</p>
               </div>
               <p className="text-lg font-bold text-sky-600 mt-0.5">{fixedCount}</p>
             </CardContent>
@@ -876,7 +876,7 @@ export function ScheduleView() {
             <CardContent className="p-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
                 <Zap className="h-4 w-4 text-cyan-500" />
-                <p className="text-xs text-muted-foreground">حصص تجريبية</p>
+                <p className="text-xs text-muted-foreground">{t.schedule.trialSessions}</p>
               </div>
               <p className="text-lg font-bold text-cyan-600 mt-0.5">{trialCount}</p>
             </CardContent>
@@ -891,7 +891,7 @@ export function ScheduleView() {
             onClick={() => setSessionFilter('all')}
             className="text-xs px-3"
           >
-            الكل
+            {t.common.all}
           </Button>
           <Button
             variant={sessionFilter === 'fixed' ? 'default' : 'outline'}
@@ -900,7 +900,7 @@ export function ScheduleView() {
             className="text-xs px-3 gap-1"
           >
             <CalendarDays className="h-3 w-3" />
-            تابتةٌ
+            {t.schedule.fixed}
           </Button>
           <Button
             variant={sessionFilter === 'trial' ? 'default' : 'outline'}
@@ -909,7 +909,7 @@ export function ScheduleView() {
             className="text-xs px-3 gap-1"
           >
             <Zap className="h-3 w-3" />
-            تجريبية
+            {t.schedule.trial}
           </Button>
         </div>
 
@@ -1128,13 +1128,13 @@ export function ScheduleView() {
                                       <div className="space-y-1">
                                         <p className="font-bold">{sched.subject?.nameAr || sched.subject?.name}</p>
                                         {sched.level && (
-                                          <p>المستوى: {sched.level?.nameAr || sched.level?.name}</p>
+                                          <p>{t.schedule.level}: {sched.level?.nameAr || sched.level?.name}</p>
                                         )}
                                         <p className="opacity-75" dir="ltr">{sched.startTime} - {sched.endTime}</p>
                                         {sched.teacher && <p>👨‍🏫 {sched.teacher.fullName}</p>}
                                         {sched.classroom && <p>📍 {sched.classroom.nameAr || sched.classroom.name}</p>}
                                         {sched.group && <p>👥 {sched.group}</p>}
-                                        <p>{isTrial ? `⚡ تجريبية${sched.trialDate ? ` (${new Date(sched.trialDate).toLocaleDateString('ar-MA')})` : ''}` : '📌 تابتةٌ'}</p>
+                                        <p>{isTrial ? `⚡ ${t.schedule.trial}${sched.trialDate ? ` (${new Date(sched.trialDate).toLocaleDateString('ar-MA')})` : ''}` : `📌 ${t.schedule.fixed}`}</p>
                                       </div>
                                     </TooltipContent>
                                   </Tooltip>
@@ -1186,12 +1186,12 @@ export function ScheduleView() {
           <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
             <DialogHeader className="shrink-0 px-8 pt-6 pb-2">
               <DialogTitle>
-                {editingSchedule ? 'تعديل الحصة' : 'إضافة حصة جديدة'}
+                {editingSchedule ? t.schedule.editSession : t.schedule.addNewSession}
               </DialogTitle>
               <DialogDescription>
                 {editingSchedule
-                  ? 'قم بتعديل بيانات الحصة'
-                  : 'أدخل بيانات الحصة الجديدة'}
+                  ? t.schedule.editSessionDesc
+                  : t.schedule.addSessionDesc}
               </DialogDescription>
             </DialogHeader>
 
@@ -1200,7 +1200,7 @@ export function ScheduleView() {
               <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mx-8 space-y-1.5">
                 <div className="flex items-center gap-2 text-destructive text-sm font-bold">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
-                  <span>يوجد تعارض في الجدول!</span>
+                  <span>{t.schedule.conflictError}</span>
                 </div>
                 {conflictErrors.map((err, idx) => (
                   <p key={idx} className="text-xs text-destructive/90 flex items-start gap-1.5 mr-6">
@@ -1216,7 +1216,7 @@ export function ScheduleView() {
             <div className="flex-1 overflow-y-auto min-h-0 px-8 py-4 space-y-4">
               {/* Session Type */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">نوع الحصة *</Label>
+                <Label className="text-sm font-medium">{t.schedule.sessionType} *</Label>
                 <RadioGroup
                   value={form.sessionType}
                   onValueChange={(val) => setForm({ ...form, sessionType: val as 'fixed' | 'trial' })}
@@ -1228,10 +1228,10 @@ export function ScheduleView() {
                     <Label htmlFor="type-fixed" className="cursor-pointer flex-1">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-sky-500" />
-                        <span className="font-medium text-sm">تابتةٌ</span>
+                        <span className="font-medium text-sm">{t.schedule.fixed}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        حصة تابتةٌ كتبقا فالجدول
+                        {t.schedule.fixedSessionDesc}
                       </p>
                     </Label>
                   </div>
@@ -1240,10 +1240,10 @@ export function ScheduleView() {
                     <Label htmlFor="type-trial" className="cursor-pointer flex-1">
                       <div className="flex items-center gap-2">
                         <Zap className="h-4 w-4 text-cyan-500" />
-                        <span className="font-medium text-sm">تجريبية</span>
+                        <span className="font-medium text-sm">{t.schedule.trial}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        كتحيد من الجدول بعد ما تعدي
+                        {t.schedule.trialSessionDesc}
                       </p>
                     </Label>
                   </div>
@@ -1254,13 +1254,13 @@ export function ScheduleView() {
 
               {/* Day selection */}
               <div>
-                <Label>يوم الأسبوع *</Label>
+                <Label>{t.schedule.dayOfWeek} *</Label>
                 <Select
                   value={form.dayOfWeek}
                   onValueChange={(val) => setForm({ ...form, dayOfWeek: val })}
                 >
                   <SelectTrigger className="w-full mt-1.5">
-                    <SelectValue placeholder="اختر اليوم" />
+                    <SelectValue placeholder={t.schedule.chooseDay} />
                   </SelectTrigger>
                   <SelectContent>
                     {days.map((d) => (
@@ -1275,13 +1275,13 @@ export function ScheduleView() {
               {/* Time selection */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>من الساعة *</Label>
+                  <Label>{t.schedule.fromTime} *</Label>
                   <Select
                     value={form.startTime}
                     onValueChange={(val) => setForm({ ...form, startTime: val })}
                   >
                     <SelectTrigger className="w-full mt-1.5">
-                      <SelectValue placeholder="البداية" />
+                      <SelectValue placeholder={t.schedule.startTime} />
                     </SelectTrigger>
                     <SelectContent>
                       {timeSlots.map((t) => (
@@ -1293,13 +1293,13 @@ export function ScheduleView() {
                   </Select>
                 </div>
                 <div>
-                  <Label>إلى الساعة *</Label>
+                  <Label>{t.schedule.toTime} *</Label>
                   <Select
                     value={form.endTime}
                     onValueChange={(val) => setForm({ ...form, endTime: val })}
                   >
                     <SelectTrigger className="w-full mt-1.5">
-                      <SelectValue placeholder="النهاية" />
+                      <SelectValue placeholder={t.schedule.endTime} />
                     </SelectTrigger>
                     <SelectContent>
                       {timeSlots.map((t) => (
@@ -1317,27 +1317,27 @@ export function ScheduleView() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
                   <Clock className="h-3.5 w-3.5" />
                   <span>
-                    المدة:{' '}
+                    {t.schedule.duration}:{' '}
                     {(() => {
                       const diff = timeToMinutes(form.endTime) - timeToMinutes(form.startTime);
                       const hours = Math.floor(diff / 60);
                       const mins = diff % 60;
-                      return hours > 0 ? `${hours} س ${mins > 0 ? `و ${mins} د` : ''}` : `${mins} دقيقة`;
+                      return hours > 0 ? `${hours} ${t.schedule.hourUnit}${mins > 0 ? ` ${t.schedule.and} ${mins} ${t.schedule.minuteShort}` : ''}` : `${mins} ${t.schedule.minuteUnit}`;
                     })()}
                   </span>
-                  <span>({getSlotCount(form.startTime, form.endTime)} حصة)</span>
+                  <span>({getSlotCount(form.startTime, form.endTime)} {t.schedule.sessionsCount})</span>
                 </div>
               )}
 
               {/* Classroom */}
               <div>
-                <Label>القاعة *</Label>
+                <Label>{t.schedule.classroom} *</Label>
                 <Select
                   value={form.classroomId}
                   onValueChange={(val) => setForm({ ...form, classroomId: val })}
                 >
                   <SelectTrigger className="w-full mt-1.5">
-                    <SelectValue placeholder="اختر القاعة" />
+                    <SelectValue placeholder={t.schedule.chooseClassroom} />
                   </SelectTrigger>
                   <SelectContent>
                     {classrooms.map((room) => (
@@ -1359,7 +1359,7 @@ export function ScheduleView() {
 
               {/* Subject */}
               <div>
-                <Label>المادة *</Label>
+                <Label>{t.schedule.subject} *</Label>
                 <Select
                   value={form.subjectId}
                   onValueChange={(val) =>
@@ -1367,7 +1367,7 @@ export function ScheduleView() {
                   }
                 >
                   <SelectTrigger className="w-full mt-1.5">
-                    <SelectValue placeholder="اختر المادة" />
+                    <SelectValue placeholder={t.schedule.chooseSubject} />
                   </SelectTrigger>
                   <SelectContent>
                     {services.map((service) => (
@@ -1386,7 +1386,7 @@ export function ScheduleView() {
 
               {/* Level */}
               <div>
-                <Label>المستوى</Label>
+                <Label>{t.schedule.level}</Label>
                 <Select
                   value={form.levelId}
                   onValueChange={(val) => setForm({ ...form, levelId: val })}
@@ -1397,9 +1397,9 @@ export function ScheduleView() {
                       placeholder={
                         form.subjectId
                           ? selectedSubjectLevels.length > 0
-                            ? 'اختر المستوى'
-                            : 'لا توجد مستويات'
-                          : 'اختر المادة أولاً'
+                            ? t.schedule.chooseLevel
+                            : t.schedule.noLevels
+                          : t.schedule.chooseSubjectFirst
                       }
                     />
                   </SelectTrigger>
@@ -1415,7 +1415,7 @@ export function ScheduleView() {
 
               {/* Teacher */}
               <div>
-                <Label>الأستاذ *</Label>
+                <Label>{t.schedule.teacher} *</Label>
                 <Select
                   value={form.teacherId}
                   onValueChange={(val) => setForm({ ...form, teacherId: val })}
@@ -1426,9 +1426,9 @@ export function ScheduleView() {
                       placeholder={
                         form.subjectId
                           ? filteredTeachers.length > 0
-                            ? 'اختر الأستاذ'
-                            : 'لا يوجد أساتذة لهذه المادة'
-                          : 'اختر المادة أولاً'
+                            ? t.schedule.chooseTeacher
+                            : t.schedule.noTeachersForSubject
+                          : t.schedule.chooseSubjectFirst
                       }
                     />
                   </SelectTrigger>
@@ -1444,12 +1444,12 @@ export function ScheduleView() {
 
               {/* Group name */}
               <div>
-                <Label htmlFor="group">اسم المجموعة</Label>
+                <Label htmlFor="group">{t.schedule.groupName}</Label>
                 <Input
                   id="group"
                   value={form.group}
                   onChange={(e) => setForm({ ...form, group: e.target.value })}
-                  placeholder="مثلاً: المجموعة أ"
+                  placeholder={t.schedule.groupPlaceholder}
                   className="mt-1.5"
                 />
               </div>
@@ -1460,11 +1460,11 @@ export function ScheduleView() {
                   <div className="flex items-center gap-2 text-cyan-700">
                     <Zap className="h-4 w-4" />
                     <Label className="text-sm font-medium text-cyan-700">
-                      تاريخ الحصة التجريبية *
+                      {t.schedule.trialDate} *
                     </Label>
                   </div>
                   <p className="text-xs text-cyan-600/80">
-                    الحصة كتحيد تلقائياً من الجدول بعد هذا التاريخ
+                    {t.schedule.trialDateDesc}
                   </p>
                   <Input
                     type="date"
@@ -1490,7 +1490,7 @@ export function ScheduleView() {
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  حذف
+                  {t.common.delete}
                 </Button>
               )}
               <div className="flex gap-2 w-full sm:w-auto sm:mr-auto">
@@ -1503,13 +1503,13 @@ export function ScheduleView() {
                   disabled={submitting}
                   className="flex-1 sm:flex-none"
                 >
-                  إلغاء
+                  {t.common.cancel}
                 </Button>
                 <Button onClick={handleSubmit} disabled={submitting} className="flex-1 sm:flex-none gap-2">
                   {submitting && (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   )}
-                  {editingSchedule ? 'تحديث' : 'إضافة'}
+                  {editingSchedule ? t.common.saveChanges : t.common.add}
                 </Button>
               </div>
             </DialogFooter>
@@ -1520,18 +1520,18 @@ export function ScheduleView() {
         <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+              <AlertDialogTitle>{t.common.deleteConfirm}</AlertDialogTitle>
               <AlertDialogDescription>
-                هل أنت متأكد من حذف هذه الحصة؟ لا يمكن التراجع عن هذا الإجراء.
+                {t.schedule.deleteConfirmMsg}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+              <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                حذف
+                {t.common.delete}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

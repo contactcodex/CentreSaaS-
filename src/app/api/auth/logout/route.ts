@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,6 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Logout error:', error);
-    return NextResponse.json({ error: 'خطأ في تسجيل الخروج' }, { status: 500 });
+    return NextResponse.json({ error: st('logoutError') }, { status: 500 });
   }
 }

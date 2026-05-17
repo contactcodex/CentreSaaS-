@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth_token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'غير مصادق عليه' }, { status: 401 });
+      return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
     }
 
     // Find session
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json({ error: 'جلسة منتهية الصلاحية' }, { status: 401 });
+      return NextResponse.json({ error: st('sessionExpired') }, { status: 401 });
     }
 
     return NextResponse.json({
@@ -30,6 +31,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Auth check error:', error);
-    return NextResponse.json({ error: 'خطأ في التحقق' }, { status: 500 });
+    return NextResponse.json({ error: st('sessionError') }, { status: 500 });
   }
 }

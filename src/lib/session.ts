@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 
 export interface SessionUser {
   id: string;
@@ -39,7 +40,7 @@ export async function getSession(request: NextRequest): Promise<SessionUser | nu
 export async function requireAuth(request: NextRequest): Promise<{ user: SessionUser } | NextResponse> {
   const user = await getSession(request);
   if (!user) {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
   }
   return { user };
 }
@@ -47,10 +48,10 @@ export async function requireAuth(request: NextRequest): Promise<{ user: Session
 export async function requireAdmin(request: NextRequest): Promise<{ user: SessionUser } | NextResponse> {
   const user = await getSession(request);
   if (!user) {
-    return NextResponse.json({ error: 'غير مصرح' }, { status: 401 });
+    return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
   }
   if (user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'غير مصرح - مدير فقط' }, { status: 403 });
+    return NextResponse.json({ error: st('adminOnly') }, { status: 403 });
   }
   return { user };
 }

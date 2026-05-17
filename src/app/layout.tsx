@@ -3,6 +3,7 @@ import { Cairo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
+import { LayoutDirSync } from "@/components/layout-dir-sync";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${cairo.variable} antialiased`}>
+        <LayoutDirSync />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

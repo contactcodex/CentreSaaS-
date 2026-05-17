@@ -102,13 +102,13 @@ interface OverdueData {
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const DAY_MAP: Record<string, string> = {
-  '1': 'الأحد',
-  '2': 'الاثنين',
-  '3': 'الثلاثاء',
-  '4': 'الأربعاء',
-  '5': 'الخميس',
-  '6': 'الجمعة',
-  '7': 'السبت',
+  '1': '',
+  '2': '',
+  '3': '',
+  '4': '',
+  '5': '',
+  '6': '',
+  '7': '',
 };
 
 const MONTH_KEYS = [
@@ -434,7 +434,7 @@ export function ClassroomsView() {
                       size="icon"
                       className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-50"
                       onClick={() => handleOpenOverdue(classroom)}
-                      title={t.classrooms.overduePayments || 'المدفوعات المستحقة'}
+                      title={t.classrooms.overduePayments}
                     >
                       <Wallet className="w-4 h-4" />
                     </Button>
@@ -755,10 +755,10 @@ export function ClassroomsView() {
               {t.common.deleteConfirm}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف القاعة &quot;{deleteDialog.classroom?.nameAr}&quot;؟
+              {t.classrooms.deleteConfirmMsg} &quot;{deleteDialog.classroom?.nameAr}&quot;?
               {deleteDialog.classroom && deleteDialog.classroom.schedules.length > 0 && (
                 <span className="block mt-2 font-medium text-destructive">
-                  ⚠️ تحذير: هذه القاعة تحتوي على {deleteDialog.classroom.schedules.length} حصة دراسية. سيتم التأثير على الجدول الزمني.
+                  ⚠️ {t.classrooms.deleteWarning} {deleteDialog.classroom.schedules.length} {t.classrooms.deleteWarningSuffix}
                 </span>
               )}
             </AlertDialogDescription>

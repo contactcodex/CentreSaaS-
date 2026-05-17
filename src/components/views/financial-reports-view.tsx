@@ -56,11 +56,6 @@ const CORRECT_PASSWORD = 'Codex';
 
 const MONTH_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
-const MONTH_NAMES_AR = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو',
-  'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر',
-];
-
 function FinancialContentSkeleton() {
   return (
     <div className="space-y-6">
@@ -168,6 +163,12 @@ function FinancialContent({ onLock }: FinancialContentProps) {
   const [loading, setLoading] = useState(true);
   const t = useT();
 
+  const monthNames = [
+    t.months.January, t.months.February, t.months.March, t.months.April,
+    t.months.May, t.months.June, t.months.July, t.months.August,
+    t.months.September, t.months.October, t.months.November, t.months.December,
+  ];
+
   // Filter state
   const [filterMonth, setFilterMonth] = useState<string>('all');
 
@@ -229,8 +230,8 @@ function FinancialContent({ onLock }: FinancialContentProps) {
 
   // Filter label
   const filterLabel = isAllMonths
-    ? `مجموع ${data.currentYear}`
-    : `${MONTH_NAMES_AR[parseInt(filterMonth) - 1]} ${data.currentYear}`;
+    ? `${t.financialReports.yearTotal} ${data.currentYear}`
+    : `${monthNames[parseInt(filterMonth) - 1]} ${data.currentYear}`;
 
   // Chart data
   const chartData = MONTH_KEYS.map((key) => ({
@@ -256,7 +257,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </div>
         <Button variant="outline" size="sm" className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
           <LogOut className="h-4 w-4" />
-          تسجيل الخروج
+          {t.financialReports.logout}
         </Button>
       </div>
 
@@ -265,16 +266,16 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         <CardContent className="p-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="text-xs font-medium text-muted-foreground">تصفية حسب الشهر:</span>
+            <span className="text-xs font-medium text-muted-foreground">{t.financialReports.filterByMonth}</span>
             <Select value={filterMonth} onValueChange={setFilterMonth}>
               <SelectTrigger className="w-40 h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الأشهر</SelectItem>
+                <SelectItem value="all">{t.financialReports.allMonths}</SelectItem>
                 {MONTH_KEYS.map((key) => (
                   <SelectItem key={key} value={key}>
-                    {MONTH_NAMES_AR[parseInt(key) - 1]}
+                    {monthNames[parseInt(key) - 1]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -296,11 +297,11 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                 <Wallet className="h-5 w-5 text-blue-700" />
               </div>
               <Badge variant="outline" className="text-blue-700 border-blue-200 text-[10px]">
-                {isAllMonths ? 'الإجمالي' : MONTH_NAMES_AR[parseInt(filterMonth) - 1]}
+                {isAllMonths ? t.financialReports.totalLabel : monthNames[parseInt(filterMonth) - 1]}
               </Badge>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-muted-foreground">الإيرادات</p>
+              <p className="text-sm text-muted-foreground">{t.financialReports.revenue}</p>
               <p className="text-2xl font-bold mt-1 text-blue-800">
                 {filteredRevenue.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
@@ -316,11 +317,11 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                 <GraduationCap className="h-5 w-5 text-rose-600" />
               </div>
               <Badge variant="outline" className="text-rose-600 border-rose-200 text-[10px]">
-                {isAllMonths ? 'الإجمالي' : MONTH_NAMES_AR[parseInt(filterMonth) - 1]}
+                {isAllMonths ? t.financialReports.totalLabel : monthNames[parseInt(filterMonth) - 1]}
               </Badge>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-muted-foreground">المصروفات</p>
+              <p className="text-sm text-muted-foreground">{t.financialReports.expensesLabel}</p>
               <p className="text-2xl font-bold mt-1 text-rose-700">
                 {filteredExpenses.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
@@ -344,11 +345,11 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                     : 'text-red-600 border-red-200'
                 )}
               >
-                {netProfit >= 0 ? 'ربح' : 'خسارة'}
+                {netProfit >= 0 ? t.financialReports.profit : t.financialReports.loss}
               </Badge>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-muted-foreground">صافي الربح</p>
+              <p className="text-sm text-muted-foreground">{t.financialReports.netProfit}</p>
               <p className={cn('text-2xl font-bold mt-1', netProfit >= 0 ? 'text-cyan-700' : 'text-red-600')}>
                 {netProfit.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
@@ -364,11 +365,11 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                 <TrendingUp className="h-5 w-5 text-sky-600" />
               </div>
               <Badge variant="outline" className="text-sky-600 border-sky-200 text-[10px]">
-                {MONTH_NAMES_AR[data.currentMonth - 1]}
+                {monthNames[data.currentMonth - 1]}
               </Badge>
             </div>
             <div className="mt-3">
-              <p className="text-sm text-muted-foreground">هذا الشهر</p>
+              <p className="text-sm text-muted-foreground">{t.financialReports.thisMonth}</p>
               <p className="text-2xl font-bold mt-1 text-sky-700">
                 {data.monthlyIncome.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
@@ -388,15 +389,15 @@ function FinancialContent({ onLock }: FinancialContentProps) {
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm bg-sky-500" />
-                <span className="text-muted-foreground">الإيرادات</span>
+                <span className="text-muted-foreground">{t.financialReports.revenue}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm bg-cyan-400/60" />
-                <span className="text-muted-foreground">المتوقع</span>
+                <span className="text-muted-foreground">{t.financialReports.expected}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm bg-rose-400" />
-                <span className="text-muted-foreground">المصروفات</span>
+                <span className="text-muted-foreground">{t.financialReports.expensesLabel}</span>
               </div>
             </div>
           </div>

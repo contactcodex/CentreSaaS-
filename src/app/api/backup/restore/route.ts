@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/session';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -16,18 +17,18 @@ export async function POST(request: NextRequest) {
     const { filename } = body;
 
     if (!filename || typeof filename !== 'string') {
-      return NextResponse.json({ error: 'اسم الملف مطلوب' }, { status: 400 });
+      return NextResponse.json({ error: st('fileNameRequired') }, { status: 400 });
     }
 
     // Validate filename (prevent path traversal)
     const safeName = filename.replace(/[^a-zA-Z0-9\-_.]/g, '');
     if (!safeName.startsWith('aura-backup-')) {
-      return NextResponse.json({ error: 'اسم ملف غير صالح' }, { status: 400 });
+      return NextResponse.json({ error: st('invalidFileName') }, { status: 400 });
     }
 
     const backupPath = join(BACKUP_DIR, safeName);
     if (!existsSync(backupPath)) {
-      return NextResponse.json({ error: 'النسخة الاحتياطية غير موجودة' }, { status: 404 });
+      return NextResponse.json({ error: st('backupNotFound') }, { status: 404 });
     }
 
     // Create safety backup of current state first
@@ -176,13 +177,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'تم استعادة النسخة الاحتياطية بنجاح',
+      message: st('backupRestored'),
       restoredFrom: safeName,
       safetyBackup: `aura-pre-restore-${timestamp}.json`,
     });
   } catch (error) {
     console.error('Restore error:', error);
-    return NextResponse.json({ error: 'فشل استعادة النسخة الاحتياطية: ' + (error instanceof Error ? error.message : 'خطأ غير معروف') }, { status: 500 });
+    return NextResponse.json({ error: st('backupRestoreError') + ': ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 }
 

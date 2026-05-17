@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { useT } from '@/hooks/use-translation';
 
 export default function LoginPage() {
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,13 +51,13 @@ export default function LoginPage() {
 
       if (!loginRes.ok) {
         const data = await loginRes.json();
-        setError(data.error || 'Identifiants incorrects');
+        setError(data.error || t.login.invalidCredentials);
         return;
       }
 
       window.location.reload();
     } catch {
-      setError('Erreur de connexion au serveur');
+      setError(t.login.serverError);
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ export default function LoginPage() {
               Codex
             </CardTitle>
             <CardDescription className="text-sm text-muted-foreground mt-1">
-              Connexion au système de gestion
+              {t.login.subtitle}
             </CardDescription>
           </div>
         </CardHeader>
@@ -99,7 +101,7 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">{t.login.password}</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -136,10 +138,10 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Connexion en cours...
+                  {t.login.loggingIn}
                 </>
               ) : (
-                'Se connecter'
+                t.login.login
               )}
             </Button>
           </form>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { DAY_NAMES } from '@/lib/server-t';
 // Helper functions
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -13,16 +14,6 @@ function timesOverlap(start1: string, end1: string, start2: string, end2: string
   const e2 = timeToMinutes(end2);
   return s1 < e2 && s2 < e1;
 }
-
-const dayNamesAr: Record<string, string> = {
-  '1': 'الأحد',
-  '2': 'الإثنين',
-  '3': 'الثلاثاء',
-  '4': 'الأربعاء',
-  '5': 'الخميس',
-  '6': 'الجمعة',
-  '7': 'السبت',
-};
 
 interface ConflictInfo {
   type: 'classroom' | 'teacher';
@@ -93,10 +84,10 @@ export async function PUT(
           conflicts.push({
             type: 'classroom',
             day: dayOfWeek,
-            dayLabel: dayNamesAr[dayOfWeek] || dayOfWeek,
+            dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek,
             startTime: existing.startTime,
             endTime: existing.endTime,
-            message: `هذه القاعة مشغولة في ${dayNamesAr[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
+            message: `هذه القاعة مشغولة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
           });
         }
 
@@ -104,10 +95,10 @@ export async function PUT(
           conflicts.push({
             type: 'teacher',
             day: dayOfWeek,
-            dayLabel: dayNamesAr[dayOfWeek] || dayOfWeek,
+            dayLabel: DAY_NAMES[dayOfWeek] || dayOfWeek,
             startTime: existing.startTime,
             endTime: existing.endTime,
-            message: `هذا الأستاذ لديه حصة في ${dayNamesAr[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
+            message: `هذا الأستاذ لديه حصة في ${DAY_NAMES[dayOfWeek] || dayOfWeek} من ${existing.startTime} إلى ${existing.endTime} (${existing.subject?.nameAr || existing.subject?.name})`,
           });
         }
       }

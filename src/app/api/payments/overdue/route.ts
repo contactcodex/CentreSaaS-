@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { st, MONTH_LABELS } from '@/lib/server-t';
 
 const MONTH_ORDER = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-
-const MONTH_LABELS: Record<string, string> = {
-  January: 'يناير', February: 'فبراير', March: 'مارس', April: 'أبريل',
-  May: 'ماي', June: 'يونيو', July: 'يوليوز', August: 'غشت',
-  September: 'شتنبر', October: 'أكتوبر', November: 'نونبر', December: 'دجنبر',
-};
 
 function getMonthIndex(month: string): number {
   return MONTH_ORDER.indexOf(month);
@@ -494,8 +489,8 @@ export async function GET() {
     for (const overdue of overdueStudents) {
       const student = studentById.get(overdue.studentId);
       const serviceName =
-        student?.level?.subject?.service?.nameAr || 'بدون خدمة';
-      const levelName = student?.level?.nameAr || 'بدون مستوى';
+        student?.level?.subject?.service?.nameAr || st('noService');
+      const levelName = student?.level?.nameAr || st('noLevel');
 
       let levelMap = serviceMap.get(serviceName);
       if (!levelMap) {

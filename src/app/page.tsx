@@ -70,7 +70,7 @@ function getNavLabel(t: ReturnType<typeof useT>, id: ViewType): string {
     schedule: t.nav.schedule,
     services: t.nav.services,
     classrooms: t.nav.classrooms,
-    'user-management': 'إدارة المستخدمين',
+    'user-management': t.nav.userManagement,
     settings: t.nav.settings,
   };
   return map[id] || id;
@@ -193,7 +193,7 @@ export default function Home() {
       })
       .then(data => {
         setIsAuthenticated(true);
-        setUserName(data.user?.fullName || 'مستخدم');
+        setUserName(data.user?.fullName || t.sidebar.defaultUser);
         const role = data.user?.role || '';
         setStoreUserRole(role);
         setAccessPages(data.user?.accessPages || '');
@@ -287,7 +287,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2">
             <LanguageToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 text-muted-foreground hover:text-destructive" title="تسجيل الخروج">
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9 text-muted-foreground hover:text-destructive" title={t.sidebar.logout}>
               <LogOut className="h-4 w-4" />
             </Button>
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
@@ -295,7 +295,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-medium text-foreground">{userName}</span>
-              <span className="text-[10px] text-muted-foreground">{userRole === 'ADMIN' ? 'مدير' : 'سكرتير'}</span>
+              <span className="text-[10px] text-muted-foreground">{userRole === 'ADMIN' ? t.sidebar.admin : t.sidebar.secretary}</span>
             </div>
           </div>
         </header>

@@ -54,6 +54,7 @@ import {
   UserCog,
   Users,
 } from 'lucide-react';
+import { useT } from '@/hooks/use-translation';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -85,16 +86,16 @@ interface AccessPage {
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const ALL_PAGES: AccessPage[] = [
-  { id: 'dashboard', label: 'الصفحة الرئيسية', icon: 'LayoutDashboard' },
-  { id: 'financial-reports', label: 'التقارير المالية', icon: 'TrendingUp' },
-  { id: 'students', label: 'الطلاب', icon: 'Users' },
-  { id: 'teachers', label: 'المدرسين', icon: 'GraduationCap' },
-  { id: 'payments', label: 'الأقساط', icon: 'Receipt' },
-  { id: 'teacher-payments', label: 'مداخيل الأساتذة', icon: 'Wallet' },
-  { id: 'schedule', label: 'الجدول الزمني', icon: 'CalendarDays' },
-  { id: 'services', label: 'الخدمات', icon: 'BookOpen' },
-  { id: 'classrooms', label: 'القاعات', icon: 'DoorOpen' },
-  { id: 'settings', label: 'الإعدادات', icon: 'Settings' },
+  { id: 'dashboard', label: 'dashboard', icon: 'LayoutDashboard' },
+  { id: 'financial-reports', label: 'financial-reports', icon: 'TrendingUp' },
+  { id: 'students', label: 'students', icon: 'Users' },
+  { id: 'teachers', label: 'teachers', icon: 'GraduationCap' },
+  { id: 'payments', label: 'payments', icon: 'Receipt' },
+  { id: 'teacher-payments', label: 'teacher-payments', icon: 'Wallet' },
+  { id: 'schedule', label: 'schedule', icon: 'CalendarDays' },
+  { id: 'services', label: 'services', icon: 'BookOpen' },
+  { id: 'classrooms', label: 'classrooms', icon: 'DoorOpen' },
+  { id: 'settings', label: 'settings', icon: 'Settings' },
 ];
 
 const ALL_PAGE_IDS = ALL_PAGES.map((p) => p.id);
@@ -124,6 +125,19 @@ function parseAccessPages(accessPages: string): string[] {
   return accessPages.split(',').map((p) => p.trim()).filter(Boolean);
 }
 
+const PAGE_LABEL_KEY_MAP: Record<string, keyof import('@/lib/translations').Translations['users']> = {
+  dashboard: 'pageDashboard',
+  'financial-reports': 'pageFinancialReports',
+  students: 'pageStudents',
+  teachers: 'pageTeachers',
+  payments: 'pagePayments',
+  'teacher-payments': 'pageTeacherPayments',
+  schedule: 'pageSchedule',
+  services: 'pageServices',
+  classrooms: 'pageClassrooms',
+  settings: 'pageSettings',
+};
+
 function TableSkeleton() {
   return (
     <div className="space-y-3 p-4">
@@ -137,6 +151,8 @@ function TableSkeleton() {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function UsersView() {
+  const t = useT();
+
   // ── State ───────────────────────────────────────────────────────────────
 
   const [users, setUsers] = useState<User[]>([]);
@@ -165,11 +181,11 @@ export default function UsersView() {
       const json = await res.json();
       setUsers(json);
     } catch {
-      toast.error('فشل في تحميل المستخدمين');
+      toast.error(t.users.fetchError);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchUsers();
@@ -193,14 +209,14 @@ export default function UsersView() {
       return (
         <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
           <ShieldCheck className="h-3 w-3 ml-1" />
-          مدير
+          {t.users.adminRole}
         </Badge>
       );
     }
     return (
       <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">
         <Shield className="h-3 w-3 ml-1" />
-        سكرتير
+        {t.users.secretaryRole}
       </Badge>
     );
   };
@@ -209,13 +225,13 @@ export default function UsersView() {
     if (status === 'active') {
       return (
         <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
-          نشط
+          {t.common.active}
         </Badge>
       );
     }
     return (
       <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">
-        معطل
+        {t.common.inactive}
       </Badge>
     );
   };
@@ -262,15 +278,15 @@ export default function UsersView() {
 
   const handleSubmit = async () => {
     if (!formData.fullName.trim()) {
-      toast.error('يرجى إدخال الاسم الكامل');
+      toast.error(t.users.nameRequired);
       return;
     }
     if (!formData.email.trim()) {
-      toast.error('يرجى إدخال البريد الإلكتروني');
+      toast.error(t.users.emailRequired);
       return;
     }
     if (!editingUser && !formData.password.trim()) {
-      toast.error('يرجى إدخال كلمة المرور');
+      toast.error(t.users.passwordRequired);
       return;
     }
 
@@ -296,11 +312,11 @@ export default function UsersView() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
-      toast.success(editingUser ? 'تم تحديث المستخدم بنجاح' : 'تم إضافة المستخدم بنجاح');
+      toast.success(editingUser ? t.users.updateSuccess : t.users.addSuccess);
       setDialogOpen(false);
       fetchUsers();
     } catch {
-      toast.error('حدث خطأ أثناء الحفظ');
+      toast.error(t.users.saveError);
     } finally {
       setSubmitting(false);
     }
@@ -313,12 +329,12 @@ export default function UsersView() {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
-      toast.success('تم حذف المستخدم بنجاح');
+      toast.success(t.users.deleteSuccess);
       setDeleteOpen(false);
       setDeletingUser(null);
       fetchUsers();
     } catch {
-      toast.error('حدث خطأ أثناء الحذف');
+      toast.error(t.users.deleteError);
     }
   };
 
@@ -332,6 +348,16 @@ export default function UsersView() {
     }));
   };
 
+  // ── Page label helper ─────────────────────────────────────────────────
+
+  const getPageLabel = (pageId: string) => {
+    const key = PAGE_LABEL_KEY_MAP[pageId];
+    if (key) {
+      return t.users[key] as string;
+    }
+    return pageId;
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────
 
   return (
@@ -340,13 +366,13 @@ export default function UsersView() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Users className="h-5 w-5" />
-          <span className="text-sm">{users.length} مستخدم</span>
+          <span className="text-sm">{users.length} {t.users.userCount}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-full sm:w-64">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="البحث بالاسم أو البريد..."
+              placeholder={t.users.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pr-10"
@@ -354,7 +380,7 @@ export default function UsersView() {
           </div>
           <Button onClick={() => handleOpenDialog()} className="gap-2 shrink-0">
             <Plus className="h-4 w-4" />
-            إضافة مستخدم
+            {t.users.addUser}
           </Button>
         </div>
       </div>
@@ -363,13 +389,13 @@ export default function UsersView() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">إجمالي المستخدمين</p>
+            <p className="text-xs text-muted-foreground">{t.users.totalUsers}</p>
             <p className="text-lg font-bold mt-1">{users.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">المديرون</p>
+            <p className="text-xs text-muted-foreground">{t.users.adminsLabel}</p>
             <p className="text-lg font-bold text-blue-700 mt-1">
               {users.filter((u) => u.role === 'ADMIN').length}
             </p>
@@ -377,7 +403,7 @@ export default function UsersView() {
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">السكرتارية</p>
+            <p className="text-xs text-muted-foreground">{t.users.secretariesLabel}</p>
             <p className="text-lg font-bold text-blue-600 mt-1">
               {users.filter((u) => u.role === 'SECRETARY').length}
             </p>
@@ -385,7 +411,7 @@ export default function UsersView() {
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xs text-muted-foreground">المستخدمون النشطون</p>
+            <p className="text-xs text-muted-foreground">{t.users.activeUsersLabel}</p>
             <p className="text-lg font-bold text-sky-600 mt-1">
               {users.filter((u) => u.status === 'active').length}
             </p>
@@ -402,10 +428,10 @@ export default function UsersView() {
             <div className="text-center py-12 text-muted-foreground">
               <UserCog className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium">
-                {searchQuery ? 'لا توجد نتائج للبحث' : 'لا يوجد مستخدمون بعد'}
+                {searchQuery ? t.users.noSearchResults : t.users.noUsersYet}
               </p>
               <p className="text-sm mt-1">
-                {searchQuery ? 'جرب البحث بكلمات أخرى' : 'أضف أول مستخدم للبدء'}
+                {searchQuery ? t.users.tryOtherSearch : t.users.addFirstUser}
               </p>
             </div>
           ) : (
@@ -413,12 +439,12 @@ export default function UsersView() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">الاسم</TableHead>
-                    <TableHead className="text-right">البريد الإلكتروني</TableHead>
-                    <TableHead className="text-right hidden md:table-cell">الدور</TableHead>
-                    <TableHead className="text-right hidden sm:table-cell">الحالة</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">تاريخ الإنشاء</TableHead>
-                    <TableHead className="text-right">الإجراءات</TableHead>
+                    <TableHead className="text-right">{t.common.name}</TableHead>
+                    <TableHead className="text-right">{t.common.email}</TableHead>
+                    <TableHead className="text-right hidden md:table-cell">{t.users.role}</TableHead>
+                    <TableHead className="text-right hidden sm:table-cell">{t.common.status}</TableHead>
+                    <TableHead className="text-right hidden lg:table-cell">{t.users.createdDate}</TableHead>
+                    <TableHead className="text-right">{t.common.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -493,12 +519,12 @@ export default function UsersView() {
         <DialogContent className="sm:max-w-2xl p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
             <DialogTitle>
-              {editingUser ? 'تعديل المستخدم' : 'إضافة مستخدم جديد'}
+              {editingUser ? t.users.editUser : t.users.addNewUser}
             </DialogTitle>
             <DialogDescription>
               {editingUser
-                ? 'قم بتعديل بيانات المستخدم والصلاحيات المطلوبة'
-                : 'أدخل بيانات المستخدم الجديد وحدد صلاحياته'}
+                ? t.users.editUserDesc
+                : t.users.addNewUserDesc}
             </DialogDescription>
           </DialogHeader>
 
@@ -506,9 +532,9 @@ export default function UsersView() {
             <div className="grid gap-5">
               {/* ── Full Name ─────────────────────────────────────────── */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">الاسم الكامل</Label>
+                <Label className="text-sm font-semibold">{t.common.name}</Label>
                 <Input
-                  placeholder="أدخل الاسم الكامل"
+                  placeholder={t.users.fullNamePlaceholder}
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, fullName: e.target.value }))
@@ -518,7 +544,7 @@ export default function UsersView() {
 
               {/* ── Email ─────────────────────────────────────────────── */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">البريد الإلكتروني</Label>
+                <Label className="text-sm font-semibold">{t.common.email}</Label>
                 <Input
                   type="email"
                   placeholder="example@email.com"
@@ -533,10 +559,10 @@ export default function UsersView() {
 
               {/* ── Password ──────────────────────────────────────────── */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">كلمة المرور</Label>
+                <Label className="text-sm font-semibold">{t.users.password}</Label>
                 <Input
                   type="password"
-                  placeholder={editingUser ? 'اتركه فارغاً للحفاظ على كلمة المرور الحالية' : 'أدخل كلمة المرور'}
+                  placeholder={editingUser ? t.users.passwordKeepHint : t.users.passwordPlaceholder}
                   value={formData.password}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, password: e.target.value }))
@@ -546,7 +572,7 @@ export default function UsersView() {
                 />
                 {editingUser && (
                   <p className="text-xs text-muted-foreground">
-                    اتركه فارغاً للحفاظ على كلمة المرور الحالية
+                    {t.users.passwordKeepHint}
                   </p>
                 )}
               </div>
@@ -554,7 +580,7 @@ export default function UsersView() {
               {/* ── Role & Status ─────────────────────────────────────── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">الدور</Label>
+                  <Label className="text-sm font-semibold">{t.users.role}</Label>
                   <Select
                     value={formData.role}
                     onValueChange={(val) => handleRoleChange(val as 'ADMIN' | 'SECRETARY')}
@@ -566,13 +592,13 @@ export default function UsersView() {
                       <SelectItem value="ADMIN">
                         <span className="flex items-center gap-2">
                           <ShieldCheck className="h-4 w-4 text-blue-700" />
-                          مدير
+                          {t.users.adminRole}
                         </span>
                       </SelectItem>
                       <SelectItem value="SECRETARY">
                         <span className="flex items-center gap-2">
                           <Shield className="h-4 w-4 text-blue-600" />
-                          سكرتير
+                          {t.users.secretaryRole}
                         </span>
                       </SelectItem>
                     </SelectContent>
@@ -580,7 +606,7 @@ export default function UsersView() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">الحالة</Label>
+                  <Label className="text-sm font-semibold">{t.common.status}</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(val) =>
@@ -591,8 +617,8 @@ export default function UsersView() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">نشط</SelectItem>
-                      <SelectItem value="inactive">معطل</SelectItem>
+                      <SelectItem value="active">{t.common.active}</SelectItem>
+                      <SelectItem value="inactive">{t.common.inactive}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -602,7 +628,7 @@ export default function UsersView() {
               <div className="space-y-3">
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-semibold">صفحات الوصول</Label>
+                  <Label className="text-sm font-semibold">{t.users.accessPages}</Label>
                   {formData.role !== 'ADMIN' && (
                     <Button
                       type="button"
@@ -612,8 +638,8 @@ export default function UsersView() {
                       onClick={selectAllPages}
                     >
                       {formData.accessPages.length === ALL_PAGE_IDS.length
-                        ? 'إلغاء تحديد الكل'
-                        : 'تحديد الكل'}
+                        ? t.users.deselectAll
+                        : t.users.selectAll}
                     </Button>
                   )}
                 </div>
@@ -622,7 +648,7 @@ export default function UsersView() {
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <p className="text-sm text-blue-800">
                       <ShieldCheck className="h-4 w-4 inline ml-1.5" />
-                      المدير لديه صلاحية الوصول الكامل لجميع الصفحات تلقائياً
+                      {t.users.adminFullAccess}
                     </p>
                   </div>
                 )}
@@ -647,7 +673,7 @@ export default function UsersView() {
                           disabled={isDisabled}
                           onCheckedChange={() => toggleAccessPage(page.id)}
                         />
-                        <span className="text-sm font-medium">{page.label}</span>
+                        <span className="text-sm font-medium">{getPageLabel(page.id)}</span>
                       </label>
                     );
                   })}
@@ -663,7 +689,7 @@ export default function UsersView() {
               onClick={() => setDialogOpen(false)}
               disabled={submitting}
             >
-              إلغاء
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -674,17 +700,17 @@ export default function UsersView() {
               {submitting ? (
                 <>
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  جاري الحفظ...
+                  {t.common.saving}
                 </>
               ) : editingUser ? (
                 <>
                   <Pencil className="h-4 w-4" />
-                  حفظ التعديلات
+                  {t.common.saveChanges}
                 </>
               ) : (
                 <>
                   <Plus className="h-4 w-4" />
-                  إضافة المستخدم
+                  {t.users.addUser}
                 </>
               )}
             </Button>
@@ -700,22 +726,22 @@ export default function UsersView() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Trash2 className="h-5 w-5 text-destructive" />
-              تأكيد حذف المستخدم
+              {t.users.deleteConfirmTitle}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed pt-2">
-              هل أنت متأكد من حذف المستخدم{' '}
+              {t.users.deleteConfirmMsg}{' '}
               <span className="font-bold text-foreground">{deletingUser?.fullName}</span>
-              ؟ لا يمكن التراجع عن هذا الإجراء.
+              ？ {t.common.cannotUndo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-start mt-4">
-            <AlertDialogCancel className="m-0">إلغاء</AlertDialogCancel>
+            <AlertDialogCancel className="m-0">{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-white hover:bg-destructive/90 m-0 gap-2"
             >
               <Trash2 className="h-4 w-4" />
-              نعم، حذف المستخدم
+              {t.users.yesDeleteUser}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

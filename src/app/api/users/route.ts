@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { st } from '@/lib/server-t';
 
 const SALT_ROUNDS = 12;
 
@@ -23,7 +24,7 @@ export async function GET() {
     return NextResponse.json(users);
   } catch (error) {
     console.error('Get users error:', error);
-    return NextResponse.json({ error: 'خطأ في جلب المستخدمين' }, { status: 500 });
+    return NextResponse.json({ error: st('fetchUsersError') }, { status: 500 });
   }
 }
 
@@ -33,12 +34,12 @@ export async function POST(request: Request) {
     const { email, password, fullName, role, status, accessPages } = await request.json();
 
     if (!email || !password || !fullName) {
-      return NextResponse.json({ error: 'البريد الإلكتروني وكلمة المرور والاسم مطلوبون' }, { status: 400 });
+      return NextResponse.json({ error: st('usersFieldsRequired') }, { status: 400 });
     }
 
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ error: 'هذا البريد الإلكتروني مستخدم بالفعل' }, { status: 409 });
+      return NextResponse.json({ error: st('emailAlreadyUsed') }, { status: 409 });
     }
 
     // Hash password with bcrypt
@@ -61,6 +62,6 @@ export async function POST(request: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error('Create user error:', error);
-    return NextResponse.json({ error: 'خطأ في إنشاء المستخدم' }, { status: 500 });
+    return NextResponse.json({ error: st('createUserError') }, { status: 500 });
   }
 }

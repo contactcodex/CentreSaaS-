@@ -73,33 +73,31 @@ interface Service {
 }
 
 const SERVICE_CONFIGS: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; badge: string }> = {
+  // Arabic keys
   'دروس الدعم': {
-    icon: GraduationCap,
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    badge: 'bg-blue-100 text-blue-800',
+    icon: GraduationCap, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800',
   },
   'اللغات': {
-    icon: Languages,
-    color: 'text-violet-600',
-    bg: 'bg-violet-50',
-    border: 'border-violet-200',
-    badge: 'bg-violet-100 text-violet-700',
+    icon: Languages, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-200', badge: 'bg-violet-100 text-violet-700',
   },
   'تكنولوجيا المعلومات': {
-    icon: Monitor,
-    color: 'text-cyan-600',
-    bg: 'bg-cyan-50',
-    border: 'border-cyan-200',
-    badge: 'bg-cyan-100 text-cyan-700',
+    icon: Monitor, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', badge: 'bg-cyan-100 text-cyan-700',
   },
   'تحضير المسابقات': {
-    icon: Trophy,
-    color: 'text-rose-600',
-    bg: 'bg-rose-50',
-    border: 'border-rose-200',
-    badge: 'bg-rose-100 text-rose-700',
+    icon: Trophy, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', badge: 'bg-rose-100 text-rose-700',
+  },
+  // French keys (bilingual lookup)
+  'Cours de Soutien': {
+    icon: GraduationCap, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-800',
+  },
+  'Langues': {
+    icon: Languages, color: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-200', badge: 'bg-violet-100 text-violet-700',
+  },
+  'Informatique': {
+    icon: Monitor, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200', badge: 'bg-cyan-100 text-cyan-700',
+  },
+  'Préparation aux concours': {
+    icon: Trophy, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-200', badge: 'bg-rose-100 text-rose-700',
   },
 };
 
@@ -238,7 +236,7 @@ export function ServicesView() {
 
   const handleAddService = async () => {
     if (!serviceForm.name.trim() || !serviceForm.nameAr.trim() || !serviceForm.nameFr.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(t.services.fieldsRequired);
       return;
     }
     setServiceSubmitting(true);
@@ -249,12 +247,12 @@ export function ServicesView() {
         body: JSON.stringify(serviceForm),
       });
       if (!res.ok) throw new Error();
-      toast.success('تم إضافة الخدمة بنجاح');
+      toast.success(t.services.addServiceSuccess);
       setAddServiceOpen(false);
       setServiceForm({ name: '', nameAr: '', nameFr: '', icon: '' });
       fetchServices();
     } catch {
-      toast.error('فشل في إضافة الخدمة');
+      toast.error(t.services.addServiceError);
     } finally {
       setServiceSubmitting(false);
     }
@@ -268,7 +266,7 @@ export function ServicesView() {
 
   const handleAddSubject = async () => {
     if (!subjectForm.name.trim() || !subjectForm.nameAr.trim() || !subjectForm.nameFr.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(t.services.fieldsRequired);
       return;
     }
     setSubjectSubmitting(true);
@@ -279,11 +277,11 @@ export function ServicesView() {
         body: JSON.stringify(subjectForm),
       });
       if (!res.ok) throw new Error();
-      toast.success('تم إضافة المادة بنجاح');
+      toast.success(t.services.addSubjectSuccess);
       setAddSubjectOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في إضافة المادة');
+      toast.error(t.services.addSubjectError);
     } finally {
       setSubjectSubmitting(false);
     }
@@ -298,7 +296,7 @@ export function ServicesView() {
 
   const handleAddLevel = async () => {
     if (!levelForm.name.trim() || !levelForm.nameAr.trim() || !levelForm.nameFr.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(t.services.fieldsRequired);
       return;
     }
     setLevelSubmitting(true);
@@ -309,11 +307,11 @@ export function ServicesView() {
         body: JSON.stringify(levelForm),
       });
       if (!res.ok) throw new Error();
-      toast.success('تم إضافة المستوى بنجاح');
+      toast.success(t.services.addLevelSuccess);
       setAddLevelOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في إضافة المستوى');
+      toast.error(t.services.addLevelError);
     } finally {
       setLevelSubmitting(false);
     }
@@ -330,7 +328,7 @@ export function ServicesView() {
 
   const handleEditSubject = async () => {
     if (!editSubjectForm.name.trim() || !editSubjectForm.nameAr.trim() || !editSubjectForm.nameFr.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(t.services.fieldsRequired);
       return;
     }
     setEditSubjectSubmitting(true);
@@ -341,11 +339,11 @@ export function ServicesView() {
         body: JSON.stringify(editSubjectForm),
       });
       if (!res.ok) throw new Error();
-      toast.success('تم تعديل المادة بنجاح');
+      toast.success(t.services.editSubjectSuccess);
       setEditSubjectOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في تعديل المادة');
+      toast.error(t.services.editSubjectError);
     } finally {
       setEditSubjectSubmitting(false);
     }
@@ -367,11 +365,11 @@ export function ServicesView() {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
-      toast.success('تم حذف المادة بنجاح');
+      toast.success(t.services.deleteSubjectSuccess);
       setDeleteSubjectOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في حذف المادة');
+      toast.error(t.services.deleteSubjectError);
     } finally {
       setDeleteSubjectSubmitting(false);
     }
@@ -389,7 +387,7 @@ export function ServicesView() {
 
   const handleEditLevel = async () => {
     if (!editLevelForm.name.trim() || !editLevelForm.nameAr.trim() || !editLevelForm.nameFr.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error(t.services.fieldsRequired);
       return;
     }
     setEditLevelSubmitting(true);
@@ -400,11 +398,11 @@ export function ServicesView() {
         body: JSON.stringify(editLevelForm),
       });
       if (!res.ok) throw new Error();
-      toast.success('تم تعديل المستوى بنجاح');
+      toast.success(t.services.editLevelSuccess);
       setEditLevelOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في تعديل المستوى');
+      toast.error(t.services.editLevelError);
     } finally {
       setEditLevelSubmitting(false);
     }
@@ -427,11 +425,11 @@ export function ServicesView() {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
-      toast.success('تم حذف الخدمة بنجاح');
+      toast.success(t.services.deleteServiceSuccess);
       setDeleteServiceOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في حذف الخدمة');
+      toast.error(t.services.deleteServiceError);
     } finally {
       setDeleteServiceSubmitting(false);
     }
@@ -452,11 +450,11 @@ export function ServicesView() {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
-      toast.success('تم حذف المستوى بنجاح');
+      toast.success(t.services.deleteLevelSuccess);
       setDeleteLevelOpen(false);
       fetchServices();
     } catch {
-      toast.error('فشل في حذف المستوى');
+      toast.error(t.services.deleteLevelError);
     } finally {
       setDeleteLevelSubmitting(false);
     }
@@ -479,7 +477,7 @@ export function ServicesView() {
         </div>
         <Button onClick={() => setAddServiceOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          إضافة خدمة
+          {t.services.addService}
         </Button>
       </div>
 
@@ -507,7 +505,7 @@ export function ServicesView() {
       {/* Services Accordion */}
       <Accordion type="multiple" className="space-y-3">
         {services.map((service) => {
-          const config = SERVICE_CONFIGS[service.nameAr] || DEFAULT_CONFIG;
+          const config = SERVICE_CONFIGS[service.nameAr] || SERVICE_CONFIGS[service.nameFr] || DEFAULT_CONFIG;
           const Icon = config.icon;
 
           return (
@@ -556,12 +554,12 @@ export function ServicesView() {
                     onClick={() => handleOpenAddSubject(service.id)}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    إضافة مادة
+                    {t.services.addSubject}
                   </Button>
                 </div>
 
                 {service.subjects.length === 0 ? (
-                  <p className="text-muted-foreground text-sm py-4 text-center">لا توجد مواد في هذه الخدمة</p>
+                  <p className="text-muted-foreground text-sm py-4 text-center">{t.services.noSubjects}</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {service.subjects.map((subject) => (
@@ -629,7 +627,7 @@ export function ServicesView() {
                           onClick={() => handleOpenAddLevel(service.id, subject.id)}
                         >
                           <Plus className="h-3 w-3" />
-                          إضافة مستوى
+                          {t.services.addLevel}
                         </Button>
                       </div>
                     ))}
@@ -653,7 +651,7 @@ export function ServicesView() {
             </p>
             <Button onClick={() => setAddServiceOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              إضافة خدمة جديدة
+              {t.services.addNewService}
             </Button>
           </CardContent>
         </Card>
@@ -665,13 +663,13 @@ export function ServicesView() {
       <Dialog open={addServiceOpen} onOpenChange={setAddServiceOpen}>
         <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-            <DialogTitle>إضافة خدمة جديدة</DialogTitle>
-            <DialogDescription>أدخل بيانات الخدمة الجديدة</DialogDescription>
+            <DialogTitle>{t.services.addNewService}</DialogTitle>
+            <DialogDescription>{t.services.addServiceDesc}</DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 min-h-0 px-6 py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label>الاسم (عربي) *</Label>
+                <Label>{t.services.nameArLabel}</Label>
                 <Input
                   placeholder="مثال: دروس الدعم"
                   value={serviceForm.nameAr}
@@ -679,7 +677,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الاسم (فرنسي) *</Label>
+                <Label>{t.services.nameFrLabel}</Label>
                 <Input
                   placeholder="Ex: Cours de Soutiens"
                   value={serviceForm.nameFr}
@@ -689,7 +687,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>المفتاح الداخلي (name)</Label>
+                <Label>{t.services.internalKeyLabel}</Label>
                 <Input
                   placeholder="مثال: Cours de Soutiens"
                   value={serviceForm.name}
@@ -699,7 +697,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الأيقونة (إيموجي)</Label>
+                <Label>{t.services.iconLabel}</Label>
                 <Input
                   placeholder="مثال: 🎓"
                   value={serviceForm.icon}
@@ -710,9 +708,9 @@ export function ServicesView() {
             </div>
           </div>
           <DialogFooter className="shrink-0 px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setAddServiceOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setAddServiceOpen(false)}>{t.common.cancel}</Button>
             <Button onClick={handleAddService} disabled={serviceSubmitting} className="gap-2">
-              {serviceSubmitting ? 'جاري الإضافة...' : 'إضافة الخدمة'}
+              {serviceSubmitting ? t.services.adding : t.services.addService}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -724,13 +722,13 @@ export function ServicesView() {
       <Dialog open={addSubjectOpen} onOpenChange={setAddSubjectOpen}>
         <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-            <DialogTitle>إضافة مادة جديدة</DialogTitle>
-            <DialogDescription>أدخل بيانات المادة الجديدة</DialogDescription>
+            <DialogTitle>{t.services.addNewSubject}</DialogTitle>
+            <DialogDescription>{t.services.addSubjectDesc}</DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 min-h-0 px-6 py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label>الاسم (عربي) *</Label>
+                <Label>{t.services.nameArLabel}</Label>
                 <Input
                   placeholder="مثال: الرياضيات"
                   value={subjectForm.nameAr}
@@ -738,7 +736,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الاسم (فرنسي) *</Label>
+                <Label>{t.services.nameFrLabel}</Label>
                 <Input
                   placeholder="Ex: Mathématiques"
                   value={subjectForm.nameFr}
@@ -748,7 +746,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>المفتاح الداخلي (name)</Label>
+                <Label>{t.services.internalKeyLabel}</Label>
                 <Input
                   placeholder="مثال: Mathématiques"
                   value={subjectForm.name}
@@ -760,9 +758,9 @@ export function ServicesView() {
             </div>
           </div>
           <DialogFooter className="shrink-0 px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setAddSubjectOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setAddSubjectOpen(false)}>{t.common.cancel}</Button>
             <Button onClick={handleAddSubject} disabled={subjectSubmitting} className="gap-2">
-              {subjectSubmitting ? 'جاري الإضافة...' : 'إضافة المادة'}
+              {subjectSubmitting ? t.services.adding : t.services.addSubject}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -774,13 +772,13 @@ export function ServicesView() {
       <Dialog open={editSubjectOpen} onOpenChange={setEditSubjectOpen}>
         <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-            <DialogTitle>تعديل المادة</DialogTitle>
-            <DialogDescription>تعديل بيانات المادة</DialogDescription>
+            <DialogTitle>{t.services.editSubject}</DialogTitle>
+            <DialogDescription>{t.services.editSubjectDesc}</DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 min-h-0 px-6 py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label>الاسم (عربي) *</Label>
+                <Label>{t.services.nameArLabel}</Label>
                 <Input
                   placeholder="مثال: الرياضيات"
                   value={editSubjectForm.nameAr}
@@ -788,7 +786,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الاسم (فرنسي) *</Label>
+                <Label>{t.services.nameFrLabel}</Label>
                 <Input
                   placeholder="Ex: Mathématiques"
                   value={editSubjectForm.nameFr}
@@ -798,7 +796,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>المفتاح الداخلي (name)</Label>
+                <Label>{t.services.internalKeyLabel}</Label>
                 <Input
                   placeholder="مثال: Mathématiques"
                   value={editSubjectForm.name}
@@ -810,9 +808,9 @@ export function ServicesView() {
             </div>
           </div>
           <DialogFooter className="shrink-0 px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setEditSubjectOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditSubjectOpen(false)}>{t.common.cancel}</Button>
             <Button onClick={handleEditSubject} disabled={editSubjectSubmitting} className="gap-2">
-              {editSubjectSubmitting ? 'جاري التعديل...' : 'حفظ التعديلات'}
+              {editSubjectSubmitting ? t.services.editing : t.common.saveChanges}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -824,19 +822,19 @@ export function ServicesView() {
       <AlertDialog open={deleteSubjectOpen} onOpenChange={setDeleteSubjectOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>هل أنت متأكد من حذف المادة؟</AlertDialogTitle>
+            <AlertDialogTitle>{t.services.deleteSubjectConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم حذف المادة &quot;{deleteSubjectName}&quot; وجميع المستويات المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.
+              {t.services.deleteSubjectWarning.replace('{name}', deleteSubjectName)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteSubjectSubmitting}>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteSubjectSubmitting}>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteSubject}
               disabled={deleteSubjectSubmitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteSubjectSubmitting ? 'جاري الحذف...' : 'حذف المادة'}
+              {deleteSubjectSubmitting ? t.services.deleting : t.services.deleteSubject}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -848,13 +846,13 @@ export function ServicesView() {
       <Dialog open={addLevelOpen} onOpenChange={setAddLevelOpen}>
         <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-            <DialogTitle>إضافة مستوى جديد</DialogTitle>
-            <DialogDescription>أدخل بيانات المستوى الجديد</DialogDescription>
+            <DialogTitle>{t.services.addNewLevel}</DialogTitle>
+            <DialogDescription>{t.services.addLevelDesc}</DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 min-h-0 px-6 py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label>الاسم (عربي) *</Label>
+                <Label>{t.services.nameArLabel}</Label>
                 <Input
                   placeholder="مثال: السنة الأولى"
                   value={levelForm.nameAr}
@@ -862,7 +860,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الاسم (فرنسي) *</Label>
+                <Label>{t.services.nameFrLabel}</Label>
                 <Input
                   placeholder="Ex: 1ère Année"
                   value={levelForm.nameFr}
@@ -872,7 +870,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>المفتاح الداخلي (name)</Label>
+                <Label>{t.services.internalKeyLabel}</Label>
                 <Input
                   placeholder="مثال: 1ère Année"
                   value={levelForm.name}
@@ -884,9 +882,9 @@ export function ServicesView() {
             </div>
           </div>
           <DialogFooter className="shrink-0 px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setAddLevelOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setAddLevelOpen(false)}>{t.common.cancel}</Button>
             <Button onClick={handleAddLevel} disabled={levelSubmitting} className="gap-2">
-              {levelSubmitting ? 'جاري الإضافة...' : 'إضافة المستوى'}
+              {levelSubmitting ? t.services.adding : t.services.addLevel}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -898,13 +896,13 @@ export function ServicesView() {
       <Dialog open={editLevelOpen} onOpenChange={setEditLevelOpen}>
         <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-            <DialogTitle>تعديل المستوى</DialogTitle>
-            <DialogDescription>تعديل بيانات المستوى</DialogDescription>
+            <DialogTitle>{t.services.editLevel}</DialogTitle>
+            <DialogDescription>{t.services.editLevelDesc}</DialogDescription>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 min-h-0 px-6 py-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label>الاسم (عربي) *</Label>
+                <Label>{t.services.nameArLabel}</Label>
                 <Input
                   placeholder="مثال: السنة الأولى"
                   value={editLevelForm.nameAr}
@@ -912,7 +910,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>الاسم (فرنسي) *</Label>
+                <Label>{t.services.nameFrLabel}</Label>
                 <Input
                   placeholder="Ex: 1ère Année"
                   value={editLevelForm.nameFr}
@@ -922,7 +920,7 @@ export function ServicesView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>المفتاح الداخلي (name)</Label>
+                <Label>{t.services.internalKeyLabel}</Label>
                 <Input
                   placeholder="مثال: 1ère Année"
                   value={editLevelForm.name}
@@ -934,9 +932,9 @@ export function ServicesView() {
             </div>
           </div>
           <DialogFooter className="shrink-0 px-6 py-4 border-t">
-            <Button variant="outline" onClick={() => setEditLevelOpen(false)}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setEditLevelOpen(false)}>{t.common.cancel}</Button>
             <Button onClick={handleEditLevel} disabled={editLevelSubmitting} className="gap-2">
-              {editLevelSubmitting ? 'جاري التعديل...' : 'حفظ التعديلات'}
+              {editLevelSubmitting ? t.services.editing : t.common.saveChanges}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -948,19 +946,19 @@ export function ServicesView() {
       <AlertDialog open={deleteServiceOpen} onOpenChange={setDeleteServiceOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>هل أنت متأكد من حذف الخدمة؟</AlertDialogTitle>
+            <AlertDialogTitle>{t.services.deleteServiceConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم حذف الخدمة &quot;{deleteServiceName}&quot; وجميع المواد والمستويات المرتبطة بها. لا يمكن التراجع عن هذا الإجراء.
+              {t.services.deleteServiceWarning.replace('{name}', deleteServiceName)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteServiceSubmitting}>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteServiceSubmitting}>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteService}
               disabled={deleteServiceSubmitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteServiceSubmitting ? 'جاري الحذف...' : 'حذف الخدمة'}
+              {deleteServiceSubmitting ? t.services.deleting : t.services.deleteService}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -972,19 +970,19 @@ export function ServicesView() {
       <AlertDialog open={deleteLevelOpen} onOpenChange={setDeleteLevelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>هل أنت متأكد من حذف المستوى؟</AlertDialogTitle>
+            <AlertDialogTitle>{t.services.deleteLevelConfirm}</AlertDialogTitle>
             <AlertDialogDescription>
-              سيتم حذف المستوى &quot;{deleteLevelName}&quot;. لا يمكن التراجع عن هذا الإجراء.
+              {t.services.deleteLevelWarning.replace('{name}', deleteLevelName)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteLevelSubmitting}>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteLevelSubmitting}>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteLevel}
               disabled={deleteLevelSubmitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteLevelSubmitting ? 'جاري الحذف...' : 'حذف المستوى'}
+              {deleteLevelSubmitting ? t.services.deleting : t.services.deleteLevel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

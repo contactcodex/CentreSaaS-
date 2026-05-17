@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
+import { st } from '@/lib/server-t';
 
 const SALT_ROUNDS = 12;
 
@@ -10,13 +11,13 @@ export async function POST(request: NextRequest) {
     const { email, password, fullName } = await request.json();
 
     if (!email || !password || !fullName) {
-      return NextResponse.json({ error: 'جميع الحقول مطلوبة' }, { status: 400 });
+      return NextResponse.json({ error: st('allFieldsRequired') }, { status: 400 });
     }
 
     // Check if any users exist
     const existingUsers = await db.user.count();
     if (existingUsers > 0) {
-      return NextResponse.json({ error: 'تم إنشاء المسؤول بالفعل' }, { status: 400 });
+      return NextResponse.json({ error: st('adminAlreadyExists') }, { status: 400 });
     }
 
     // Hash password with bcrypt
@@ -36,12 +37,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'تم إنشاء المسؤول بنجاح',
+      message: st('adminCreated'),
       user: { id: user.id, email: user.email, fullName: user.fullName },
     });
   } catch (error) {
     console.error('Setup error:', error);
-    return NextResponse.json({ error: 'خطأ في إنشاء المسؤول' }, { status: 500 });
+    return NextResponse.json({ error: st('adminCreateError') }, { status: 500 });
   }
 }
 
@@ -50,6 +51,6 @@ export async function GET() {
     const count = await db.user.count();
     return NextResponse.json({ hasUsers: count > 0 });
   } catch (error) {
-    return NextResponse.json({ error: 'خطأ' }, { status: 500 });
+    return NextResponse.json({ error: st('error') }, { status: 500 });
   }
 }

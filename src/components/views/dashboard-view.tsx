@@ -160,6 +160,12 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
   const [loading, setLoading] = useState(true);
   const t = useT();
 
+  const monthNames = [
+    t.months.January, t.months.February, t.months.March, t.months.April,
+    t.months.May, t.months.June, t.months.July, t.months.August,
+    t.months.September, t.months.October, t.months.November, t.months.December,
+  ];
+
   // ── Monthly registrations state ──
   const [regYear, setRegYear] = useState(String(new Date().getFullYear()));
   const [regMonth, setRegMonth] = useState('all');
@@ -366,7 +372,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                           )}
                           {session.sessionType === 'trial' && (
                             <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 py-0">
-                              تجريبية
+                              {t.dashboard.trial}
                             </Badge>
                           )}
                         </div>
@@ -419,19 +425,10 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">كل الأشهر</SelectItem>
-                <SelectItem value="1">يناير</SelectItem>
-                <SelectItem value="2">فبراير</SelectItem>
-                <SelectItem value="3">مارس</SelectItem>
-                <SelectItem value="4">أبريل</SelectItem>
-                <SelectItem value="5">ماي</SelectItem>
-                <SelectItem value="6">يونيو</SelectItem>
-                <SelectItem value="7">يوليوز</SelectItem>
-                <SelectItem value="8">غشت</SelectItem>
-                <SelectItem value="9">شتنبر</SelectItem>
-                <SelectItem value="10">أكتوبر</SelectItem>
-                <SelectItem value="11">نونبر</SelectItem>
-                <SelectItem value="12">دجنبر</SelectItem>
+                <SelectItem value="all">{t.dashboard.allMonths}</SelectItem>
+                {monthNames.map((name, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>{name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Input
@@ -443,7 +440,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             />
             {registrations && (
               <Badge variant="secondary" className="text-xs">
-                {registrations.total} تسجيل
+                {registrations.total} {t.dashboard.registration}
               </Badge>
             )}
           </div>
@@ -470,7 +467,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                     >
                       <p className="font-bold text-sm">{m.count}</p>
                       <p className="text-muted-foreground">
-                        {['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر'][m.value - 1]}
+                        {monthNames[m.value - 1]}
                       </p>
                     </div>
                   ))}

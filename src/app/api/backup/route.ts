@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/session';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync, copyFileSync, readdirSync, statSync, unlinkSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'تم إنشاء النسخة الاحتياطية بنجاح',
+      message: st('backupCreated'),
       filename,
       size: stats.size,
       sizeHuman: `${(stats.size / 1024).toFixed(1)} KB`,
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Backup error:', error);
-    return NextResponse.json({ error: 'فشل إنشاء النسخة الاحتياطية' }, { status: 500 });
+    return NextResponse.json({ error: st('backupCreateError') }, { status: 500 });
   }
 }
 
@@ -146,6 +147,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ backups: files, count: files.length });
   } catch (error) {
     console.error('List backups error:', error);
-    return NextResponse.json({ error: 'فشل جلب النسخ الاحتياطية' }, { status: 500 });
+    return NextResponse.json({ error: st('backupFetchError') }, { status: 500 });
   }
 }

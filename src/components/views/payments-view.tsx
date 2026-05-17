@@ -1268,7 +1268,7 @@ export function PaymentsView() {
             <div className="relative flex-1 w-full">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="بحث بالاسم أو رقم الهاتف..."
+                placeholder={t.payments.searchPaymentPlaceholder}
                 value={paymentSearch}
                 onChange={(e) => setPaymentSearch(e.target.value)}
                 className="pr-9"
@@ -1280,10 +1280,10 @@ export function PaymentsView() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full">
               <Select value={filterServiceId} onValueChange={setFilterServiceId}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t.students.filterByService || 'الخدمة'} />
+                  <SelectValue placeholder={t.students.filterByService} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t.students.filterByService || 'كل الخدمات'}</SelectItem>
+                  <SelectItem value="all">{t.students.allServices}</SelectItem>
                   {services.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.nameAr || s.name}
@@ -1293,10 +1293,10 @@ export function PaymentsView() {
               </Select>
               <Select value={filterSubjectId} onValueChange={setFilterSubjectId} disabled={filterServiceId === 'all'}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t.students.filterBySubject || 'المادة'} />
+                  <SelectValue placeholder={t.students.filterBySubject} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t.students.filterBySubject || 'كل المواد'}</SelectItem>
+                  <SelectItem value="all">{t.students.allSubjects}</SelectItem>
                   {filterSubjects.map((subj) => (
                     <SelectItem key={subj.id} value={subj.id}>
                       {subj.nameAr || subj.name}
@@ -1306,10 +1306,10 @@ export function PaymentsView() {
               </Select>
               <Select value={filterLevelId} onValueChange={setFilterLevelId} disabled={filterSubjectId === 'all'}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t.students.filterByLevel || 'المستوى'} />
+                  <SelectValue placeholder={t.students.filterByLevel} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t.students.filterByLevel || 'كل المستويات'}</SelectItem>
+                  <SelectItem value="all">{t.students.allLevels}</SelectItem>
                   {filterLevels.map((lvl) => (
                     <SelectItem key={lvl.id} value={lvl.id}>
                       {lvl.nameAr || lvl.name}
@@ -1372,7 +1372,7 @@ export function PaymentsView() {
                 }}
               >
                 <X className="h-3 w-3 mr-1" />
-                {t.common.clear || 'مسح الفلاتر'}
+                {t.common.clear}
               </Button>
             </div>
           )}
@@ -1387,9 +1387,9 @@ export function PaymentsView() {
           ) : filteredPayments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Receipt className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">{paymentSearch ? 'لا توجد نتائج' : t.payments.noPayments}</p>
+              <p className="font-medium">{paymentSearch ? t.common.noResults : t.payments.noPayments}</p>
               <p className="text-sm mt-1">
-                {paymentSearch ? 'جرب كلمة بحث أخرى' : t.payments.addFirst}
+                {paymentSearch ? t.common.tryOtherSearch : t.payments.addFirst}
               </p>
             </div>
           ) : (
@@ -1962,8 +1962,8 @@ export function PaymentsView() {
                       const promo = promotions.find(p => p.id === formData.promotionId);
                       if (!promo) return null;
                       if (promo.type === 'badge') return `🏷️ ${promo.nameAr}`;
-                      if (promo.type === 'percentage') return `🏷️ ${promo.nameAr} — خصم ${promo.value}%${typeof formData.amount === 'number' && formData.amount > 0 ? ` = -${Math.round((formData.amount * promo.value) / 100 * 100) / 100} ${t.common.dh}` : ''}`;
-                      if (promo.type === 'fixed') return `🏷️ ${promo.nameAr} — خصم ${promo.value} ${t.common.dh}`;
+                      if (promo.type === 'percentage') return `🏷️ ${promo.nameAr} — ${t.payments.promoDiscountLabel} ${promo.value}%${typeof formData.amount === 'number' && formData.amount > 0 ? ` = -${Math.round((formData.amount * promo.value) / 100 * 100) / 100} ${t.common.dh}` : ''}`;
+                      if (promo.type === 'fixed') return `🏷️ ${promo.nameAr} — ${t.payments.promoDiscountLabel} ${promo.value} ${t.common.dh}`;
                       return null;
                     })()}
                   </div>
@@ -2547,7 +2547,7 @@ export function PaymentsView() {
               {/* Existing packs list */}
               {packDiscounts.length > 0 && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">الباقات الحالية / Forfaits actuels</Label>
+                  <Label className="text-xs text-muted-foreground">{t.payments.currentPacks}</Label>
                   <div className="space-y-1">
                     {packDiscounts.map((pd) => (
                       <div key={pd.id} className="flex items-center justify-between px-3 py-2 rounded-lg border bg-muted/30 text-sm">

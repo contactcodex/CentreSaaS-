@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { st } from '@/lib/server-t';
 
 const SALT_ROUNDS = 12;
 
@@ -15,11 +16,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
       },
     });
     if (!user) {
-      return NextResponse.json({ error: 'المستخدم غير موجود' }, { status: 404 });
+      return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }
     return NextResponse.json(user);
   } catch (error) {
-    return NextResponse.json({ error: 'خطأ' }, { status: 500 });
+    return NextResponse.json({ error: st('error') }, { status: 500 });
   }
 }
 
@@ -32,14 +33,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'المستخدم غير موجود' }, { status: 404 });
+      return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }
 
     // Check email uniqueness
     if (email && email !== existing.email) {
       const emailTaken = await db.user.findFirst({ where: { email, id: { not: id } } });
       if (emailTaken) {
-        return NextResponse.json({ error: 'هذا البريد الإلكتروني مستخدم بالفعل' }, { status: 409 });
+        return NextResponse.json({ error: st('emailAlreadyUsed') }, { status: 409 });
       }
     }
 
@@ -65,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json(user);
   } catch (error) {
     console.error('Update user error:', error);
-    return NextResponse.json({ error: 'خطأ في تحديث المستخدم' }, { status: 500 });
+    return NextResponse.json({ error: st('updateUserError') }, { status: 500 });
   }
 }
 
@@ -75,7 +76,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     const { id } = await params;
     const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'المستخدم غير موجود' }, { status: 404 });
+      return NextResponse.json({ error: st('userNotFound') }, { status: 404 });
     }
 
     // Delete sessions first
@@ -85,6 +86,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete user error:', error);
-    return NextResponse.json({ error: 'خطأ في حذف المستخدم' }, { status: 500 });
+    return NextResponse.json({ error: st('deleteUserError') }, { status: 500 });
   }
 }

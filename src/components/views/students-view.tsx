@@ -1125,7 +1125,7 @@ export function StudentsView() {
                 className="gap-1 text-violet-600 hover:text-violet-800 text-xs h-7"
               >
                 <UserMinus className="h-3 w-3" />
-                تخطي الكل
+                {t.students.skipAll}
               </Button>
             </div>
             {selectedSubjects.map((subj, subIdx) => {
@@ -1438,7 +1438,7 @@ export function StudentsView() {
               </div>
               {/* Total Fee */}
               <div className="flex items-center justify-between p-3 rounded-lg bg-cyan-50 border border-cyan-200">
-                <span className="text-sm font-semibold text-cyan-800">المجموع</span>
+                <span className="text-sm font-semibold text-cyan-800">{t.students.totalFee}</span>
                 <span className="text-lg font-bold text-cyan-700" dir="ltr">
                   {selectedSubjects.reduce((sum, sub) => sum + (parseFloat(enrollmentFees[sub.id]) || 0), 0).toLocaleString('ar-MA')} {t.common.dh}
                 </span>
@@ -1498,7 +1498,7 @@ export function StudentsView() {
               onClick={() => { setFilterServiceId(''); setFilterSubjectId(''); setFilterLevelId(''); }}
               className="text-xs text-sky-600 hover:text-sky-800 underline"
             >
-              إعادة تعيين الفلاتر
+              {t.students.resetFilters}
             </button>
           )}
         </div>
@@ -1536,7 +1536,7 @@ export function StudentsView() {
                   onChange={(e) => handleFilterServiceChange(e.target.value)}
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                 >
-                  <option value="">كل الخدمات</option>
+                  <option value="">{t.students.allServices}</option>
                   {services.map((svc) => (
                     <option key={svc.id} value={svc.id}>{svc.nameAr}</option>
                   ))}
@@ -1547,7 +1547,7 @@ export function StudentsView() {
                     onChange={(e) => handleFilterSubjectChange(e.target.value)}
                     className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                   >
-                    <option value="">كل المواد</option>
+                    <option value="">{t.students.allSubjects}</option>
                     {filterSubjects.map((subj) => (
                       <option key={subj.id} value={subj.id}>{subj.nameAr}</option>
                     ))}
@@ -1559,7 +1559,7 @@ export function StudentsView() {
                     onChange={(e) => setFilterLevelId(e.target.value)}
                     className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                   >
-                    <option value="">كل المستويات</option>
+                    <option value="">{t.students.allLevels}</option>
                     {filterLevels.map((lvl) => (
                       <option key={lvl.id} value={lvl.id}>{lvl.nameAr}</option>
                     ))}
@@ -1567,7 +1567,7 @@ export function StudentsView() {
                 )}
                 {(filterServiceId || filterSubjectId || filterLevelId) && (
                   <Badge className="bg-sky-100 text-sky-700 border-sky-200 h-9 px-3 font-medium">
-                    {displayedStudents.length} طالب
+                    {displayedStudents.length} {t.students.studentCount}
                   </Badge>
                 )}
               </div>
@@ -1604,7 +1604,7 @@ export function StudentsView() {
                     <TableHead className="text-right hidden sm:table-cell">{t.students.fee}</TableHead>
                     )}
                     {isAdmin && (
-                    <TableHead className="text-center">الدفعة</TableHead>
+                    <TableHead className="text-center">{t.students.paymentCol}</TableHead>
                     )}
                     <TableHead className="text-right">{t.common.status}</TableHead>
                     <TableHead className="text-right hidden lg:table-cell">{t.students.enrollment}</TableHead>
@@ -1730,11 +1730,11 @@ export function StudentsView() {
                       {isAdmin && (
                       <TableCell className="text-center">
                         {student.isPackPaid ? (
-                          <div className="flex items-center justify-center gap-1" title="الpack مخلص">
+                          <div className="flex items-center justify-center gap-1" title={t.students.packPaid}>
                             <CircleCheck className="h-5 w-5 text-blue-500" />
                           </div>
                         ) : (
-                          <div className="flex items-center justify-center gap-1" title={student.nextDueDate ? `تاريخ الاستحقاق: ${student.nextDueDate}` : 'لم يدفع بعد'}>
+                          <div className="flex items-center justify-center gap-1" title={student.nextDueDate ? `${t.students.nextDueDate}: ${student.nextDueDate}` : t.students.notPaidYet}>
                             <CircleAlert className="h-5 w-5 text-red-400" />
                           </div>
                         )}
@@ -1843,7 +1843,7 @@ export function StudentsView() {
                     onClick={handleSkipAllTeachers}
                     className="gap-1 text-muted-foreground mr-2"
                   >
-                    تخطي الكل
+                    {t.students.skipAll}
                     <ChevronLeft className="h-3 w-3" />
                   </Button>
                 )}
@@ -1922,7 +1922,7 @@ export function StudentsView() {
                     disabled={isNextDisabled()}
                     className="gap-1"
                   >
-                    {t.common.next || 'التالي'}
+                    {t.common.next}
                     <ChevronLeft className="h-3 w-3" />
                   </Button>
                 )}

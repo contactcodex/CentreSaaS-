@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { st } from '@/lib/server-t';
 
 // Check session from cookie - returns user or null
 export async function getSessionUser(request: NextRequest) {
@@ -35,7 +36,7 @@ export function withAuth(handler: (req: NextRequest, ctx: Record<string, unknown
   return async (request: NextRequest, context?: Record<string, unknown>) => {
     const user = await getSessionUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'غير مصرح - يرجى تسجيل الدخول' }, { status: 401 });
+      return NextResponse.json({ error: st('unauthorizedLogin') }, { status: 401 });
     }
     return handler(request, { user, ...context });
   };
@@ -46,10 +47,10 @@ export function withAdmin(handler: (req: NextRequest, ctx: Record<string, unknow
   return async (request: NextRequest, context?: Record<string, unknown>) => {
     const user = await getSessionUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'غير مصرح - يرجى تسجيل الدخول' }, { status: 401 });
+      return NextResponse.json({ error: st('unauthorizedLogin') }, { status: 401 });
     }
     if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'غير مصرح - مدير فقط' }, { status: 403 });
+      return NextResponse.json({ error: st('adminOnly') }, { status: 403 });
     }
     return handler(request, { user, ...context });
   };
