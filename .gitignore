@@ -66,4 +66,5 @@ Caddyfile
 keepalive*.js
 self-ping-server.js
 server-*.js
-worklog.md
+worklog.md.vercel/
+node_modules/
