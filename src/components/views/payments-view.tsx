@@ -92,7 +92,8 @@ interface Payment {
     monthlyFee: number;
     level: {
       nameAr: string;
-      subject: { nameAr: string; service?: { nameAr: string; id: string } | null } | null;
+      nameFr: string;
+      subject: { nameAr: string; nameFr: string; service?: { nameAr: string; nameFr: string; id: string } | null } | null;
     } | null;
     teacher: { id: string; fullName: string } | null;
   };
@@ -120,6 +121,15 @@ interface Payment {
     color: string;
     icon: string;
   } | null;
+  packDiscountId?: string | null;
+  packDiscount?: {
+    id: string;
+    name: string;
+    nameAr: string;
+    nameFr: string;
+    months: number;
+    discountPercent: number;
+  } | null;
 }
 
 interface StudentSearchResult {
@@ -132,7 +142,8 @@ interface StudentSearchResult {
   packMonths?: number;
   level: {
     nameAr: string;
-    subject: { nameAr: string; service?: { nameAr: string; id: string } | null } | null;
+    nameFr: string;
+    subject: { nameAr: string; nameFr: string; service?: { nameAr: string; nameFr: string; id: string } | null } | null;
   } | null;
   teacher: { id: string; fullName: string } | null;
 }
@@ -295,6 +306,8 @@ function TableSkeleton() {
 export function PaymentsView() {
   const t = useT();
   const { userRole } = useAppStore();
+  const lang = useAppStore((s) => s.lang);
+  const isAr = lang === 'ar';
   const isAdmin = userRole === 'ADMIN';
 
   // Pack discounts state (declared early for PACK_OPTIONS useMemo)
@@ -1286,7 +1299,7 @@ export function PaymentsView() {
                   <SelectItem value="all">{t.students.allServices}</SelectItem>
                   {services.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.nameAr || s.name}
+                      {isAr ? (s.nameAr || s.name) : (s.nameFr || s.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1299,7 +1312,7 @@ export function PaymentsView() {
                   <SelectItem value="all">{t.students.allSubjects}</SelectItem>
                   {filterSubjects.map((subj) => (
                     <SelectItem key={subj.id} value={subj.id}>
-                      {subj.nameAr || subj.name}
+                      {isAr ? (subj.nameAr || subj.name) : (subj.nameFr || subj.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1312,7 +1325,7 @@ export function PaymentsView() {
                   <SelectItem value="all">{t.students.allLevels}</SelectItem>
                   {filterLevels.map((lvl) => (
                     <SelectItem key={lvl.id} value={lvl.id}>
-                      {lvl.nameAr || lvl.name}
+                      {isAr ? (lvl.nameAr || lvl.name) : (lvl.nameFr || lvl.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1433,22 +1446,36 @@ export function PaymentsView() {
                             </p>
                             {payment.promotion && (
                               <Badge
-                                className="text-[10px] px-1.5 py-0 border-white/50 hover:bg-opacity-80"
+                                className="text-[10px] px-1.5 py-0 hover:bg-opacity-80"
                                 style={{
                                   backgroundColor: payment.promotion.color + '20',
                                   color: payment.promotion.color,
                                   borderColor: payment.promotion.color + '40',
+                                  borderWidth: '1px',
+                                  borderStyle: 'solid',
                                 }}
                               >
-                                {payment.promotion.nameAr}
+                                {payment.promotion.icon && <span className="me-1">{payment.promotion.icon}</span>}
+                                {isAr ? payment.promotion.nameAr : payment.promotion.nameFr}
+                              </Badge>
+                            )}
+                            {!payment.promotion && payment.packDiscount && (
+                              <Badge
+                                className="text-[10px] px-1.5 py-0 bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100"
+                              >
+                                <Package className="h-2.5 w-2.5 me-1" />
+                                {isAr ? payment.packDiscount.nameAr : payment.packDiscount.nameFr}
+                                {payment.packDiscount.discountPercent > 0 && (
+                                  <span className="ms-1 opacity-75">(-{payment.packDiscount.discountPercent}%)</span>
+                                )}
                               </Badge>
                             )}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {payment.student.level && payment.student.level.subject && (
                               <span>
-                                {payment.student.level.subject.nameAr} -{' '}
-                                {payment.student.level.nameAr}
+                                {isAr ? payment.student.level.subject.nameAr : payment.student.level.subject.nameFr} -{' '}
+                                {isAr ? payment.student.level.nameAr : payment.student.level.nameFr}
                               </span>
                             )}
                           </div>
@@ -1462,7 +1489,10 @@ export function PaymentsView() {
                           </span>
                           {payment.packMonths > 1 && (
                             <Badge className="bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100 text-[10px] px-1.5 py-0">
-                              {t.payments.packBadge} {payment.packMonths} {t.payments.packMonthsUnit}
+                              {payment.packDiscount
+                                ? `${isAr ? payment.packDiscount.nameAr : payment.packDiscount.nameFr} (${payment.packMonths} ${t.payments.packMonthsUnit})`
+                                : `${t.payments.packBadge} ${payment.packMonths} ${t.payments.packMonthsUnit}`
+                              }
                             </Badge>
                           )}
                         </div>
@@ -1614,8 +1644,8 @@ export function PaymentsView() {
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 {s.level && s.level.subject && (
                                   <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded">
-                                    {s.level.subject.nameAr} -{' '}
-                                    {s.level.nameAr}
+                                    {isAr ? s.level.subject.nameAr : s.level.subject.nameFr} -{' '}
+                                    {isAr ? s.level.nameAr : s.level.nameFr}
                                   </span>
                                 )}
                                 {s.monthlyFee > 0 && (
@@ -1721,8 +1751,8 @@ export function PaymentsView() {
                               {t.students.level}:{' '}
                             </span>
                             <span className="font-medium">
-                              {selectedStudent.level.subject.nameAr} -{' '}
-                              {selectedStudent.level.nameAr}
+                              {isAr ? selectedStudent.level.subject.nameAr : selectedStudent.level.subject.nameFr} -{' '}
+                              {isAr ? selectedStudent.level.nameAr : selectedStudent.level.nameFr}
                             </span>
                           </div>
                         )}
@@ -1926,7 +1956,7 @@ export function PaymentsView() {
                             }}
                           >
                             <IconComp className="h-3 w-3" />
-                            {promo.nameAr}
+                            {isAr ? promo.nameAr : promo.nameFr}
                             {promo.type === 'percentage' && promo.value > 0 && (
                               <span className="opacity-75">-{promo.value}%</span>
                             )}
@@ -1961,9 +1991,10 @@ export function PaymentsView() {
                     {(() => {
                       const promo = promotions.find(p => p.id === formData.promotionId);
                       if (!promo) return null;
-                      if (promo.type === 'badge') return `🏷️ ${promo.nameAr}`;
-                      if (promo.type === 'percentage') return `🏷️ ${promo.nameAr} — ${t.payments.promoDiscountLabel} ${promo.value}%${typeof formData.amount === 'number' && formData.amount > 0 ? ` = -${Math.round((formData.amount * promo.value) / 100 * 100) / 100} ${t.common.dh}` : ''}`;
-                      if (promo.type === 'fixed') return `🏷️ ${promo.nameAr} — ${t.payments.promoDiscountLabel} ${promo.value} ${t.common.dh}`;
+                      const promoLabel = isAr ? promo.nameAr : promo.nameFr;
+                      if (promo.type === 'badge') return `🏷️ ${promoLabel}`;
+                      if (promo.type === 'percentage') return `🏷️ ${promoLabel} — ${t.payments.promoDiscountLabel} ${promo.value}%${typeof formData.amount === 'number' && formData.amount > 0 ? ` = -${Math.round((formData.amount * promo.value) / 100 * 100) / 100} ${t.common.dh}` : ''}`;
+                      if (promo.type === 'fixed') return `🏷️ ${promoLabel} — ${t.payments.promoDiscountLabel} ${promo.value} ${t.common.dh}`;
                       return null;
                     })()}
                   </div>
@@ -2552,7 +2583,7 @@ export function PaymentsView() {
                     {packDiscounts.map((pd) => (
                       <div key={pd.id} className="flex items-center justify-between px-3 py-2 rounded-lg border bg-muted/30 text-sm">
                         <div>
-                          <span className="font-medium">{pd.nameAr}</span>
+                          <span className="font-medium">{isAr ? pd.nameAr : pd.nameFr}</span>
                           <span className="text-muted-foreground ms-2">— {pd.months} {t.payments.packMonthsUnit}</span>
                           {pd.discountPercent > 0 && (
                             <span className="text-green-600 font-medium">-{pd.discountPercent}%</span>
