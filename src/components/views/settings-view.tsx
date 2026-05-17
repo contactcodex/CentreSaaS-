@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState } from 'react';
 import {
   Settings,
@@ -22,7 +23,6 @@ import {
 import { toast } from 'sonner';
 import { useT } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
-import { useAppStore } from '@/store/store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -145,7 +145,7 @@ function BackupSection() {
   const fetchBackups = async () => {
     setLoadingBackups(true);
     try {
-      const res = await fetch('/api/backup');
+      const res = await centreFetch('/api/backup');
       if (!res.ok) return;
       const data = await res.json();
       setBackups(data.backups || []);
@@ -163,7 +163,7 @@ function BackupSection() {
   const handleCreateBackup = async () => {
     setCreating(true);
     try {
-      const res = await fetch('/api/backup', { method: 'POST' });
+      const res = await centreFetch('/api/backup', { method: 'POST' });
       if (!res.ok) throw new Error();
       const data = await res.json();
       toast.success(isAr ? `✅ تم إنشاء نسخة احتياطية (${data.sizeHuman})` : `✅ Sauvegarde créée (${data.sizeHuman})`);
@@ -177,7 +177,7 @@ function BackupSection() {
 
   const handleRestore = async (filename: string) => {
     try {
-      const res = await fetch('/api/backup/restore', {
+      const res = await centreFetch('/api/backup/restore', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename }),
@@ -343,7 +343,7 @@ export function SettingsView() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
+      const res = await centreFetch('/api/settings');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       const merged: SettingsData = { ...DEFAULT_SETTINGS };
@@ -372,7 +372,7 @@ export function SettingsView() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/settings', {
+      const res = await centreFetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),

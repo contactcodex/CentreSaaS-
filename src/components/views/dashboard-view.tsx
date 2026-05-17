@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -24,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ViewType } from '@/store/store';
 import {
   Users,
   UserPlus,
@@ -188,13 +188,11 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
   useEffect(() => {
     async function fetchDashboard() {
       try {
-        const res = await fetch('/api/dashboard');
+        const res = await centreFetch('/api/dashboard');
         if (!res.ok) throw new Error();
         const json = await res.json();
         setData(json);
-      } catch {
-        toast.error(t.dashboard.fetchError);
-      } finally {
+      } catch { if (!isExpired()) toast.error(t.dashboard.fetchError); } finally {
         setLoading(false);
       }
     }
@@ -208,7 +206,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       const params = new URLSearchParams();
       params.set('year', regYear);
       if (regMonth !== 'all') params.set('month', regMonth);
-      const res = await fetch(`/api/dashboard/registrations?${params.toString()}`);
+      const res = await centreFetch(`/api/dashboard/registrations?${params.toString()}`);
       if (!res.ok) throw new Error();
       const json = await res.json();
       setRegistrations(json);

@@ -319,7 +319,7 @@ function SubscriptionExpiredPage({ onLogout }: { onLogout: () => void }) {
 }
 
 export default function Home() {
-  const { currentView, setCurrentView, lang, userRole, setUserRole: setStoreUserRole } = useAppStore();
+  const { currentView, setCurrentView, lang, userRole, setUserRole: setStoreUserRole, subscriptionExpired, setSubscriptionExpired } = useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userName, setUserName] = useState('');
@@ -364,7 +364,7 @@ export default function Home() {
   // Load centre info for sidebar logo
   useEffect(() => {
     if (isAuthenticated && !isSuperAdmin) {
-      fetch('/api/centre-info')
+      centreFetch('/api/centre-info')
         .then(res => res.ok ? res.json() : null)
         .then(data => {
           if (data) {
@@ -375,14 +375,15 @@ export default function Home() {
     }
   }, [isAuthenticated, isSuperAdmin]);
 
-  // Check if subscription is expired (must be before early returns due to rules of hooks)
+  // Check if subscription is expired — either from initial load or from mid-session API detection
   const isSubscriptionExpired = useMemo(() => {
+    if (subscriptionExpired) return true; // Set by centreFetch when API returns 403
     if (!centre) return false;
     if (centre.subscriptionStatus === 'unlimited') return false;
     if (centre.subscriptionStatus === 'none' || centre.subscriptionStatus === 'expired') return true;
     if (!centre.subscriptionEnd) return false;
     return new Date(centre.subscriptionEnd) < new Date();
-  }, [centre]);
+  }, [centre, subscriptionExpired]);
 
   if (isAuthenticated === null) {
     return (
@@ -399,6 +400,7 @@ export default function Home() {
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setIsAuthenticated(false);
+    setSubscriptionExpired(false);
   };
 
   // Super Admin sees its own panel

@@ -1,8 +1,8 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useState, useEffect, useCallback } from 'react';
 import { useT } from '@/hooks/use-translation';
-import { useAppStore } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,7 +56,7 @@ export function UserManagementView() {
     try {
       setLoading(true);
       setError('');
-      const res = await fetch('/api/users');
+      const res = await centreFetch('/api/users');
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (isAr ? 'فشل في تحميل المستخدمين' : 'Échec du chargement'));
@@ -133,7 +133,7 @@ export function UserManagementView() {
           setFormError(isAr ? 'كلمة المرور مطلوبة' : 'Le mot de passe est requis');
           return;
         }
-        const res = await fetch('/api/users', {
+        const res = await centreFetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

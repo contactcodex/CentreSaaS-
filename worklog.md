@@ -22,3 +22,22 @@ Stage Summary:
 - Logout button present in all views
 - Subscription expiry page shows support phone 0606060606
 - Dev server needs explicit DATABASE_URL env var due to .env being owned by root
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Handle mid-session subscription expiry - show expired page immediately when trial ends
+
+Work Log:
+- Added `subscriptionExpired` state + `setSubscriptionExpired` to Zustand store
+- Created `centreFetch()` wrapper in store that intercepts 403 + SUBSCRIPTION_EXPIRED responses and sets the expired state
+- Created `isExpired()` helper for views to skip error toasts when subscription is expired
+- Updated main page (page.tsx) to react to `subscriptionExpired` state and show `SubscriptionExpiredPage` immediately
+- Replaced all `fetch('/api/...')` with `centreFetch('/api/...')` in 12 view files (NOT auth or super-admin routes)
+- Updated all catch blocks to check `isExpired()` before showing error toasts
+- Reset `subscriptionExpired` on logout
+
+Stage Summary:
+- When 1-min trial expires while user is in the app, the UI now immediately shows the expired page with phone 0606060606
+- No more stuck "loading" screen - the transition is instant
+- All API calls in all views use centreFetch for automatic expiry detection

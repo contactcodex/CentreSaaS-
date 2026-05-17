@@ -1,9 +1,9 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useT } from '@/hooks/use-translation';
-import { useAppStore } from '@/store/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -363,37 +363,31 @@ export function StudentsView() {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (statusFilter !== 'all') params.set('status', statusFilter);
-      const res = await fetch(`/api/students?${params.toString()}`);
+      const res = await centreFetch(`/api/students?${params.toString()}`);
       if (!res.ok) throw new Error();
       const json = await res.json();
       setStudents(json);
-    } catch {
-      toast.error(t.common.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.fetchError); } finally {
       setLoading(false);
     }
   }, [search, statusFilter, t.common.fetchError]);
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch('/api/services');
+      const res = await centreFetch('/api/services');
       if (!res.ok) throw new Error();
       const json = await res.json();
       setServices(json);
-    } catch {
-      toast.error(t.common.fetchError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.fetchError); }
   }, [t.common.fetchError]);
 
   const fetchTeachers = useCallback(async () => {
     try {
-      const res = await fetch('/api/teachers');
+      const res = await centreFetch('/api/teachers');
       if (!res.ok) throw new Error();
       const json = await res.json();
       setTeachers(json);
-    } catch {
-      toast.error(t.common.fetchError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.fetchError); }
   }, [t.common.fetchError]);
 
   useEffect(() => {
@@ -725,7 +719,7 @@ export function StudentsView() {
 
       const url = editingStudent ? `/api/students/${editingStudent.id}` : '/api/students';
       const method = editingStudent ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -736,9 +730,7 @@ export function StudentsView() {
       setDialogOpen(false);
       resetWizard();
       fetchStudents();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setSubmitting(false);
     }
   };
@@ -747,13 +739,11 @@ export function StudentsView() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/students/${id}`, { method: 'DELETE' });
+      const res = await centreFetch(`/api/students/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       toast.success(t.common.deleteSuccess);
       fetchStudents();
-    } catch {
-      toast.error(t.common.deleteError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); } finally {
       setDeletingId(null);
     }
   };
@@ -780,7 +770,7 @@ export function StudentsView() {
         teacherId = enrollments[0].teacherId;
       }
 
-      const res = await fetch(`/api/students/${student.id}`, {
+      const res = await centreFetch(`/api/students/${student.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -801,9 +791,7 @@ export function StudentsView() {
       if (!res.ok) throw new Error();
       toast.success(newStatus === 'active' ? t.students.toggleActive : t.students.toggleInactive);
       fetchStudents();
-    } catch {
-      toast.error(t.students.toggleError);
-    }
+    } catch { if (!isExpired()) toast.error(t.students.toggleError); }
   };
 
   // ── Step indicator config ─────────────────────────────────────────────

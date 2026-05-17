@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState, useCallback } from 'react';
 import {
   DoorOpen,
@@ -210,13 +211,11 @@ export function ClassroomsView() {
 
   const fetchClassrooms = async () => {
     try {
-      const res = await fetch('/api/classrooms');
+      const res = await centreFetch('/api/classrooms');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setClassrooms(data);
-    } catch {
-      toast.error(t.classrooms.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.classrooms.fetchError); } finally {
       setLoading(false);
     }
   };
@@ -234,9 +233,7 @@ export function ClassroomsView() {
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setOverdueData(data);
-    } catch {
-      toast.error(t.classrooms.overdueFetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.classrooms.overdueFetchError); } finally {
       setOverdueLoading(false);
     }
   }, [t]);
@@ -261,7 +258,7 @@ export function ClassroomsView() {
 
     setCreatingInvoice(student.studentId);
     try {
-      const res = await fetch('/api/payments', {
+      const res = await centreFetch('/api/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -284,9 +281,7 @@ export function ClassroomsView() {
       if (overdueClassroom) {
         fetchOverduePayments(overdueClassroom.id);
       }
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setCreatingInvoice(null);
     }
   };
@@ -337,7 +332,7 @@ export function ClassroomsView() {
         setEditDialog({ open: false, classroom: null });
       } else {
         // Create
-        const res = await fetch('/api/classrooms', {
+        const res = await centreFetch('/api/classrooms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -349,9 +344,7 @@ export function ClassroomsView() {
 
       resetForm();
       await fetchClassrooms();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setSaving(false);
     }
   };
@@ -367,9 +360,7 @@ export function ClassroomsView() {
       toast.success(t.classrooms.deleteSuccess);
       setDeleteDialog({ open: false, classroom: null });
       await fetchClassrooms();
-    } catch {
-      toast.error(t.common.deleteError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); } finally {
       setSaving(false);
     }
   };

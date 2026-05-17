@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState, useCallback } from 'react';
 import {
   GraduationCap,
@@ -211,13 +212,11 @@ export function ServicesView() {
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch('/api/services');
+      const res = await centreFetch('/api/services');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setServices(data);
-    } catch {
-      toast.error(t.services.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.fetchError); } finally {
       setLoading(false);
     }
   }, [t.services.fetchError]);
@@ -241,7 +240,7 @@ export function ServicesView() {
     }
     setServiceSubmitting(true);
     try {
-      const res = await fetch('/api/services', {
+      const res = await centreFetch('/api/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(serviceForm),
@@ -251,9 +250,7 @@ export function ServicesView() {
       setAddServiceOpen(false);
       setServiceForm({ name: '', nameAr: '', nameFr: '', icon: '' });
       fetchServices();
-    } catch {
-      toast.error(t.services.addServiceError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.addServiceError); } finally {
       setServiceSubmitting(false);
     }
   };
@@ -280,9 +277,7 @@ export function ServicesView() {
       toast.success(t.services.addSubjectSuccess);
       setAddSubjectOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.addSubjectError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.addSubjectError); } finally {
       setSubjectSubmitting(false);
     }
   };
@@ -310,9 +305,7 @@ export function ServicesView() {
       toast.success(t.services.addLevelSuccess);
       setAddLevelOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.addLevelError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.addLevelError); } finally {
       setLevelSubmitting(false);
     }
   };
@@ -342,9 +335,7 @@ export function ServicesView() {
       toast.success(t.services.editSubjectSuccess);
       setEditSubjectOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.editSubjectError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.editSubjectError); } finally {
       setEditSubjectSubmitting(false);
     }
   };
@@ -368,9 +359,7 @@ export function ServicesView() {
       toast.success(t.services.deleteSubjectSuccess);
       setDeleteSubjectOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.deleteSubjectError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.deleteSubjectError); } finally {
       setDeleteSubjectSubmitting(false);
     }
   };
@@ -401,9 +390,7 @@ export function ServicesView() {
       toast.success(t.services.editLevelSuccess);
       setEditLevelOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.editLevelError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.editLevelError); } finally {
       setEditLevelSubmitting(false);
     }
   };
@@ -428,9 +415,7 @@ export function ServicesView() {
       toast.success(t.services.deleteServiceSuccess);
       setDeleteServiceOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.deleteServiceError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.deleteServiceError); } finally {
       setDeleteServiceSubmitting(false);
     }
   };
@@ -453,9 +438,7 @@ export function ServicesView() {
       toast.success(t.services.deleteLevelSuccess);
       setDeleteLevelOpen(false);
       fetchServices();
-    } catch {
-      toast.error(t.services.deleteLevelError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.services.deleteLevelError); } finally {
       setDeleteLevelSubmitting(false);
     }
   };

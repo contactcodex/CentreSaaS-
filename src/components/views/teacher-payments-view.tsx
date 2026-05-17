@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -214,22 +215,18 @@ export function TeacherPaymentsView() {
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setPayments(data);
-    } catch {
-      toast.error(t.teacherPayments.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.teacherPayments.fetchError); } finally {
       setLoading(false);
     }
   }, [filterTeacherId, filterMonth, filterYear, filterStatus]);
 
   const fetchTeachers = useCallback(async () => {
     try {
-      const res = await fetch('/api/teachers');
+      const res = await centreFetch('/api/teachers');
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setTeachers(data);
-    } catch {
-      toast.error(t.teacherPayments.fetchTeachersError);
-    }
+    } catch { if (!isExpired()) toast.error(t.teacherPayments.fetchTeachersError); }
   }, []);
 
   const fetchCalcData = useCallback(async (teacherId?: string, calcMonth?: string, calcYear?: string) => {
@@ -243,9 +240,7 @@ export function TeacherPaymentsView() {
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setCalcData(data);
-    } catch {
-      toast.error(t.teacherPayments.calcFetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.teacherPayments.calcFetchError); } finally {
       setCalcLoading(false);
     }
   }, []);
@@ -398,9 +393,7 @@ export function TeacherPaymentsView() {
       toast.success(editingPayment ? t.teacherPayments.updateSuccess : t.teacherPayments.addSuccess);
       setFormOpen(false);
       fetchPayments();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setSubmitting(false);
     }
   };
@@ -416,9 +409,7 @@ export function TeacherPaymentsView() {
       setDeleteOpen(false);
       setDeletingPayment(null);
       fetchPayments();
-    } catch {
-      toast.error(t.common.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); }
   };
 
   const handlePrintBon = async (payment: TeacherPayment) => {

@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -308,44 +309,36 @@ export function ScheduleView() {
       if (!res.ok) throw new Error(t.common.fetchError);
       const data = await res.json();
       setSchedules(data);
-    } catch {
-      toast.error(t.schedule.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.schedule.fetchError); } finally {
       setLoading(false);
     }
   }, [sessionFilter]);
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch('/api/services');
+      const res = await centreFetch('/api/services');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setServices(data);
-    } catch {
-      toast.error(t.schedule.fetchServicesError);
-    }
+    } catch { if (!isExpired()) toast.error(t.schedule.fetchServicesError); }
   }, []);
 
   const fetchTeachers = useCallback(async () => {
     try {
-      const res = await fetch('/api/teachers');
+      const res = await centreFetch('/api/teachers');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setTeachers(data);
-    } catch {
-      toast.error(t.schedule.fetchTeachersError);
-    }
+    } catch { if (!isExpired()) toast.error(t.schedule.fetchTeachersError); }
   }, []);
 
   const fetchClassrooms = useCallback(async () => {
     try {
-      const res = await fetch('/api/classrooms');
+      const res = await centreFetch('/api/classrooms');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setClassrooms(data);
-    } catch {
-      toast.error(t.schedule.fetchClassroomsError);
-    }
+    } catch { if (!isExpired()) toast.error(t.schedule.fetchClassroomsError); }
   }, []);
 
   useEffect(() => {
@@ -675,9 +668,7 @@ export function ScheduleView() {
       );
       setFormOpen(false);
       fetchSchedules();
-    } catch {
-      toast.error(t.schedule.saveErrorMsg);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.schedule.saveErrorMsg); } finally {
       setSubmitting(false);
     }
   };
@@ -693,9 +684,7 @@ export function ScheduleView() {
       setDeleteOpen(false);
       setDeletingSchedule(null);
       fetchSchedules();
-    } catch {
-      toast.error(t.schedule.deleteErrorMsg);
-    }
+    } catch { if (!isExpired()) toast.error(t.schedule.deleteErrorMsg); }
   };
 
   // ─── Print Schedule (Weekly View) ───────────────────────────────────────

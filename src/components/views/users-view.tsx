@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -176,13 +177,11 @@ export default function UsersView() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/users');
+      const res = await centreFetch('/api/users');
       if (!res.ok) throw new Error();
       const json = await res.json();
       setUsers(json);
-    } catch {
-      toast.error(t.users.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.users.fetchError); } finally {
       setLoading(false);
     }
   }, [t]);
@@ -315,9 +314,7 @@ export default function UsersView() {
       toast.success(editingUser ? t.users.updateSuccess : t.users.addSuccess);
       setDialogOpen(false);
       fetchUsers();
-    } catch {
-      toast.error(t.users.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.users.saveError); } finally {
       setSubmitting(false);
     }
   };
@@ -333,9 +330,7 @@ export default function UsersView() {
       setDeleteOpen(false);
       setDeletingUser(null);
       fetchUsers();
-    } catch {
-      toast.error(t.users.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.users.deleteError); }
   };
 
   // ── Handle role change in form ─────────────────────────────────────────

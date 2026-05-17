@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,6 @@ import {
   Package,
 } from 'lucide-react';
 import { useT } from '@/hooks/use-translation';
-import { useAppStore } from '@/store/store';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -694,7 +694,7 @@ export function PaymentsView() {
 
   const fetchPromotions = useCallback(async () => {
     try {
-      const res = await fetch('/api/promotions');
+      const res = await centreFetch('/api/promotions');
       if (res.ok) {
         const json = await res.json();
         setPromotions(json);
@@ -704,7 +704,7 @@ export function PaymentsView() {
 
   const fetchPackDiscounts = useCallback(async () => {
     try {
-      const res = await fetch('/api/pack-discounts');
+      const res = await centreFetch('/api/pack-discounts');
       if (res.ok) {
         const json = await res.json();
         setPackDiscounts(json);
@@ -722,13 +722,11 @@ export function PaymentsView() {
       if (filterServiceId !== 'all') params.set('serviceId', filterServiceId);
       if (filterSubjectId !== 'all') params.set('subjectId', filterSubjectId);
       if (filterLevelId !== 'all') params.set('levelId', filterLevelId);
-      const res = await fetch(`/api/payments?${params.toString()}`);
+      const res = await centreFetch(`/api/payments?${params.toString()}`);
       if (!res.ok) throw new Error();
       const json = await res.json();
       setPayments(json);
-    } catch {
-      toast.error(t.payments.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.payments.fetchError); } finally {
       setLoading(false);
     }
   }, [filterMonth, filterYear, filterStatus, filterServiceId, filterSubjectId, filterLevelId, t]);
@@ -749,7 +747,7 @@ export function PaymentsView() {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch('/api/services');
+        const res = await centreFetch('/api/services');
         if (!res.ok) throw new Error();
         const json = await res.json();
         setServices(json);
@@ -776,7 +774,7 @@ export function PaymentsView() {
   const loadAllStudents = useCallback(async () => {
     setStudentSearching(true);
     try {
-      const res = await fetch('/api/students');
+      const res = await centreFetch('/api/students');
       if (!res.ok) throw new Error();
       const json = await res.json();
       setAllStudents(json);
@@ -832,13 +830,11 @@ export function PaymentsView() {
   const fetchOverdue = useCallback(async () => {
     setOverdueLoading(true);
     try {
-      const res = await fetch('/api/payments/overdue');
+      const res = await centreFetch('/api/payments/overdue');
       if (!res.ok) throw new Error();
       const json = await res.json();
       setOverdueData(json);
-    } catch {
-      toast.error(t.payments.overdueFetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.payments.overdueFetchError); } finally {
       setOverdueLoading(false);
     }
   }, [t]);
@@ -855,7 +851,7 @@ export function PaymentsView() {
 
     setCreatingInvoice(student.studentId);
     try {
-      const res = await fetch('/api/payments', {
+      const res = await centreFetch('/api/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -878,9 +874,7 @@ export function PaymentsView() {
       fetchOverdue();
       // Also refresh main payments list
       fetchPayments();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setCreatingInvoice(null);
     }
   };
@@ -1038,9 +1032,7 @@ export function PaymentsView() {
 
       setDialogOpen(false);
       fetchPayments();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setSubmitting(false);
     }
   };
@@ -1048,7 +1040,7 @@ export function PaymentsView() {
   const handleDelete = async () => {
     if (!deletingPayment) return;
     try {
-      const res = await fetch(`/api/payments/${deletingPayment.id}`, {
+      const res = await centreFetch(`/api/payments/${deletingPayment.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
@@ -1056,9 +1048,7 @@ export function PaymentsView() {
       setDeleteOpen(false);
       setDeletingPayment(null);
       fetchPayments();
-    } catch {
-      toast.error(t.common.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); }
   };
 
   // ── Promotion handlers ──────────────────────────────────────────────────
@@ -1069,7 +1059,7 @@ export function PaymentsView() {
       return;
     }
     try {
-      const res = await fetch('/api/promotions', {
+      const res = await centreFetch('/api/promotions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(promoForm),
@@ -1079,9 +1069,7 @@ export function PaymentsView() {
       setPromoDialogOpen(false);
       setPromoForm({ name: '', nameAr: '', nameFr: '', type: 'badge', value: 0, color: '#6366f1', icon: 'Tag' });
       fetchPromotions();
-    } catch {
-      toast.error(t.common.saveError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.saveError); }
   };
 
   const handlePromoDelete = async (id: string) => {
@@ -1093,9 +1081,7 @@ export function PaymentsView() {
       if (formData.promotionId === id) {
         setFormData({ ...formData, promotionId: '', discount: '' });
       }
-    } catch {
-      toast.error(t.common.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); }
   };
 
   const handlePromotionSelect = (promoId: string) => {
@@ -1140,7 +1126,7 @@ export function PaymentsView() {
       return;
     }
     try {
-      const res = await fetch('/api/pack-discounts', {
+      const res = await centreFetch('/api/pack-discounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(packForm),
@@ -1151,9 +1137,7 @@ export function PaymentsView() {
         setPackDialogOpen(false);
         fetchPackDiscounts();
       }
-    } catch {
-      toast.error(t.common.saveError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.saveError); }
   };
 
   const handlePackDiscountDelete = async (id: string) => {
@@ -1171,9 +1155,7 @@ export function PaymentsView() {
           discount: '',
         }));
       }
-    } catch {
-      toast.error(t.common.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); }
   };
 
   const handlePackSelect = (opt: { value: number; discountPercent: number; packDiscountId: string }) => {

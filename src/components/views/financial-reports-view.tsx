@@ -1,5 +1,6 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -191,13 +192,11 @@ function FinancialContent({ onLock }: FinancialContentProps) {
     async function fetchDashboard() {
       try {
         setLoading(true);
-        const res = await fetch('/api/dashboard');
+        const res = await centreFetch('/api/dashboard');
         if (!res.ok) throw new Error();
         const json = await res.json();
         setData(json);
-      } catch {
-        toast.error(t.common.fetchError);
-      } finally {
+      } catch { if (!isExpired()) toast.error(t.common.fetchError); } finally {
         setLoading(false);
       }
     }

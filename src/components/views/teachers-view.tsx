@@ -1,9 +1,9 @@
 'use client';
 
+import { centreFetch, isExpired } from '@/store/store';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAppStore } from '@/store/store';
 import { useT } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -223,20 +223,18 @@ export function TeachersView() {
   // ── Fetch data ──
   const fetchTeachers = useCallback(async () => {
     try {
-      const res = await fetch('/api/teachers');
+      const res = await centreFetch('/api/teachers');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setTeachers(data);
-    } catch {
-      toast.error(t.teachers.fetchError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.teachers.fetchError); } finally {
       setLoading(false);
     }
   }, [t]);
 
   const fetchStudents = useCallback(async () => {
     try {
-      const res = await fetch('/api/students');
+      const res = await centreFetch('/api/students');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setStudents(data);
@@ -247,13 +245,11 @@ export function TeachersView() {
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch('/api/services');
+      const res = await centreFetch('/api/services');
       if (!res.ok) throw new Error(t.common.error);
       const data = await res.json();
       setServices(data);
-    } catch {
-      toast.error(t.teachers.fetchServicesError);
-    }
+    } catch { if (!isExpired()) toast.error(t.teachers.fetchServicesError); }
   }, [t]);
 
   useEffect(() => {
@@ -377,7 +373,7 @@ export function TeachersView() {
       };
       const url = editingTeacher ? `/api/teachers/${editingTeacher.id}` : '/api/teachers';
       const method = editingTeacher ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -387,9 +383,7 @@ export function TeachersView() {
       setFormOpen(false);
       fetchTeachers();
       fetchStudents();
-    } catch {
-      toast.error(t.common.saveError);
-    } finally {
+    } catch { if (!isExpired()) toast.error(t.common.saveError); } finally {
       setSubmitting(false);
     }
   };
@@ -397,16 +391,14 @@ export function TeachersView() {
   const handleDelete = async () => {
     if (!deletingTeacher) return;
     try {
-      const res = await fetch(`/api/teachers/${deletingTeacher.id}`, { method: 'DELETE' });
+      const res = await centreFetch(`/api/teachers/${deletingTeacher.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(t.common.error);
       toast.success(t.teachers.deleteSuccess);
       setDeleteOpen(false);
       setDeletingTeacher(null);
       fetchTeachers();
       fetchStudents();
-    } catch {
-      toast.error(t.common.deleteError);
-    }
+    } catch { if (!isExpired()) toast.error(t.common.deleteError); }
   };
 
   // ─── Render ────────────────────────────────────────────────────────────
