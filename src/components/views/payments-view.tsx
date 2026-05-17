@@ -297,6 +297,9 @@ export function PaymentsView() {
   const { userRole } = useAppStore();
   const isAdmin = userRole === 'ADMIN';
 
+  // Pack discounts state (declared early for PACK_OPTIONS useMemo)
+  const [packDiscounts, setPackDiscounts] = useState<PackDiscount[]>([]);
+
   // ── Derived month data ──
   const MONTHS = useMemo(() =>
     MONTH_KEYS.map((key) => ({
@@ -668,8 +671,7 @@ export function PaymentsView() {
     value: 0, color: '#6366f1', icon: 'Tag',
   });
 
-  // Pack discounts state
-  const [packDiscounts, setPackDiscounts] = useState<PackDiscount[]>([]);
+  // Pack discount dialog state
   const [packDialogOpen, setPackDialogOpen] = useState(false);
   const [packForm, setPackForm] = useState({
     name: '', nameAr: '', nameFr: '', months: 3, discountPercent: 0,
