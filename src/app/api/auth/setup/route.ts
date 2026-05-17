@@ -14,23 +14,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: st('allFieldsRequired') }, { status: 400 });
     }
 
-    // Check if any users exist
-    const existingUsers = await db.user.count();
-    if (existingUsers > 0) {
+    // Check if super admin already exists
+    const existingSuperAdmin = await db.user.findFirst({ where: { role: 'SUPER_ADMIN' } });
+    if (existingSuperAdmin) {
       return NextResponse.json({ error: st('adminAlreadyExists') }, { status: 400 });
     }
 
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create admin user
+    // Create super admin user
     const user = await db.user.create({
       data: {
         id: randomUUID(),
         email,
         password: hashedPassword,
         fullName,
-        role: 'ADMIN',
+        role: 'SUPER_ADMIN',
         status: 'active',
       },
     });
@@ -48,8 +48,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const count = await db.user.count();
-    return NextResponse.json({ hasUsers: count > 0 });
+    // Check if super admin exists
+    const superAdmin = await db.user.findFirst({ where: { role: 'SUPER_ADMIN' } });
+    return NextResponse.json({ hasSuperAdmin: !!superAdmin });
   } catch (error) {
     return NextResponse.json({ error: st('error') }, { status: 500 });
   }

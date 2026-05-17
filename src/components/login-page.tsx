@@ -21,7 +21,7 @@ export default function LoginPage() {
     fetch('/api/auth/setup')
       .then(res => res.json())
       .then(data => {
-        if (!data.hasUsers) {
+        if (!data.hasSuperAdmin) {
           // Create the default admin account
           fetch('/api/auth/setup', {
             method: 'POST',
