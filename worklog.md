@@ -77,3 +77,37 @@ Stage Summary:
 - Git commits pushed: ffe5a07 (fix) + ffd3b10 (CI workflow)
 - CRITICAL: Code NOT yet deployed to Vercel - user action required
 - User must reconnect Vercel integration OR manually trigger deployment from Vercel dashboard
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Add "عروض وتخفيضات" (Offers & Discounts) + Language Pack System
+
+Work Log:
+- Read worklog and explored full codebase to understand payment system
+- Discovered existing Promotion system (badge/percentage/fixed types) and pack radio buttons (1/3/6/9 months hardcoded)
+- Added `PackDiscount` model to Prisma schema (name, months, discountPercent, active)
+- Added `packDiscountId` foreign key to `Payment` model
+- Pushed schema to Neon PostgreSQL database successfully
+- Created API routes: `/api/pack-discounts` (GET/POST) and `/api/pack-discounts/[id]` (PUT/DELETE)
+- Updated payments API to include `packDiscount` in all queries and mutations
+- Renamed translation key "تخفيضات" → "عروض وتخفيضات" (Arabic) and "Promotions" → "Offres & Promotions" (French)
+- Added 15+ new translation keys for pack system in both Arabic and French
+- Replaced hardcoded PACK_OPTIONS with dynamic options from PackDiscount table
+- Implemented `handlePackSelect` - auto-calculates amount = monthlyFee × months, discount = total × discount%
+- Added pack discount info panel showing: normal price, savings, discounted total, teacher monthly share
+- Created pack management dialog with: existing packs list, create form (name, months, discount%), live preview
+- Teacher settlement system already handles packs correctly: paidAmount/packMonths = monthly teacher share
+- Committed and pushed to GitHub (a41b78b)
+- Deployed to Vercel production - READY
+
+Stage Summary:
+- Promotions renamed from "تخفيضات" to "عروض وتخفيضات" / "Offres & Promotions"
+- Language pack system fully functional: admin creates packs (e.g., "6 أشهر" with 20% discount)
+- When student selects a pack, amount auto-fills (monthlyFee × months) and discount auto-calculates
+- Pack info panel shows savings breakdown and teacher monthly share
+- Teacher settlement correctly splits discounted total over pack months
+- New DB table: PackDiscount, updated Payment table with packDiscountId FK
+- Files modified: prisma/schema.prisma, payments/route.ts, payments/[id]/route.ts, payments-view.tsx, translations.ts
+- New files: api/pack-discounts/route.ts, api/pack-discounts/[id]/route.ts
+- Vercel project ID: prj_9xef5L1Hc757KKz2kf8wsAfWQdf4 (name: codex-centre)
