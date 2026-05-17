@@ -28,8 +28,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status');
-    const levelId = searchParams.get('levelId');
-    const teacherId = searchParams.get('teacherId');
 
     const where: Record<string, unknown> = {};
 
@@ -42,12 +40,6 @@ export async function GET(request: NextRequest) {
     if (status) {
       where.status = status;
     }
-    if (levelId) {
-      where.levelId = levelId;
-    }
-    if (teacherId) {
-      where.teacherId = teacherId;
-    }
 
     const students = await db.student.findMany({
       where: Object.keys(where).length > 0 ? where : undefined,
@@ -58,6 +50,16 @@ export async function GET(request: NextRequest) {
           },
         },
         teacher: true,
+        enrollments: {
+          include: {
+            level: {
+              include: {
+                subject: { include: { service: true } },
+              },
+            },
+            teacher: true,
+          },
+        },
         payments: {
           orderBy: { paymentDate: 'desc' },
         },
@@ -66,7 +68,6 @@ export async function GET(request: NextRequest) {
     });
 
     const now = new Date();
-    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const currentYM = toYM(now);
 
     // Calculate payment status for each student
@@ -76,7 +77,6 @@ export async function GET(request: NextRequest) {
       let nextDueDate: string | null = null;
 
       if (payments.length > 0) {
-        // Find the latest payment by paymentDate
         let latestPayment: typeof payments[0] | null = null;
         let latestDate: Date | null = null;
 
@@ -98,8 +98,6 @@ export async function GET(request: NextRequest) {
           nextDueDate = `${day}/${month}/${year}`;
         }
 
-        // Pack is considered paid if ANY fully-paid payment's coverage
-        // period includes the current month (not just the latest payment)
         for (const p of payments) {
           if (p.remainingAmount === 0) {
             let pStartDate: Date;
@@ -109,7 +107,6 @@ export async function GET(request: NextRequest) {
               pStartDate = new Date(p.year, getMonthIndex(p.month), 1);
             }
             const pDueDate = addCalendarMonths(pStartDate, p.packMonths || 1);
-            // Check if current month is within [startMonth, dueMonth)
             if (toYM(pStartDate) <= currentYM && currentYM < toYM(pDueDate)) {
               isPackPaid = true;
               break;
@@ -118,11 +115,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { payments: _payments, ...studentWithoutPayments } = student;
 
       return {
         ...studentWithoutPayments,
+        enrollments: student.enrollments,
         isPackPaid,
         nextDueDate,
       };
@@ -138,20 +135,30 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const enrollments: { levelId: string; teacherId?: string | null }[] = body.enrollments || [];
+
+    // Create student with first enrollment as primary level/teacher
+    const firstEnrollment = enrollments[0] || {};
     const student = await db.student.create({
       data: {
         fullName: body.fullName,
         phone: body.phone,
         email: body.email,
         address: body.address,
-        levelId: body.levelId || null,
-        teacherId: body.teacherId || null,
+        levelId: firstEnrollment.levelId || null,
+        teacherId: firstEnrollment.teacherId || null,
         parentName: body.parentName,
         parentPhone: body.parentPhone,
         monthlyFee: body.monthlyFee ?? 0,
         packMonths: body.packMonths ?? 1,
         status: body.status || 'active',
         enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : new Date(),
+        enrollments: {
+          create: enrollments.map((e: { levelId: string; teacherId?: string | null }) => ({
+            levelId: e.levelId,
+            teacherId: e.teacherId || null,
+          })),
+        },
       },
       include: {
         level: {
@@ -160,6 +167,16 @@ export async function POST(request: NextRequest) {
           },
         },
         teacher: true,
+        enrollments: {
+          include: {
+            level: {
+              include: {
+                subject: { include: { service: true } },
+              },
+            },
+            teacher: true,
+          },
+        },
       },
     });
 
