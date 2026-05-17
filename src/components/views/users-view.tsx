@@ -191,7 +191,7 @@ export default function UsersView() {
   const getRoleBadge = (role: string) => {
     if (role === 'ADMIN') {
       return (
-        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
           <ShieldCheck className="h-3 w-3 ml-1" />
           مدير
         </Badge>
@@ -208,7 +208,7 @@ export default function UsersView() {
   const getStatusBadge = (status: string) => {
     if (status === 'active') {
       return (
-        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
           نشط
         </Badge>
       );
@@ -370,7 +370,7 @@ export default function UsersView() {
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">المديرون</p>
-            <p className="text-lg font-bold text-emerald-600 mt-1">
+            <p className="text-lg font-bold text-blue-700 mt-1">
               {users.filter((u) => u.role === 'ADMIN').length}
             </p>
           </CardContent>
@@ -386,7 +386,7 @@ export default function UsersView() {
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">المستخدمون النشطون</p>
-            <p className="text-lg font-bold text-teal-600 mt-1">
+            <p className="text-lg font-bold text-sky-600 mt-1">
               {users.filter((u) => u.status === 'active').length}
             </p>
           </CardContent>
@@ -429,7 +429,7 @@ export default function UsersView() {
                           <div
                             className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${
                               user.role === 'ADMIN'
-                                ? 'bg-emerald-100 text-emerald-700'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-blue-100 text-blue-700'
                             }`}
                           >
@@ -565,7 +565,7 @@ export default function UsersView() {
                     <SelectContent>
                       <SelectItem value="ADMIN">
                         <span className="flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                          <ShieldCheck className="h-4 w-4 text-blue-700" />
                           مدير
                         </span>
                       </SelectItem>
@@ -619,8 +619,8 @@ export default function UsersView() {
                 </div>
 
                 {formData.role === 'ADMIN' && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                    <p className="text-sm text-emerald-700">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">
                       <ShieldCheck className="h-4 w-4 inline ml-1.5" />
                       المدير لديه صلاحية الوصول الكامل لجميع الصفحات تلقائياً
                     </p>

@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
     let studentsTableHTML = '';
     if (paidStudents.length > 0) {
       studentsTableHTML = `
-        <h3 style="font-size:12px; color:#0d9488; font-weight:700; margin-bottom:4px;">تفاصيل المدفوعات - التلاميذ</h3>
+        <h3 style="font-size:12px; color:#002A6C; font-weight:700; margin-bottom:4px;">تفاصيل المدفوعات - التلاميذ</h3>
         <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:11px;">
           <thead>
             <tr style="background:#f0fdfa;">
@@ -295,7 +295,7 @@ export async function GET(request: NextRequest) {
   .bon-container {
     width: 100%;
     max-width: 700px;
-    border: 2px solid #0d9488;
+    border: 2px solid #002A6C;
     border-radius: 8px;
     overflow: hidden;
     background: white;
@@ -306,7 +306,7 @@ export async function GET(request: NextRequest) {
     background: white;
     text-align: center;
     padding: 12px 20px;
-    border-bottom: 2px solid #0d9488;
+    border-bottom: 2px solid #002A6C;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -325,7 +325,7 @@ export async function GET(request: NextRequest) {
   .bon-header .title-area h1 {
     font-size: 20px;
     font-weight: 700;
-    color: #0d9488;
+    color: #002A6C;
     margin-bottom: 2px;
   }
   .bon-header .title-area .subtitle {
@@ -345,12 +345,12 @@ export async function GET(request: NextRequest) {
     background: #f0fdfa;
     text-align: center;
     padding: 8px;
-    border-bottom: 2px solid #0d9488;
+    border-bottom: 2px solid #002A6C;
   }
   .bon-title-bar h2 {
     font-size: 15px;
     font-weight: 700;
-    color: #0d9488;
+    color: #002A6C;
   }
 
   /* Info grid */
@@ -381,7 +381,7 @@ export async function GET(request: NextRequest) {
   }
   .bon-section h3 {
     font-size: 12px;
-    color: #0d9488;
+    color: #002A6C;
     font-weight: 700;
     margin-bottom: 4px;
   }
@@ -398,13 +398,13 @@ export async function GET(request: NextRequest) {
   .amount-value {
     font-size: 22px;
     font-weight: 800;
-    color: #0f766e;
+    color: #003d99;
     direction: ltr;
   }
-  .amount-currency { font-size: 12px; color: #0d9488; font-weight: 500; }
+  .amount-currency { font-size: 12px; color: #002A6C; font-weight: 500; }
   .percentage-badge {
     display: inline-block;
-    background: #0d9488;
+    background: #002A6C;
     color: white;
     font-size: 11px;
     font-weight: 600;
@@ -529,7 +529,7 @@ export async function GET(request: NextRequest) {
   </div>
 
   <div class="no-print" style="text-align:center; margin-top:12px;">
-    <button onclick="window.print()" style="padding:8px 24px; background:#0d9488; color:white; border:none; border-radius:6px; cursor:pointer; font-family:inherit; font-size:14px;">طباعة</button>
+    <button onclick="window.print()" style="padding:8px 24px; background:#002A6C; color:white; border:none; border-radius:6px; cursor:pointer; font-family:inherit; font-size:14px;">طباعة</button>
   </div>
 </body>
 </html>`;

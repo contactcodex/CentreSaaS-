@@ -191,9 +191,9 @@ export function TeacherPaymentsView() {
   function getStatusBadge(status: string) {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">{t.teacherPayments.statusPaid}</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">{t.teacherPayments.statusPaid}</Badge>;
       case 'pending':
-        return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">{t.teacherPayments.statusPending}</Badge>;
+        return <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100">{t.teacherPayments.statusPending}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -451,12 +451,12 @@ export function TeacherPaymentsView() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-teal-600" />
+              <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-sky-600" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">{t.teacherPayments.thisMonthTotal} {(filterMonth && filterMonth !== 'all') ? `(${getMonthName(displayMonth)})` : ''}</p>
-                <p className="text-xl font-bold text-teal-600">
+                <p className="text-xl font-bold text-sky-600">
                   {totalThisMonth.toLocaleString()}{' '}
                   <span className="text-xs font-normal text-muted-foreground">{t.common.dh}</span>
                 </p>
@@ -467,12 +467,12 @@ export function TeacherPaymentsView() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <CircleDollarSign className="h-5 w-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-lg bg-cyan-50 flex items-center justify-center">
+                <CircleDollarSign className="h-5 w-5 text-cyan-600" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">{t.teacherPayments.thisYearTotal}</p>
-                <p className="text-xl font-bold text-amber-600">
+                <p className="text-xl font-bold text-cyan-600">
                   {totalThisYear.toLocaleString()}{' '}
                   <span className="text-xs font-normal text-muted-foreground">{t.common.dh}</span>
                 </p>
@@ -715,10 +715,10 @@ export function TeacherPaymentsView() {
 
             {/* Auto-calculation breakdown */}
             {selectedCalc && !editingPayment && (
-              <div className="rounded-lg border border-teal-200 bg-teal-50/50 p-4 space-y-3">
+              <div className="rounded-lg border border-sky-200 bg-sky-50/50 p-4 space-y-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <Calculator className="h-4 w-4 text-teal-600" />
-                  <span className="text-sm font-semibold text-teal-700">
+                  <Calculator className="h-4 w-4 text-sky-600" />
+                  <span className="text-sm font-semibold text-sky-700">
                     {t.teacherPayments.autoCalc}
                   </span>
                 </div>
@@ -749,14 +749,14 @@ export function TeacherPaymentsView() {
                       {selectedCalc.groups.map((g, i) => (
                         <div
                           key={i}
-                          className="flex justify-between items-center text-xs bg-white rounded-md px-3 py-1.5 border border-teal-100"
+                          className="flex justify-between items-center text-xs bg-white rounded-md px-3 py-1.5 border border-sky-100"
                         >
                           <span className="text-foreground">
                             {g.subjectNameAr} - {g.levelNameAr}
                           </span>
                           <Badge
                             variant="secondary"
-                            className="text-xs bg-teal-100 text-teal-700 hover:bg-teal-100"
+                            className="text-xs bg-sky-100 text-sky-700 hover:bg-sky-100"
                           >
                             {g.studentCount} {t.teacherPayments.studentUnit}
                           </Badge>
@@ -766,11 +766,11 @@ export function TeacherPaymentsView() {
                   </div>
                 )}
 
-                <Separator className="bg-teal-200" />
+                <Separator className="bg-sky-200" />
 
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-teal-700">{t.teacherPayments.teacherShare}</span>
-                  <span className="text-lg font-extrabold text-teal-700">
+                  <span className="font-semibold text-sky-700">{t.teacherPayments.teacherShare}</span>
+                  <span className="text-lg font-extrabold text-sky-700">
                     {selectedCalc.teacherShare.toLocaleString()} {t.common.dh}
                   </span>
                 </div>
@@ -778,7 +778,7 @@ export function TeacherPaymentsView() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full gap-2 border-teal-300 text-teal-700 hover:bg-teal-100"
+                  className="w-full gap-2 border-sky-300 text-sky-700 hover:bg-sky-100"
                   onClick={handleApplyCalculation}
                 >
                   <Calculator className="h-4 w-4" />

@@ -259,13 +259,13 @@ export function PaymentsView() {
     switch (status) {
       case 'paid':
         return (
-          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+          <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
             {t.payments.statusPaid}
           </Badge>
         );
       case 'partial':
         return (
-          <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
+          <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100">
             {t.payments.statusPartial}
           </Badge>
         );
@@ -323,7 +323,7 @@ export function PaymentsView() {
     .bon {
       max-width: 700px;
       margin: 0 auto;
-      border: 2px solid #0d9488;
+      border: 2px solid #002A6C;
       padding: 32px;
     }
     .header {
@@ -333,7 +333,7 @@ export function PaymentsView() {
     .header h1 {
       font-size: 20px;
       font-weight: 800;
-      color: #0d9488;
+      color: #002A6C;
       margin-top: 8px;
       margin-bottom: 0;
     }
@@ -347,7 +347,7 @@ export function PaymentsView() {
     }
     .divider {
       height: 2px;
-      background: #0d9488;
+      background: #002A6C;
       margin: 16px 0;
     }
     .info-section {
@@ -382,7 +382,7 @@ export function PaymentsView() {
     .details-table th {
       background: #f0fdfa;
       font-weight: 600;
-      color: #0d9488;
+      color: #002A6C;
       font-size: 13px;
     }
     .details-table .amount {
@@ -392,7 +392,7 @@ export function PaymentsView() {
     }
     .details-table .green { color: #059669; }
     .details-table .red { color: #dc2626; }
-    .details-table .amber { color: #d97706; }
+    .details-table .amber { color: #0090cc; }
     .bon-footer {
       margin-top: 40px;
       padding-top: 16px;
@@ -412,7 +412,7 @@ export function PaymentsView() {
       margin-bottom: 16px;
     }
     .no-print button {
-      background: #0d9488;
+      background: #002A6C;
       color: white;
       border: none;
       padding: 10px 28px;
@@ -422,7 +422,7 @@ export function PaymentsView() {
       font-weight: 600;
       cursor: pointer;
     }
-    .no-print button:hover { background: #0f766e; }
+    .no-print button:hover { background: #003d99; }
   </style>
 </head>
 <body>
@@ -945,7 +945,7 @@ export function PaymentsView() {
           <Button
             variant="outline"
             onClick={handleOpenOverdue}
-            className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+            className="gap-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50 hover:text-cyan-800"
           >
             <AlertTriangle className="h-4 w-4" />
             {t.payments.overdue}
@@ -972,7 +972,7 @@ export function PaymentsView() {
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">{t.payments.discount}</p>
-            <p className="text-lg font-bold text-amber-600 mt-1">
+            <p className="text-lg font-bold text-cyan-600 mt-1">
               {totalDiscount.toLocaleString()}{' '}
               <span className="text-xs font-normal">{t.common.dh}</span>
             </p>
@@ -981,7 +981,7 @@ export function PaymentsView() {
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">{t.payments.paid}</p>
-            <p className="text-lg font-bold text-emerald-600 mt-1">
+            <p className="text-lg font-bold text-blue-700 mt-1">
               {totalPaid.toLocaleString()}{' '}
               <span className="text-xs font-normal">{t.common.dh}</span>
             </p>
@@ -1198,7 +1198,7 @@ export function PaymentsView() {
                         {payment.amount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
-                      <TableCell className="text-right hidden md:table-cell text-emerald-600">
+                      <TableCell className="text-right hidden md:table-cell text-blue-700">
                         {payment.paidAmount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
@@ -1206,7 +1206,7 @@ export function PaymentsView() {
                         {payment.remainingAmount.toLocaleString()}{' '}
                         <span className="text-xs font-normal">{t.common.dh}</span>
                       </TableCell>
-                      <TableCell className="text-right hidden lg:table-cell text-amber-600">
+                      <TableCell className="text-right hidden lg:table-cell text-cyan-600">
                         {payment.discount > 0 ? (
                           <span>
                             {payment.discount.toLocaleString()}{' '}
@@ -1321,7 +1321,7 @@ export function PaymentsView() {
                             onClick={() => handleSelectStudent(s)}
                             className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 hover:border-primary/40 transition-colors text-right w-full"
                           >
-                            <div className="h-9 w-9 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="h-9 w-9 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5">
                               <User className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1338,13 +1338,13 @@ export function PaymentsView() {
                               )}
                               <div className="flex items-center gap-2 mt-1 flex-wrap">
                                 {s.level && s.level.subject && (
-                                  <span className="text-[10px] bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded">
+                                  <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded">
                                     {s.level.subject.nameAr} -{' '}
                                     {s.level.nameAr}
                                   </span>
                                 )}
                                 {s.monthlyFee > 0 && (
-                                  <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">
+                                  <span className="text-[10px] bg-cyan-50 text-cyan-700 px-1.5 py-0.5 rounded">
                                     {s.monthlyFee.toLocaleString()} {t.common.month}
                                   </span>
                                 )}
@@ -1386,9 +1386,9 @@ export function PaymentsView() {
                     )}
                   </div>
 
-                  <div className="rounded-lg border bg-gradient-to-br from-teal-50/50 to-white p-4">
+                  <div className="rounded-lg border bg-gradient-to-br from-sky-50/50 to-white p-4">
                     <div className="flex items-start gap-4">
-                      <div className="h-12 w-12 rounded-full bg-teal-600 text-white flex items-center justify-center shrink-0">
+                      <div className="h-12 w-12 rounded-full bg-sky-600 text-white flex items-center justify-center shrink-0">
                         <User className="h-5 w-5" />
                       </div>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
@@ -1435,7 +1435,7 @@ export function PaymentsView() {
                           <span className="text-muted-foreground">
                             {t.students.monthlyFeeSection}:{' '}
                           </span>
-                          <span className="font-bold text-teal-700">
+                          <span className="font-bold text-sky-700">
                             {selectedStudent.monthlyFee.toLocaleString()}{' '}
                             {t.common.dh}
                           </span>
@@ -1456,7 +1456,7 @@ export function PaymentsView() {
                           <span className="text-muted-foreground">
                             {t.common.dh} ({new Date().getFullYear()}):{' '}
                           </span>
-                          <span className="font-bold text-emerald-600">
+                          <span className="font-bold text-blue-700">
                             {yearlyPaid.toLocaleString()} {t.common.dh}
                           </span>
                         </div>
@@ -1582,13 +1582,13 @@ export function PaymentsView() {
                   )}
                 </div>
                 {isAdmin && discountValue > 0 && (
-                  <div className="text-xs text-amber-600 bg-amber-50 rounded-md p-2">
+                  <div className="text-xs text-cyan-600 bg-cyan-50 rounded-md p-2">
                     {t.payments.bonAfterDiscount}:{' '}
                     <strong>{netAmount.toLocaleString()} {t.common.dh}</strong>
                   </div>
                 )}
                 {formData.packMonths > 1 && typeof formData.amount === 'number' && formData.amount > 0 && (
-                  <div className="text-xs bg-teal-50 text-teal-700 rounded-md p-2">
+                  <div className="text-xs bg-sky-50 text-sky-700 rounded-md p-2">
                     {t.payments.packMonthlyEquiv}:{' '}
                     <strong>{Math.round(formData.amount / formData.packMonths).toLocaleString()} {t.common.dh} / {t.common.month}</strong>
                   </div>
@@ -1609,8 +1609,8 @@ export function PaymentsView() {
                         }
                         className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
                           formData.packMonths === opt.value
-                            ? 'border-teal-500 bg-teal-50 text-teal-700'
-                            : 'border-muted bg-card hover:border-teal-200 hover:bg-teal-50/50 text-foreground'
+                            ? 'border-sky-500 bg-sky-50 text-sky-700'
+                            : 'border-muted bg-card hover:border-sky-200 hover:bg-sky-50/50 text-foreground'
                         }`}
                       >
                         {opt.label}
@@ -1731,7 +1731,7 @@ export function PaymentsView() {
                 <Button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                  className="gap-2 bg-blue-700 hover:bg-blue-800"
                 >
                   {submitting ? (
                     <span className="animate-spin">⏳</span>
@@ -1753,7 +1753,7 @@ export function PaymentsView() {
         <DialogContent className="sm:max-w-3xl p-0 gap-0 max-h-[90vh] flex flex-col">
           <DialogHeader className="shrink-0 px-8 pt-6 pb-2">
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className="h-5 w-5 text-cyan-500" />
               {t.payments.overdue}
             </DialogTitle>
             <DialogDescription>
@@ -1771,18 +1771,18 @@ export function PaymentsView() {
             </div>
           ) : overdueData.length === 0 ? (
             <div className="px-8 py-12 text-center text-muted-foreground">
-              <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-emerald-400 opacity-50" />
+              <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-blue-400 opacity-50" />
               <p className="font-medium">{t.common.noData}</p>
               <p className="text-sm mt-1">{t.common.noData}</p>
             </div>
           ) : (
             <>
               {/* Grand total bar */}
-              <div className="mx-8 mt-2 mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between">
-                <span className="text-sm font-semibold text-amber-800">
+              <div className="mx-8 mt-2 mb-3 p-3 rounded-lg bg-cyan-50 border border-cyan-200 flex items-center justify-between">
+                <span className="text-sm font-semibold text-cyan-800">
                   {t.common.total}
                 </span>
-                <span className="text-lg font-bold text-amber-700">
+                <span className="text-lg font-bold text-cyan-700">
                   {grandTotalOverdue.toLocaleString()}{' '}
                   <span className="text-sm font-normal">{t.common.dh}</span>
                 </span>
@@ -1794,13 +1794,13 @@ export function PaymentsView() {
                     <div key={service.service}>
                       {/* Service header */}
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="h-1 w-4 rounded bg-amber-400" />
+                        <div className="h-1 w-4 rounded bg-cyan-400" />
                         <h3 className="font-bold text-base">
                           {service.service}
                         </h3>
                         <Badge
                           variant="outline"
-                          className="text-xs border-amber-300 text-amber-700"
+                          className="text-xs border-cyan-300 text-cyan-700"
                         >
                           {service.studentCount} {t.students.studentCount} —{' '}
                           {service.totalOverdue.toLocaleString()} {t.common.dh}
@@ -1873,8 +1873,8 @@ export function PaymentsView() {
                                       {student.monthsOverdue} {t.payments.month}
                                     </Badge>
                                     {student.nextDueDate && (
-                                      <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200" dir="ltr">
-                                        <CalendarClock className="h-3 w-3 text-amber-500" />
+                                      <span className="flex items-center gap-1 text-[11px] font-semibold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200" dir="ltr">
+                                        <CalendarClock className="h-3 w-3 text-cyan-500" />
                                         {student.nextDueDate}
                                       </span>
                                     )}

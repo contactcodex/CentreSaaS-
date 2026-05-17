@@ -177,7 +177,7 @@ export function UserManagementView() {
 
   const getRoleBadge = (role: string) => {
     if (role === 'ADMIN') {
-      return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">{isAr ? 'مدير' : 'Admin'}</Badge>;
+      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{isAr ? 'مدير' : 'Admin'}</Badge>;
     }
     return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">{isAr ? 'سكرتير' : 'Secrétaire'}</Badge>;
   };
@@ -192,7 +192,7 @@ export function UserManagementView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-700" />
       </div>
     );
   }
@@ -209,7 +209,7 @@ export function UserManagementView() {
             {isAr ? 'إدارة حسابات المديرين والسكرتارية' : 'Gérer les comptes admins et secrétaires'}
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2 bg-emerald-600 hover:bg-emerald-700 cursor-pointer">
+        <Button onClick={openCreate} className="gap-2 bg-blue-700 hover:bg-blue-800 cursor-pointer">
           <UserPlus className="h-4 w-4" />
           {isAr ? 'إضافة حساب' : 'Ajouter un compte'}
         </Button>
@@ -225,8 +225,8 @@ export function UserManagementView() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <Users className="h-5 w-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Users className="h-5 w-5 text-blue-700" />
             </div>
             <div>
               <p className="text-2xl font-bold">{users.length}</p>
@@ -275,7 +275,7 @@ export function UserManagementView() {
                 {users.map((user) => (
                   <div key={user.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${user.role === 'ADMIN' ? 'bg-emerald-600' : 'bg-blue-500'}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${user.role === 'ADMIN' ? 'bg-blue-700' : 'bg-blue-500'}`}>
                         {user.fullName.charAt(0)}
                       </div>
                       <div className="min-w-0">
@@ -421,7 +421,7 @@ export function UserManagementView() {
             <Button
               onClick={handleSubmit}
               disabled={saving || !formEmail || !formFullName}
-              className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
+              className="bg-blue-700 hover:bg-blue-800 cursor-pointer"
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin me-1" />}
               {editingUser

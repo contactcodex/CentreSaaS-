@@ -75,10 +75,10 @@ interface Service {
 const SERVICE_CONFIGS: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; badge: string }> = {
   'دروس الدعم': {
     icon: GraduationCap,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    badge: 'bg-emerald-100 text-emerald-700',
+    color: 'text-blue-700',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    badge: 'bg-blue-100 text-blue-800',
   },
   'اللغات': {
     icon: Languages,
@@ -89,10 +89,10 @@ const SERVICE_CONFIGS: Record<string, { icon: React.ElementType; color: string; 
   },
   'تكنولوجيا المعلومات': {
     icon: Monitor,
-    color: 'text-amber-600',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    badge: 'bg-amber-100 text-amber-700',
+    color: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    badge: 'bg-cyan-100 text-cyan-700',
   },
   'تحضير المسابقات': {
     icon: Trophy,
@@ -469,7 +469,7 @@ export function ServicesView() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
             <Layers className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -486,9 +486,9 @@ export function ServicesView() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: t.services.servicesLabel, value: services.length, icon: Layers, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: t.services.servicesLabel, value: services.length, icon: Layers, color: 'text-blue-700', bg: 'bg-blue-50' },
           { label: t.services.subjectsLabel, value: totalSubjects, icon: BookOpen, color: 'text-violet-600', bg: 'bg-violet-50' },
-          { label: t.services.levelsLabel, value: totalLevels, icon: Sparkles, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: t.services.levelsLabel, value: totalLevels, icon: Sparkles, color: 'text-cyan-600', bg: 'bg-cyan-50' },
         ].map((stat) => (
           <Card key={stat.label} className="border-0 shadow-sm">
             <CardContent className="flex items-center gap-4 p-5">

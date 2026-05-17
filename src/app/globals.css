@@ -41,46 +41,46 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar-bg: #0d9488;
-  --color-sidebar-hover: #0f766e;
-  --color-accent-yellow: #f59e0b;
-  --color-accent-yellow-hover: #d97706;
-  --color-bg-main: #f8f7f4;
+  --color-sidebar-bg: #002A6C;
+  --color-sidebar-hover: #003d99;
+  --color-accent-yellow: #00A8E8;
+  --color-accent-yellow-hover: #0090cc;
+  --color-bg-main: #f5f7fa;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: #f8f7f4;
-  --foreground: #1a1a1a;
+  --background: #f5f7fa;
+  --foreground: #1a1a2e;
   --card: #ffffff;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #1a1a2e;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #0d9488;
+  --popover-foreground: #1a1a2e;
+  --primary: #002A6C;
   --primary-foreground: #ffffff;
-  --secondary: #e8f5f3;
-  --secondary-foreground: #0f766e;
-  --muted: #f1f0ed;
+  --secondary: #e6f0fa;
+  --secondary-foreground: #002A6C;
+  --muted: #f0f2f5;
   --muted-foreground: #6b7280;
-  --accent: #fff7ed;
-  --accent-foreground: #92400e;
+  --accent: #e6f4fc;
+  --accent-foreground: #005a99;
   --destructive: #ef4444;
-  --border: #e5e5e0;
-  --input: #e5e5e0;
-  --ring: #0d9488;
-  --chart-1: #0d9488;
-  --chart-2: #f59e0b;
-  --chart-3: #6366f1;
-  --chart-4: #ec4899;
-  --chart-5: #8b5cf6;
-  --sidebar: #0d9488;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #00A8E8;
+  --chart-1: #002A6C;
+  --chart-2: #00A8E8;
+  --chart-3: #48bb78;
+  --chart-4: #ed8936;
+  --chart-5: #9f7aea;
+  --sidebar: #002A6C;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #f59e0b;
+  --sidebar-primary: #00A8E8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0f766e;
+  --sidebar-accent: #003d99;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #14b8a6;
-  --sidebar-ring: #f59e0b;
+  --sidebar-border: #004bb3;
+  --sidebar-ring: #00A8E8;
 }
 
 @layer base {
@@ -100,17 +100,17 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f0ed;
+  background: #f0f2f5;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c4c4bf;
+  background: #b0bec5;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a0a09b;
+  background: #90a4ae;
 }
 
 /* Print styles */

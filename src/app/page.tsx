@@ -91,8 +91,8 @@ function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys 
       {/* Logo */}
       <div className="p-5 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold text-lg shadow-lg">
-            C
+          <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center overflow-hidden shadow-lg">
+            <img src="/logo.png" alt="C" className="h-7 w-7 object-contain" />
           </div>
           <div>
             <h1 className="font-bold text-lg leading-tight">Codex Centre</h1>
@@ -206,7 +206,7 @@ export default function Home() {
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -268,7 +268,9 @@ export default function Home() {
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">C</div>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="C" className="h-6 w-6 object-contain" />
+            </div>
             <h1 className="font-bold text-primary">Codex Centre</h1>
           </div>
         </header>

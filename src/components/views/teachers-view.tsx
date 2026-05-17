@@ -158,8 +158,8 @@ const emptyForm: TeacherFormData = {
 
 function getAvatarColor(name: string): string {
   const colors = [
-    'bg-emerald-600',
-    'bg-teal-600',
+    'bg-blue-700',
+    'bg-sky-600',
     'bg-cyan-600',
     'bg-sky-600',
     'bg-violet-600',
@@ -442,8 +442,8 @@ export function TeachersView() {
         </Card>
         <Card className="py-4">
           <CardContent className="flex items-center gap-3 px-4">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <UserCheck className="h-5 w-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+              <UserCheck className="h-5 w-5 text-blue-700" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{activeTeachers}</p>
@@ -453,8 +453,8 @@ export function TeachersView() {
         </Card>
         <Card className="py-4">
           <CardContent className="flex items-center gap-3 px-4">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-cyan-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{totalStudents}</p>
@@ -571,7 +571,7 @@ export function TeachersView() {
                             className={cn(
                               'text-[10px] px-1.5 py-0',
                               teacher.status === 'active'
-                                ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                ? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100'
                                 : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-100'
                             )}
                           >
@@ -600,7 +600,7 @@ export function TeachersView() {
                     )}
                     {teacher.percentage > 0 && (
                       <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                        <Wallet className="h-3 w-3 shrink-0 text-amber-500" />
+                        <Wallet className="h-3 w-3 shrink-0 text-cyan-500" />
                         <span>{teacher.percentage}%</span>
                       </div>
                     )}
@@ -615,7 +615,7 @@ export function TeachersView() {
                     className={cn(
                       'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors',
                       studentCount > 0
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        ? 'bg-blue-50 text-blue-800 border border-blue-200'
                         : 'bg-gray-50 text-gray-400 border border-gray-200'
                     )}
                   >
@@ -756,7 +756,7 @@ export function TeachersView() {
               {/* Financial Info */}
               <div>
                 <h4 className="text-sm font-semibold flex items-center gap-2 mb-3">
-                  <Wallet className="h-4 w-4 text-amber-500" />
+                  <Wallet className="h-4 w-4 text-cyan-500" />
                   {t.teachers.financialInfo}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -995,7 +995,7 @@ export function TeachersView() {
                   className={cn(
                     'mt-1 text-[10px] px-1.5 py-0',
                     detailTeacher?.status === 'active'
-                      ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                      ? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100'
                       : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-100'
                   )}
                 >
@@ -1041,7 +1041,7 @@ export function TeachersView() {
                 {/* Financial Info */}
                 <div className="space-y-2.5">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-amber-500" />
+                    <Wallet className="h-4 w-4 text-cyan-500" />
                     {t.teachers.financialInfo}
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -1066,7 +1066,7 @@ export function TeachersView() {
                 {/* ── Students Assigned to Teacher ── */}
                 <div className="space-y-2.5">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Users className="h-4 w-4 text-emerald-600" />
+                    <Users className="h-4 w-4 text-blue-700" />
                     {t.teachers.studentCount} (
                     {studentCountsMap.get(detailTeacher.id) || 0})
                   </h4>
@@ -1091,7 +1091,7 @@ export function TeachersView() {
                               setCurrentView('students');
                             }}
                           >
-                            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-xs shrink-0">
                               {student.fullName.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -1214,7 +1214,7 @@ export function TeachersView() {
                 {/* Payment History */}
                 <div className="space-y-2.5">
                   <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-amber-500" />
+                    <Wallet className="h-4 w-4 text-cyan-500" />
                     {t.common.noData} ({detailTeacher.payments?.length || 0})
                   </h4>
                   {!detailTeacher.payments || detailTeacher.payments.length === 0 ? (

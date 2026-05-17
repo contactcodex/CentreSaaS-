@@ -251,7 +251,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
       {/* Header with logout button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Lock className="h-5 w-5 text-teal-600" />
+          <Lock className="h-5 w-5 text-sky-600" />
           <h2 className="text-2xl font-bold text-foreground">{t.financialReports.passwordTitle}</h2>
         </div>
         <Button variant="outline" size="sm" className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
@@ -289,19 +289,19 @@ function FinancialContent({ onLock }: FinancialContentProps) {
       {/* ─── Stats Cards ───────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Filtered Revenue (Income) */}
-        <Card className="overflow-hidden border-r-4 border-r-emerald-500">
+        <Card className="overflow-hidden border-r-4 border-r-blue-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
-              <div className="p-2.5 rounded-lg bg-emerald-100">
-                <Wallet className="h-5 w-5 text-emerald-600" />
+              <div className="p-2.5 rounded-lg bg-blue-100">
+                <Wallet className="h-5 w-5 text-blue-700" />
               </div>
-              <Badge variant="outline" className="text-emerald-600 border-emerald-200 text-[10px]">
+              <Badge variant="outline" className="text-blue-700 border-blue-200 text-[10px]">
                 {isAllMonths ? 'الإجمالي' : MONTH_NAMES_AR[parseInt(filterMonth) - 1]}
               </Badge>
             </div>
             <div className="mt-3">
               <p className="text-sm text-muted-foreground">الإيرادات</p>
-              <p className="text-2xl font-bold mt-1 text-emerald-700">
+              <p className="text-2xl font-bold mt-1 text-blue-800">
                 {filteredRevenue.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
             </div>
@@ -329,18 +329,18 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </Card>
 
         {/* Net Profit */}
-        <Card className="overflow-hidden border-r-4 border-r-amber-500">
+        <Card className="overflow-hidden border-r-4 border-r-cyan-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
-              <div className="p-2.5 rounded-lg bg-amber-100">
-                <DollarSign className="h-5 w-5 text-amber-600" />
+              <div className="p-2.5 rounded-lg bg-cyan-100">
+                <DollarSign className="h-5 w-5 text-cyan-600" />
               </div>
               <Badge
                 variant="outline"
                 className={cn(
                   'text-[10px]',
                   netProfit >= 0
-                    ? 'text-amber-600 border-amber-200'
+                    ? 'text-cyan-600 border-cyan-200'
                     : 'text-red-600 border-red-200'
                 )}
               >
@@ -349,7 +349,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
             </div>
             <div className="mt-3">
               <p className="text-sm text-muted-foreground">صافي الربح</p>
-              <p className={cn('text-2xl font-bold mt-1', netProfit >= 0 ? 'text-amber-700' : 'text-red-600')}>
+              <p className={cn('text-2xl font-bold mt-1', netProfit >= 0 ? 'text-cyan-700' : 'text-red-600')}>
                 {netProfit.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
             </div>
@@ -357,19 +357,19 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         </Card>
 
         {/* Current Month Income (always shows current month) */}
-        <Card className="overflow-hidden border-r-4 border-r-teal-500">
+        <Card className="overflow-hidden border-r-4 border-r-sky-500">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
-              <div className="p-2.5 rounded-lg bg-teal-100">
-                <TrendingUp className="h-5 w-5 text-teal-600" />
+              <div className="p-2.5 rounded-lg bg-sky-100">
+                <TrendingUp className="h-5 w-5 text-sky-600" />
               </div>
-              <Badge variant="outline" className="text-teal-600 border-teal-200 text-[10px]">
+              <Badge variant="outline" className="text-sky-600 border-sky-200 text-[10px]">
                 {MONTH_NAMES_AR[data.currentMonth - 1]}
               </Badge>
             </div>
             <div className="mt-3">
               <p className="text-sm text-muted-foreground">هذا الشهر</p>
-              <p className="text-2xl font-bold mt-1 text-teal-700">
+              <p className="text-2xl font-bold mt-1 text-sky-700">
                 {data.monthlyIncome.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">{t.common.currency}</span>
               </p>
             </div>
@@ -382,16 +382,16 @@ function FinancialContent({ onLock }: FinancialContentProps) {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-teal-600" />
+              <TrendingUp className="h-5 w-5 text-sky-600" />
               <CardTitle className="text-base">{t.financialReports.monthlyChart}</CardTitle>
             </div>
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-teal-500" />
+                <div className="w-3 h-3 rounded-sm bg-sky-500" />
                 <span className="text-muted-foreground">الإيرادات</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-amber-400/60" />
+                <div className="w-3 h-3 rounded-sm bg-cyan-400/60" />
                 <span className="text-muted-foreground">المتوقع</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -414,7 +414,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
               return (
                 <div key={item.monthKey} className="flex-1 flex flex-col items-center gap-1">
                   {item.revenue > 0 && (
-                    <span className="text-[9px] text-teal-600 font-medium opacity-80">
+                    <span className="text-[9px] text-sky-600 font-medium opacity-80">
                       {(item.revenue / 1000).toFixed(1)}k
                     </span>
                   )}
@@ -425,15 +425,15 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                   )}
                   <div className="w-full flex gap-0.5 items-end" style={{ height: '160px' }}>
                     <div
-                      className="flex-1 bg-amber-400/40 rounded-t-sm transition-all duration-500 min-h-[2px]"
+                      className="flex-1 bg-cyan-400/40 rounded-t-sm transition-all duration-500 min-h-[2px]"
                       style={{ height: `${Math.max(expectedH, 2)}%` }}
                     />
                     <div
                       className={cn(
                         'flex-1 rounded-t-sm transition-all duration-500 min-h-[2px]',
                         highlightMonth
-                          ? 'bg-gradient-to-t from-teal-600 to-teal-400'
-                          : 'bg-gradient-to-t from-teal-500 to-teal-300'
+                          ? 'bg-gradient-to-t from-sky-600 to-sky-400'
+                          : 'bg-gradient-to-t from-sky-500 to-sky-300'
                       )}
                       style={{ height: `${Math.max(revenueH, 2)}%` }}
                     />
@@ -444,7 +444,7 @@ function FinancialContent({ onLock }: FinancialContentProps) {
                   </div>
                   <span className={cn(
                     'text-[8px] font-medium mt-1 leading-tight',
-                    highlightMonth ? 'text-teal-700' : 'text-muted-foreground'
+                    highlightMonth ? 'text-sky-700' : 'text-muted-foreground'
                   )}>
                     {item.month}
                   </span>

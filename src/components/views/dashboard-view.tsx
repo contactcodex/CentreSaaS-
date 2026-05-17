@@ -227,10 +227,10 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
   function getServiceColors(serviceName: string) {
     const lower = serviceName.toLowerCase();
     if (lower.includes('soutien')) {
-      return { cardBg: 'bg-teal-50 border-teal-200', text: 'text-teal-700' };
+      return { cardBg: 'bg-sky-50 border-sky-200', text: 'text-sky-700' };
     }
     if (lower.includes('langue')) {
-      return { cardBg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' };
+      return { cardBg: 'bg-cyan-50 border-cyan-200', text: 'text-cyan-700' };
     }
     if (lower.includes('informatique') || lower.includes('it')) {
       return { cardBg: 'bg-purple-50 border-purple-200', text: 'text-purple-700' };
@@ -246,28 +246,28 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       label: t.dashboard.registerStudent,
       icon: UserPlus,
       view: 'students' as ViewType,
-      color: 'bg-teal-500 hover:bg-teal-600',
+      color: 'bg-sky-500 hover:bg-sky-600',
     },
     {
       label: t.dashboard.addPayment,
       icon: Receipt,
       view: 'payments' as ViewType,
-      color: 'bg-emerald-500 hover:bg-emerald-600',
+      color: 'bg-blue-500 hover:bg-blue-700',
     },
     {
       label: t.dashboard.viewSchedule,
       icon: CalendarDays,
       view: 'schedule' as ViewType,
-      color: 'bg-amber-500 hover:bg-amber-600',
+      color: 'bg-cyan-500 hover:bg-cyan-600',
     },
   ];
 
   function statusBadge(status: string) {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">{t.payments.statusPaid}</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">{t.payments.statusPaid}</Badge>;
       case 'partial':
-        return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">{t.payments.statusPartial}</Badge>;
+        return <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100">{t.payments.statusPartial}</Badge>;
       case 'pending':
         return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">{t.payments.statusPending}</Badge>;
       default:
@@ -286,13 +286,13 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
   return (
     <div className="space-y-6">
       {/* Students Stats Card */}
-      <Card className="overflow-hidden border-r-4 border-r-teal-500">
+      <Card className="overflow-hidden border-r-4 border-r-sky-500">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
-            <div className="p-2.5 rounded-lg bg-teal-100">
-              <Users className="h-5 w-5 text-teal-600" />
+            <div className="p-2.5 rounded-lg bg-sky-100">
+              <Users className="h-5 w-5 text-sky-600" />
             </div>
-            <div className="flex items-center gap-1 text-teal-600 text-xs font-medium">
+            <div className="flex items-center gap-1 text-sky-600 text-xs font-medium">
               <TrendingUp className="h-3.5 w-3.5" />
               <span>{data.activeStudents} {t.common.active}</span>
             </div>
@@ -309,7 +309,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-teal-600" />
+              <CalendarDays className="h-5 w-5 text-sky-600" />
               <CardTitle className="text-base">{t.dashboard.todaySessions}</CardTitle>
               <Badge variant="outline" className="text-xs font-normal">{t.days[todayDayKey]}</Badge>
             </div>
@@ -404,7 +404,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-amber-600" />
+              <UserPlus className="h-5 w-5 text-cyan-600" />
               <CardTitle className="text-base">{t.dashboard.newRegistrations}</CardTitle>
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => onNavigate('students')}>
@@ -465,7 +465,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                       key={m.value}
                       className={cn(
                         'rounded-lg border p-2 text-center text-xs',
-                        m.count > 0 ? 'border-amber-200 bg-amber-50' : 'border-border bg-muted/20'
+                        m.count > 0 ? 'border-cyan-200 bg-cyan-50' : 'border-border bg-muted/20'
                       )}
                     >
                       <p className="font-bold text-sm">{m.count}</p>
@@ -480,7 +480,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {registrations.students.map((student) => (
                   <div key={student.id} className="flex items-center gap-3 p-2.5 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => onNavigate('students')}>
-                    <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-xs shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-bold text-xs shrink-0">
                       {student.fullName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -512,7 +512,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Receipt className="h-5 w-5 text-emerald-600" />
+              <Receipt className="h-5 w-5 text-blue-700" />
               <CardTitle className="text-base">{t.dashboard.recentPayments}</CardTitle>
             </div>
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => onNavigate('payments')}>
@@ -563,7 +563,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                             {payment.paidAmount.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">{t.common.currency}</span>
                           </p>
                           {payment.status === 'partial' && (
-                            <p className="text-xs text-amber-600">{t.dashboard.from} {payment.amount.toLocaleString()}</p>
+                            <p className="text-xs text-cyan-600">{t.dashboard.from} {payment.amount.toLocaleString()}</p>
                           )}
                         </div>
                       </TableCell>
@@ -584,7 +584,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-amber-600" />
+            <BookOpen className="h-5 w-5 text-cyan-600" />
             <CardTitle className="text-base">{t.dashboard.quickActions}</CardTitle>
           </div>
         </CardHeader>

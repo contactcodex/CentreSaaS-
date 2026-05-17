@@ -117,9 +117,9 @@ const MONTH_KEYS = [
 ] as const;
 
 const CLASSROOM_COLORS = [
-  { accent: 'bg-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
+  { accent: 'bg-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800' },
   { accent: 'bg-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
-  { accent: 'bg-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  { accent: 'bg-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700' },
 ];
 
 function getTodayDayOfWeek(): string {
@@ -564,10 +564,10 @@ export function ClassroomsView() {
               </div>
             ) : overdueData && overdueData.students.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 gap-3">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
-                  <Wallet className="w-8 h-8 text-emerald-500" />
+                <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                  <Wallet className="w-8 h-8 text-blue-500" />
                 </div>
-                <p className="font-medium text-emerald-700">{t.classrooms.allPaid}</p>
+                <p className="font-medium text-blue-800">{t.classrooms.allPaid}</p>
                 <p className="text-sm text-muted-foreground">{t.classrooms.allPaidDesc}</p>
               </div>
             ) : overdueData ? (
@@ -632,11 +632,11 @@ export function ClassroomsView() {
                         </div>
 
                         {/* Due Date */}
-                        <div className="flex items-center gap-1.5 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-200">
-                          <CalendarClock className="w-4 h-4 text-amber-600" />
+                        <div className="flex items-center gap-1.5 bg-cyan-50 px-2.5 py-1.5 rounded-lg border border-cyan-200">
+                          <CalendarClock className="w-4 h-4 text-cyan-600" />
                           <div>
-                            <span className="text-[10px] text-amber-500 font-medium">{t.classrooms.dueDate}</span>
-                            <p className="text-amber-800 font-bold text-sm" dir="ltr">
+                            <span className="text-[10px] text-cyan-500 font-medium">{t.classrooms.dueDate}</span>
+                            <p className="text-cyan-800 font-bold text-sm" dir="ltr">
                               {student.nextDueDate || '—'}
                             </p>
                           </div>
@@ -646,7 +646,7 @@ export function ClassroomsView() {
 
                     {/* Pending payment warning */}
                     {student.hasPendingPayment && (
-                      <div className="mt-2 flex items-center gap-1.5 text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded w-fit">
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px] text-cyan-600 bg-cyan-50 px-2 py-1 rounded w-fit">
                         <AlertTriangle className="w-3 h-3" />
                         {t.classrooms.pendingExists}
                       </div>

@@ -163,11 +163,11 @@ const serviceIcons: Record<string, React.ElementType> = {
 
 function getAvatarColor(name: string): string {
   const colors = [
-    'bg-teal-100 text-teal-700',
-    'bg-amber-100 text-amber-700',
+    'bg-sky-100 text-sky-700',
+    'bg-cyan-100 text-cyan-700',
     'bg-rose-100 text-rose-700',
     'bg-violet-100 text-violet-700',
-    'bg-emerald-100 text-emerald-700',
+    'bg-blue-100 text-blue-800',
     'bg-cyan-100 text-cyan-700',
   ];
   let hash = 0;
@@ -593,7 +593,7 @@ export function StudentsView() {
   function getStatusBadge(status: string) {
     if (status === 'active') {
       return (
-        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
           {t.common.active}
         </Badge>
       );
@@ -628,9 +628,9 @@ export function StudentsView() {
                   <div
                     className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                       isCurrent
-                        ? 'bg-teal-600 text-white shadow-md shadow-teal-200'
+                        ? 'bg-sky-600 text-white shadow-md shadow-sky-200'
                         : isCompleted
-                          ? 'bg-teal-100 text-teal-700'
+                          ? 'bg-sky-100 text-sky-700'
                           : 'bg-gray-100 text-gray-400'
                     }`}
                   >
@@ -639,9 +639,9 @@ export function StudentsView() {
                   <span
                     className={`text-[10px] hidden sm:block ${
                       isCurrent
-                        ? 'text-teal-700 font-semibold'
+                        ? 'text-sky-700 font-semibold'
                         : isCompleted
-                          ? 'text-teal-600'
+                          ? 'text-sky-600'
                           : 'text-gray-400'
                     }`}
                   >
@@ -651,7 +651,7 @@ export function StudentsView() {
                 {idx < steps.length - 1 && (
                   <div
                     className={`flex-1 h-0.5 mx-2 transition-colors ${
-                      step.num < wizardStep ? 'bg-teal-300' : 'bg-gray-200'
+                      step.num < wizardStep ? 'bg-sky-300' : 'bg-gray-200'
                     }`}
                   />
                 )}
@@ -679,9 +679,9 @@ export function StudentsView() {
                 return (
                   <Card
                     key={svc.id}
-                    className={`cursor-pointer transition-all hover:shadow-md hover:border-teal-300 ${
+                    className={`cursor-pointer transition-all hover:shadow-md hover:border-sky-300 ${
                       isSelected
-                        ? 'border-teal-500 bg-teal-50 shadow-md ring-1 ring-teal-200'
+                        ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
                         : 'border-border hover:bg-muted/50'
                     }`}
                     onClick={() => handleSelectService(svc)}
@@ -690,7 +690,7 @@ export function StudentsView() {
                       <div
                         className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${
                           isSelected
-                            ? 'bg-teal-100 text-teal-700'
+                            ? 'bg-sky-100 text-sky-700'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
@@ -704,7 +704,7 @@ export function StudentsView() {
                       </div>
                       <ChevronLeft
                         className={`h-5 w-5 shrink-0 transition-colors ${
-                          isSelected ? 'text-teal-600' : 'text-muted-foreground'
+                          isSelected ? 'text-sky-600' : 'text-muted-foreground'
                         }`}
                       />
                     </CardContent>
@@ -746,8 +746,8 @@ export function StudentsView() {
                     key={subj.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       isSelected
-                        ? 'border-amber-500 bg-amber-50 shadow-md ring-1 ring-amber-200'
-                        : 'border-border hover:border-amber-300 hover:bg-amber-50/50'
+                        ? 'border-cyan-500 bg-cyan-50 shadow-md ring-1 ring-cyan-200'
+                        : 'border-border hover:border-cyan-300 hover:bg-cyan-50/50'
                     }`}
                     onClick={() => handleSelectSubject(subj)}
                   >
@@ -755,7 +755,7 @@ export function StudentsView() {
                       <div
                         className={`h-10 w-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
                           isSelected
-                            ? 'bg-amber-100 text-amber-700'
+                            ? 'bg-cyan-100 text-cyan-700'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
@@ -763,7 +763,7 @@ export function StudentsView() {
                       </div>
                       <p
                         className={`text-xs font-medium leading-tight ${
-                          isSelected ? 'text-amber-800' : ''
+                          isSelected ? 'text-cyan-800' : ''
                         }`}
                       >
                         {subj.nameAr}
@@ -810,8 +810,8 @@ export function StudentsView() {
                     key={lvl.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       isSelected
-                        ? 'border-teal-500 bg-teal-50 shadow-md ring-1 ring-teal-200'
-                        : 'border-border hover:border-teal-300 hover:bg-teal-50/50'
+                        ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
+                        : 'border-border hover:border-sky-300 hover:bg-sky-50/50'
                     }`}
                     onClick={() => handleSelectLevel(lvl)}
                   >
@@ -819,7 +819,7 @@ export function StudentsView() {
                       <div
                         className={`h-10 w-10 rounded-lg mx-auto mb-2 flex items-center justify-center ${
                           isSelected
-                            ? 'bg-teal-100 text-teal-700'
+                            ? 'bg-sky-100 text-sky-700'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
@@ -827,7 +827,7 @@ export function StudentsView() {
                       </div>
                       <p
                         className={`text-xs font-medium leading-tight ${
-                          isSelected ? 'text-teal-800' : ''
+                          isSelected ? 'text-sky-800' : ''
                         }`}
                       >
                         {lvl.nameAr}
@@ -912,8 +912,8 @@ export function StudentsView() {
                     key={teacher.id}
                     className={`cursor-pointer transition-all hover:shadow-md ${
                       isSelected
-                        ? 'border-teal-500 bg-teal-50 shadow-md ring-1 ring-teal-200'
-                        : 'border-border hover:border-teal-300'
+                        ? 'border-sky-500 bg-sky-50 shadow-md ring-1 ring-sky-200'
+                        : 'border-border hover:border-sky-300'
                     }`}
                     onClick={() => handleSelectTeacher(teacher)}
                   >
@@ -921,7 +921,7 @@ export function StudentsView() {
                       <div
                         className={`h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                           isSelected
-                            ? 'bg-teal-100 text-teal-700'
+                            ? 'bg-sky-100 text-sky-700'
                             : getAvatarColor(teacher.fullName)
                         }`}
                       >
@@ -930,7 +930,7 @@ export function StudentsView() {
                       <div className="flex-1 min-w-0">
                         <p
                           className={`text-sm font-medium truncate ${
-                            isSelected ? 'text-teal-800' : ''
+                            isSelected ? 'text-sky-800' : ''
                           }`}
                         >
                           {teacher.fullName}
@@ -945,7 +945,7 @@ export function StudentsView() {
                         variant="secondary"
                         className={`shrink-0 text-xs ${
                           count > 0
-                            ? 'bg-teal-100 text-teal-700'
+                            ? 'bg-sky-100 text-sky-700'
                             : 'bg-gray-100 text-gray-500'
                         }`}
                       >
@@ -984,13 +984,13 @@ export function StudentsView() {
                 </Badge>
               )}
               {selectedLevel && (
-                <Badge variant="outline" className="gap-1 text-xs border-teal-300 text-teal-700">
+                <Badge variant="outline" className="gap-1 text-xs border-sky-300 text-sky-700">
                   <GraduationCap className="h-3 w-3" />
                   {selectedLevel.nameAr}
                 </Badge>
               )}
               {!noTeacher && selectedTeacher ? (
-                <Badge variant="outline" className="gap-1 text-xs border-teal-300 text-teal-700">
+                <Badge variant="outline" className="gap-1 text-xs border-sky-300 text-sky-700">
                   <UserCheck className="h-3 w-3" />
                   {selectedTeacher.fullName}
                 </Badge>
@@ -1019,7 +1019,7 @@ export function StudentsView() {
             {/* Personal Info */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
-                <UserCheck className="h-4 w-4 text-teal-600" />
+                <UserCheck className="h-4 w-4 text-sky-600" />
                 {t.students.personalInfo}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1051,7 +1051,7 @@ export function StudentsView() {
             {/* Parent Info */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
-                <Users className="h-4 w-4 text-teal-600" />
+                <Users className="h-4 w-4 text-sky-600" />
                 {t.students.parentInfo}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1080,7 +1080,7 @@ export function StudentsView() {
             {/* Enrollment Date */}
             <div className="space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
-                <UserCheck className="h-4 w-4 text-teal-600" />
+                <UserCheck className="h-4 w-4 text-sky-600" />
                 {t.students.enrollmentDateLabel}
               </h4>
               <div className="space-y-1.5">
@@ -1101,7 +1101,7 @@ export function StudentsView() {
             {isAdmin && (
             <div className="space-y-3">
               <h4 className="text-sm font-semibold flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-amber-600" />
+                <Wallet className="h-4 w-4 text-cyan-600" />
                 {t.students.monthlyFeeSection}
               </h4>
               <div className="space-y-1.5">
@@ -1137,8 +1137,8 @@ export function StudentsView() {
                         }
                         className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
                           form.packMonths === opt.value
-                            ? 'border-teal-500 bg-teal-50 text-teal-700'
-                            : 'border-muted bg-card hover:border-teal-200 hover:bg-teal-50/50 text-foreground'
+                            ? 'border-sky-500 bg-sky-50 text-sky-700'
+                            : 'border-muted bg-card hover:border-sky-200 hover:bg-sky-50/50 text-foreground'
                         }`}
                       >
                         {opt.label}
@@ -1171,7 +1171,7 @@ export function StudentsView() {
           {(filterServiceId || filterSubjectId || filterLevelId) && (
             <button
               onClick={() => { setFilterServiceId(''); setFilterSubjectId(''); setFilterLevelId(''); }}
-              className="text-xs text-teal-600 hover:text-teal-800 underline"
+              className="text-xs text-sky-600 hover:text-sky-800 underline"
             >
               إعادة تعيين الفلاتر
             </button>
@@ -1209,7 +1209,7 @@ export function StudentsView() {
                 <select
                   value={filterServiceId}
                   onChange={(e) => handleFilterServiceChange(e.target.value)}
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                 >
                   <option value="">كل الخدمات</option>
                   {services.map((svc) => (
@@ -1220,7 +1220,7 @@ export function StudentsView() {
                   <select
                     value={filterSubjectId}
                     onChange={(e) => handleFilterSubjectChange(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                   >
                     <option value="">كل المواد</option>
                     {filterSubjects.map((subj) => (
@@ -1232,7 +1232,7 @@ export function StudentsView() {
                   <select
                     value={filterLevelId}
                     onChange={(e) => setFilterLevelId(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                    className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                   >
                     <option value="">كل المستويات</option>
                     {filterLevels.map((lvl) => (
@@ -1241,7 +1241,7 @@ export function StudentsView() {
                   </select>
                 )}
                 {(filterServiceId || filterSubjectId || filterLevelId) && (
-                  <Badge className="bg-teal-100 text-teal-700 border-teal-200 h-9 px-3 font-medium">
+                  <Badge className="bg-sky-100 text-sky-700 border-sky-200 h-9 px-3 font-medium">
                     {displayedStudents.length} طالب
                   </Badge>
                 )}
@@ -1336,7 +1336,7 @@ export function StudentsView() {
                       {isAdmin && (
                       <TableCell className="text-right hidden sm:table-cell">
                         {student.monthlyFee > 0 ? (
-                          <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 font-medium">
+                          <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100 font-medium">
                             {student.monthlyFee.toLocaleString('ar-MA')} {t.common.dh}
                           </Badge>
                         ) : (
@@ -1348,7 +1348,7 @@ export function StudentsView() {
                       <TableCell className="text-center">
                         {student.isPackPaid ? (
                           <div className="flex items-center justify-center gap-1" title="الpack مخلص">
-                            <CircleCheck className="h-5 w-5 text-emerald-500" />
+                            <CircleCheck className="h-5 w-5 text-blue-500" />
                           </div>
                         ) : (
                           <div className="flex items-center justify-center gap-1" title={student.nextDueDate ? `تاريخ الاستحقاق: ${student.nextDueDate}` : 'لم يدفع بعد'}>

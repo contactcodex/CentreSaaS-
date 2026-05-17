@@ -180,16 +180,16 @@ const timeSlots = generateTimeSlots();
 // Service-based color mapping (per task spec)
 const serviceColorMap: Record<string, { fixed: string; trial: string; badge: string; badgeTrial: string }> = {
   'Cours de Soutiens': {
-    fixed: 'bg-teal-100 text-teal-800 border-teal-300 border-solid',
-    trial: 'bg-teal-50 text-teal-600 border-teal-200 border-dashed',
-    badge: 'bg-teal-200/70 text-teal-800 border-teal-400',
-    badgeTrial: 'bg-teal-100/70 text-teal-700 border-teal-300',
+    fixed: 'bg-sky-100 text-sky-800 border-sky-300 border-solid',
+    trial: 'bg-sky-50 text-sky-600 border-sky-200 border-dashed',
+    badge: 'bg-sky-200/70 text-sky-800 border-sky-400',
+    badgeTrial: 'bg-sky-100/70 text-sky-700 border-sky-300',
   },
   'Langues': {
-    fixed: 'bg-amber-100 text-amber-800 border-amber-300 border-solid',
-    trial: 'bg-amber-50 text-amber-600 border-amber-200 border-dashed',
-    badge: 'bg-amber-200/70 text-amber-800 border-amber-400',
-    badgeTrial: 'bg-amber-100/70 text-amber-700 border-amber-300',
+    fixed: 'bg-cyan-100 text-cyan-800 border-cyan-300 border-solid',
+    trial: 'bg-cyan-50 text-cyan-600 border-cyan-200 border-dashed',
+    badge: 'bg-cyan-200/70 text-cyan-800 border-cyan-400',
+    badgeTrial: 'bg-cyan-100/70 text-cyan-700 border-cyan-300',
   },
   'Informatique': {
     fixed: 'bg-purple-100 text-purple-800 border-purple-300 border-solid',
@@ -220,12 +220,12 @@ const defaultColor = {
 
 // Classroom badge colors
 const classroomBadgeColors = [
-  'bg-teal-100 text-teal-700 border-teal-200',
-  'bg-amber-100 text-amber-700 border-amber-200',
+  'bg-sky-100 text-sky-700 border-sky-200',
+  'bg-cyan-100 text-cyan-700 border-cyan-200',
   'bg-violet-100 text-violet-700 border-violet-200',
   'bg-rose-100 text-rose-700 border-rose-200',
   'bg-sky-100 text-sky-700 border-sky-200',
-  'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'bg-blue-100 text-blue-800 border-blue-200',
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -724,8 +724,8 @@ export function ScheduleView() {
       const svc = services.find((s) => s.id === svcId);
       if (!svc) return '#e2e8f0';
       const name = svc.name.toLowerCase();
-      if (name.includes('soutien')) return '#14b8a6';
-      if (name.includes('langue')) return '#f59e0b';
+      if (name.includes('soutien')) return '#004bb3';
+      if (name.includes('langue')) return '#00A8E8';
       if (name.includes('informatique') || name === 'it') return '#a855f7';
       if (name.includes('concours')) return '#f43f5e';
       return '#94a3b8';
@@ -735,7 +735,7 @@ export function ScheduleView() {
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 15px; color: #1a1a1a; font-size: 11px; }
-        .header { text-align: center; margin-bottom: 15px; padding: 12px; background: linear-gradient(135deg, #0d9488, #14b8a6); color: white; border-radius: 8px; }
+        .header { text-align: center; margin-bottom: 15px; padding: 12px; background: linear-gradient(135deg, #002A6C, #004bb3); color: white; border-radius: 8px; }
         .header h1 { font-size: 20px; margin-bottom: 2px; }
         .header p { font-size: 12px; opacity: 0.9; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -802,8 +802,8 @@ export function ScheduleView() {
               <strong>${sess.subject?.nameAr || sess.subject?.name}</strong>
               ${sess.level ? `<br/>${sess.level?.nameAr || sess.level?.name}` : ''}
               ${sess.teacher ? `<br/><span style="color:#64748b;">${sess.teacher.fullName}</span>` : ''}
-              ${sess.classroom ? `<br/><span style="color:#0d9488;font-size:8px;">📍 ${sess.classroom.nameAr || sess.classroom.name}</span>` : ''}
-              ${sess.sessionType === 'trial' ? `<br/><span style="color:#f59e0b;font-size:8px;">⚡ تجريبية${sess.trialDate ? ` (${new Date(sess.trialDate).toLocaleDateString('ar-MA')})` : ''}</span>` : ''}
+              ${sess.classroom ? `<br/><span style="color:#002A6C;font-size:8px;">📍 ${sess.classroom.nameAr || sess.classroom.name}</span>` : ''}
+              ${sess.sessionType === 'trial' ? `<br/><span style="color:#00A8E8;font-size:8px;">⚡ تجريبية${sess.trialDate ? ` (${new Date(sess.trialDate).toLocaleDateString('ar-MA')})` : ''}</span>` : ''}
               ${sess.group ? `<br/><span style="color:#94a3b8;font-size:8px;">👥 ${sess.group}</span>` : ''}
               <br/><span style="font-size:8px;color:#94a3b8;">${sess.startTime}-${sess.endTime}</span>
             </div>`;
@@ -866,19 +866,19 @@ export function ScheduleView() {
           <Card>
             <CardContent className="p-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
-                <CalendarDays className="h-4 w-4 text-teal-500" />
+                <CalendarDays className="h-4 w-4 text-sky-500" />
                 <p className="text-xs text-muted-foreground">حصص تابتةٌ</p>
               </div>
-              <p className="text-lg font-bold text-teal-600 mt-0.5">{fixedCount}</p>
+              <p className="text-lg font-bold text-sky-600 mt-0.5">{fixedCount}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-3 text-center">
               <div className="flex items-center justify-center gap-1.5">
-                <Zap className="h-4 w-4 text-amber-500" />
+                <Zap className="h-4 w-4 text-cyan-500" />
                 <p className="text-xs text-muted-foreground">حصص تجريبية</p>
               </div>
-              <p className="text-lg font-bold text-amber-600 mt-0.5">{trialCount}</p>
+              <p className="text-lg font-bold text-cyan-600 mt-0.5">{trialCount}</p>
             </CardContent>
           </Card>
         </div>
@@ -1227,7 +1227,7 @@ export function ScheduleView() {
                     <RadioGroupItem value="fixed" id="type-fixed" />
                     <Label htmlFor="type-fixed" className="cursor-pointer flex-1">
                       <div className="flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4 text-teal-500" />
+                        <CalendarDays className="h-4 w-4 text-sky-500" />
                         <span className="font-medium text-sm">تابتةٌ</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
@@ -1239,7 +1239,7 @@ export function ScheduleView() {
                     <RadioGroupItem value="trial" id="type-trial" />
                     <Label htmlFor="type-trial" className="cursor-pointer flex-1">
                       <div className="flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-amber-500" />
+                        <Zap className="h-4 w-4 text-cyan-500" />
                         <span className="font-medium text-sm">تجريبية</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
@@ -1456,14 +1456,14 @@ export function ScheduleView() {
 
               {/* Trial date - only for trial sessions */}
               {form.sessionType === 'trial' && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-amber-700">
+                <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-cyan-700">
                     <Zap className="h-4 w-4" />
-                    <Label className="text-sm font-medium text-amber-700">
+                    <Label className="text-sm font-medium text-cyan-700">
                       تاريخ الحصة التجريبية *
                     </Label>
                   </div>
-                  <p className="text-xs text-amber-600/80">
+                  <p className="text-xs text-cyan-600/80">
                     الحصة كتحيد تلقائياً من الجدول بعد هذا التاريخ
                   </p>
                   <Input
