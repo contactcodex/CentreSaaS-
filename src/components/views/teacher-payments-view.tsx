@@ -125,6 +125,7 @@ interface CalculationData {
     subjectNameAr: string;
     monthlyAmount: number;
     paid: boolean;
+    paidAmount: number;
     paidDate: string | null;
   }[];
 }
@@ -753,6 +754,9 @@ export function TeacherPaymentsView() {
                           </span>
                           <div className="flex items-center gap-2">
                             <span className="text-muted-foreground">{sd.monthlyAmount} {t.common.dh}</span>
+                            {sd.paid && sd.paidAmount > 0 && (
+                              <span className="text-emerald-600 font-medium">{sd.paidAmount} {t.common.dh}</span>
+                            )}
                             <Badge
                               variant="secondary"
                               className={cn(

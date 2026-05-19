@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getCentreAuth } from '@/lib/centre-auth';
 
+// Map month number (1-12) to English month name as stored in Payment.month
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function getMonthName(num: number): string {
+  return MONTH_NAMES[(num - 1 + 12) % 12] || MONTH_NAMES[0];
+}
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await getCentreAuth(request);
@@ -27,12 +33,15 @@ export async function GET(request: NextRequest) {
 
       const calcMonth = month ? parseInt(month) : new Date().getMonth() + 1;
       const calcYear = year ? parseInt(year) : new Date().getFullYear();
+      const calcMonthName = getMonthName(calcMonth);
+      const prevMonth = calcMonth === 1 ? 12 : calcMonth - 1;
+      const prevYear = calcMonth === 1 ? calcYear - 1 : calcYear;
+      const prevMonthName = getMonthName(prevMonth);
 
       // For each teacher, find students via StudentLevel, then their payments
       const results = await Promise.all(
         teachers.map(async (t) => {
           const percentage = t.percentage || 0;
-          const baseSalary = t.salary || 250;
 
           // Get all student enrollments for this teacher via StudentLevel
           const studentLevels = await db.studentLevel.findMany({
@@ -46,34 +55,28 @@ export async function GET(request: NextRequest) {
             },
           });
 
-          // Get all student IDs for this teacher
-          const studentIds = studentLevels.map((sl) => sl.studentId);
+          // Get all student IDs for this teacher (unique)
+          const allStudentIds = [...new Set(studentLevels.map((sl) => sl.studentId))];
 
           // Build fee ratio per enrollment: each enrollment fee / total fees for student
-          const studentFeeMap = new Map<string, number>(); // studentId -> teacher's share of total fee
-          const studentGroupMap = new Map<string, { subjectNameAr: string; levelNameAr: string; fee: number }[]>();
+          // This ratio determines how much of a student's payment goes to this teacher
+          const studentFeeMap = new Map<string, number>(); // studentId -> teacher's share ratio
 
-          // First, get all enrollments per student to calculate ratios
-          const allStudentIds = [...new Set(studentIds)];
-          const allEnrollments = await db.studentLevel.findMany({
-            where: { studentId: { in: allStudentIds } },
-            include: { level: { include: { subject: true } }, teacher: true },
-          });
-
-          for (const sl of studentLevels) {
-            const sid = sl.studentId;
-            const fee = sl.monthlyFee || 0;
-            const studentEnrollments = allEnrollments.filter((e) => e.studentId === sid);
-            const totalStudentFee = studentEnrollments.reduce((s, e) => s + (e.monthlyFee || 0), 0);
-            const ratio = totalStudentFee > 0 ? fee / totalStudentFee : 0;
-            studentFeeMap.set(sid, ratio);
-
-            if (!studentGroupMap.has(sid)) studentGroupMap.set(sid, []);
-            studentGroupMap.get(sid)!.push({
-              subjectNameAr: sl.level?.subject?.nameAr || '',
-              levelNameAr: sl.level?.nameAr || '',
-              fee,
+          if (allStudentIds.length > 0) {
+            // Get ALL enrollments for these students (not just this teacher's)
+            const allEnrollments = await db.studentLevel.findMany({
+              where: { studentId: { in: allStudentIds } },
+              include: { level: { include: { subject: true } }, teacher: true },
             });
+
+            for (const sl of studentLevels) {
+              const sid = sl.studentId;
+              const fee = sl.monthlyFee || 0;
+              const studentEnrollments = allEnrollments.filter((e) => e.studentId === sid);
+              const totalStudentFee = studentEnrollments.reduce((s, e) => s + (e.monthlyFee || 0), 0);
+              const ratio = totalStudentFee > 0 ? fee / totalStudentFee : 0;
+              studentFeeMap.set(sid, ratio);
+            }
           }
 
           // Get payments for these students
@@ -85,58 +88,66 @@ export async function GET(request: NextRequest) {
             subjectNameAr: string;
             monthlyAmount: number;
             paid: boolean;
+            paidAmount: number;
             paidDate: string | null;
           }[] = [];
 
           if (allStudentIds.length > 0) {
-            // Get payments for the calc month and possibly previous month (for 16-31 rule)
-            const prevMonth = calcMonth === 1 ? 12 : calcMonth - 1;
-            const prevYear = calcMonth === 1 ? calcYear - 1 : calcYear;
-
+            // Fetch payments matching the month names stored in DB
             const payments = await db.payment.findMany({
               where: {
                 studentId: { in: allStudentIds },
                 OR: [
-                  { month: String(calcMonth), year: calcYear },
-                  { month: String(prevMonth), year: prevYear },
+                  { month: calcMonthName, year: calcYear },
+                  { month: prevMonthName, year: prevYear },
                 ],
               },
               orderBy: { paymentDate: 'desc' },
             });
+
+            // Deduplicate: one payment per student per month
+            const paymentByStudent = new Map<string, typeof payments[0]>();
+            for (const p of payments) {
+              const existing = paymentByStudent.get(p.studentId);
+              if (!existing || !existing.paymentDate || (p.paymentDate && new Date(p.paymentDate) > new Date(existing.paymentDate))) {
+                paymentByStudent.set(p.studentId, p);
+              }
+            }
 
             for (const sl of studentLevels) {
               const sid = sl.studentId;
               const fee = sl.monthlyFee || 0;
               const ratio = studentFeeMap.get(sid) || 0;
 
-              // Find payment for this student for the calc month
-              // If paid between 1-15 of calcMonth → counts for calcMonth
-              // If paid between 16-end of calcMonth → counts for next month (not counted here)
-              // If paid between 1-15 of prevMonth → counts for prevMonth (not counted here)
-              // If paid between 16-end of prevMonth → counts for calcMonth
-              let matchingPayment = null;
-              for (const p of payments) {
-                const pDate = p.paymentDate ? new Date(p.paymentDate) : null;
-                if (!pDate) continue;
+              const payment = paymentByStudent.get(sid) || null;
 
+              // Apply the 16th rule using the actual payment date
+              // If paid 1st-15th of calcMonth → counts for calcMonth ✓
+              // If paid 16th-end of calcMonth → counts for NEXT month ✗ (skip here)
+              // If paid 1st-15th of prevMonth → counts for prevMonth ✗ (skip here)
+              // If paid 16th-end of prevMonth → counts for calcMonth ✓
+              let countsForCalcMonth = false;
+              if (payment && payment.paymentDate) {
+                const pDate = new Date(payment.paymentDate);
                 const pMonthNum = pDate.getMonth() + 1;
                 const pYearNum = pDate.getFullYear();
                 const pDay = pDate.getDate();
 
                 if (pYearNum === calcYear && pMonthNum === calcMonth && pDay <= 15) {
-                  // Paid 1-15 of calc month → counts for calc month
-                  matchingPayment = p;
-                  break;
-                }
-                if (pYearNum === prevYear && pMonthNum === prevMonth && pDay >= 16) {
-                  // Paid 16-end of prev month → counts for calc month
-                  matchingPayment = p;
-                  break;
+                  countsForCalcMonth = true;
+                } else if (pYearNum === prevYear && pMonthNum === prevMonth && pDay >= 16) {
+                  countsForCalcMonth = true;
                 }
               }
 
-              if (matchingPayment && matchingPayment.status === 'paid') {
-                const paidAmount = matchingPayment.paidAmount || 0;
+              // Also count if no paymentDate but month matches calcMonthName
+              if (payment && !payment.paymentDate && payment.month === calcMonthName) {
+                countsForCalcMonth = true;
+              }
+
+              const isPaid = countsForCalcMonth && payment && payment.status === 'paid';
+              if (isPaid) {
+                const paidAmount = payment.paidAmount || 0;
                 const teacherPortion = Math.round(paidAmount * ratio * 100) / 100;
                 totalCollectedForTeacher += teacherPortion;
               }
@@ -147,8 +158,9 @@ export async function GET(request: NextRequest) {
                 levelNameAr: sl.level?.nameAr || '',
                 subjectNameAr: sl.level?.subject?.nameAr || '',
                 monthlyAmount: fee,
-                paid: !!matchingPayment && matchingPayment.status === 'paid',
-                paidDate: matchingPayment?.paymentDate ? String(matchingPayment.paymentDate) : null,
+                paid: isPaid,
+                paidAmount: isPaid ? Math.round(((payment?.paidAmount || 0) * ratio) * 100) / 100 : 0,
+                paidDate: payment?.paymentDate ? String(payment.paymentDate) : null,
               });
             }
           }
@@ -177,7 +189,7 @@ export async function GET(request: NextRequest) {
             teacherName: t.fullName,
             teacherPhone: t.phone || undefined,
             teacherPercentage: percentage,
-            totalStudents: new Set(studentLevels.map((sl) => sl.studentId)).size,
+            totalStudents: allStudentIds.length,
             totalCollected: Math.round(totalCollectedForTeacher * 100) / 100,
             teacherShare,
             groups: Array.from(groupMap.values()),
