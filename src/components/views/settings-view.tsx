@@ -1,6 +1,6 @@
 'use client';
 
-import { centreFetch, isExpired } from '@/store/store';
+import { useAppStore, centreFetch, isExpired } from '@/store/store';
 import { useEffect, useState } from 'react';
 import {
   Settings,
