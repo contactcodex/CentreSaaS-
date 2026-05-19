@@ -110,12 +110,10 @@ interface CalculationData {
   teacherName: string;
   teacherPhone?: string;
   teacherPercentage: number;
-  baseSalary: number;
   totalStudents: number;
   totalCollected: number;
   teacherShare: number;
   groups: {
-    groupName: string;
     subjectNameAr: string;
     levelNameAr: string;
     studentCount: number;
@@ -127,6 +125,7 @@ interface CalculationData {
     subjectNameAr: string;
     monthlyAmount: number;
     paid: boolean;
+    paidDate: string | null;
   }[];
 }
 
@@ -725,39 +724,47 @@ export function TeacherPaymentsView() {
                     <span className="font-bold text-foreground">{selectedCalc.teacherPercentage}%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">الراتب الأساسي</span>
-                    <span className="font-bold text-foreground">
-                      {(selectedCalc.baseSalary || 250).toLocaleString()} {t.common.dh}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">{t.teacherPayments.totalCollected}</span>
+                    <span className="text-muted-foreground">المبلغ المحصل (المادة)</span>
                     <span className="font-bold text-foreground">
                       {selectedCalc.totalCollected.toLocaleString()} {t.common.dh}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">{t.teacherPayments.teacherShare}</span>
+                    <span className="font-bold text-sky-700">
+                      {selectedCalc.teacherShare.toLocaleString()} {t.common.dh}
+                    </span>
+                  </div>
                 </div>
 
-                {selectedCalc.groups.length > 0 && (
+                {selectedCalc.studentDetails && selectedCalc.studentDetails.length > 0 && (
                   <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1.5 font-medium">
-                      {t.teacherPayments.groupsBreakdown}
+                      تفاصيل الطلاب
                     </p>
-                    <div className="max-h-36 overflow-y-auto space-y-1">
-                      {selectedCalc.groups.map((g, i) => (
+                    <div className="max-h-40 overflow-y-auto space-y-1">
+                      {selectedCalc.studentDetails.map((sd, i) => (
                         <div
                           key={i}
                           className="flex justify-between items-center text-xs bg-white rounded-md px-3 py-1.5 border border-sky-100"
                         >
                           <span className="text-foreground">
-                            {g.subjectNameAr} - {g.levelNameAr}
+                            {sd.studentName} ({sd.subjectNameAr} - {sd.levelNameAr})
                           </span>
-                          <Badge
-                            variant="secondary"
-                            className="text-xs bg-sky-100 text-sky-700 hover:bg-sky-100"
-                          >
-                            {g.studentCount} {t.teacherPayments.studentUnit}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">{sd.monthlyAmount} {t.common.dh}</span>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-[10px]",
+                                sd.paid
+                                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                                  : "bg-gray-100 text-gray-500 hover:bg-gray-100"
+                              )}
+                            >
+                              {sd.paid ? "مدفوع" : "غير مدفوع"}
+                            </Badge>
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -535,7 +535,7 @@ export function TeachersView() {
         /* ── Teacher Cards Grid ── */
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredTeachers.map((teacher) => {
-            const studentCount = studentCountsMap.get(teacher.id) || 0;
+            const studentCount = (teacher as any).studentCount || studentCountsMap.get(teacher.id) || 0;
             const avatarColor = getAvatarColor(teacher.fullName);
 
             return (

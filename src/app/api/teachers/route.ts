@@ -13,7 +13,30 @@ export async function GET(request: NextRequest) {
       include: { subjects: { include: { subject: { include: { levels: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-    return NextResponse.json(teachers);
+
+    // Count students per teacher using StudentLevel (not Student.teacherId)
+    const teacherIds = teachers.map((t) => t.id);
+    const studentLevelCounts = await db.studentLevel.groupBy({
+      by: ['teacherId'],
+      where: { teacherId: { in: teacherIds }, student: { status: 'active', centreId } },
+      _count: { id: true },
+    });
+    const countMap = new Map(studentLevelCounts.map((c) => [c.teacherId, c._count.id]));
+
+    // Also count unique students (a student may appear in multiple groups)
+    const studentLevelUnique = await db.studentLevel.groupBy({
+      by: ['teacherId'],
+      where: { teacherId: { in: teacherIds }, student: { status: 'active', centreId } },
+      _count: { studentId: true },
+    });
+    const uniqueCountMap = new Map(studentLevelUnique.map((c) => [c.teacherId, c._count.studentId]));
+
+    const enriched = teachers.map((t) => ({
+      ...t,
+      studentCount: uniqueCountMap.get(t.id) || 0,
+    }));
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error('Error fetching teachers:', error);
     return NextResponse.json({ error: 'Failed to fetch teachers' }, { status: 500 });
