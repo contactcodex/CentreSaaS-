@@ -21,3 +21,24 @@ Stage Summary:
 - Bug fix: Overdue payments endpoint now returns actual overdue data
 - Deployed to: https://codex-centre.vercel.app
 - Vercel project: prj_9xef5L1Hc757KKz2kf8wsAfWQdf4
+---
+Task ID: 2
+Agent: Main
+Task: Fix logo and centre name not updating live in app and receipts
+
+Work Log:
+- Analyzed the root cause: logo/name saved to DB but sidebar/header/bon used stale data from initial mount fetch
+- Added `centreInfo` state + `refreshCentreInfo()` to Zustand store (`src/store/store.ts`)
+- Updated `page.tsx` to use `displayCentreName` and `displayLogoUrl` computed from store + auth state
+- Updated `settings-view.tsx` to call `refreshCentreInfo()` after logo save, name save, and logo remove
+- Updated `payments-view.tsx` to use store's centreInfo for bon generation instead of local stale state
+- Updated `/api/centre-info` to merge `center_name` from settings with `Centre.name`
+- Updated `/api/settings` PUT to also update `Centre.name` when `center_name` setting is saved
+- Updated `/api/auth/me` to merge `center_name` from settings into initial auth response
+- Updated `/api/upload-logo` to return full centre info including name from settings
+- Deployed to Vercel: https://my-project-codex-04300735.vercel.app
+
+Stage Summary:
+- Centre logo and name now update immediately across the entire app (sidebar, mobile header, receipts) after saving in settings
+- No page refresh needed — changes are reactive through Zustand store
+- Student bon uses live store data, teacher bon uses fresh DB queries
