@@ -268,7 +268,7 @@ export function ServicesView() {
     }
     setSubjectSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${subjectServiceId}/subjects`, {
+      const res = await centreFetch(`/api/services/${subjectServiceId}/subjects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subjectForm),
@@ -296,7 +296,7 @@ export function ServicesView() {
     }
     setLevelSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${levelServiceId}/subjects/${levelSubjectId}/levels`, {
+      const res = await centreFetch(`/api/services/${levelServiceId}/subjects/${levelSubjectId}/levels`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(levelForm),
@@ -326,7 +326,7 @@ export function ServicesView() {
     }
     setEditSubjectSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${editSubjectServiceId}/subjects/${editSubjectId}`, {
+      const res = await centreFetch(`/api/services/${editSubjectServiceId}/subjects/${editSubjectId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editSubjectForm),
@@ -352,7 +352,7 @@ export function ServicesView() {
   const handleDeleteSubject = async () => {
     setDeleteSubjectSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${deleteSubjectServiceId}/subjects/${deleteSubjectId}`, {
+      const res = await centreFetch(`/api/services/${deleteSubjectServiceId}/subjects/${deleteSubjectId}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
@@ -381,7 +381,7 @@ export function ServicesView() {
     }
     setEditLevelSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${editLevelServiceId}/subjects/${editLevelSubjectId}/levels/${editLevelId}`, {
+      const res = await centreFetch(`/api/services/${editLevelServiceId}/subjects/${editLevelSubjectId}/levels/${editLevelId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editLevelForm),
@@ -408,7 +408,7 @@ export function ServicesView() {
   const handleDeleteService = async () => {
     setDeleteServiceSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${deleteServiceId}`, {
+      const res = await centreFetch(`/api/services/${deleteServiceId}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();
@@ -431,7 +431,7 @@ export function ServicesView() {
   const handleDeleteLevel = async () => {
     setDeleteLevelSubmitting(true);
     try {
-      const res = await fetch(`/api/services/${deleteLevelServiceId}/subjects/${deleteLevelSubjectId}/levels/${deleteLevelId}`, {
+      const res = await centreFetch(`/api/services/${deleteLevelServiceId}/subjects/${deleteLevelSubjectId}/levels/${deleteLevelId}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();

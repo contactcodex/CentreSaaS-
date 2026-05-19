@@ -812,7 +812,7 @@ export function PaymentsView() {
     const currentYear = new Date().getFullYear();
     (async () => {
       try {
-        const res = await fetch(
+        const res = await centreFetch(
           `/api/payments?studentId=${selectedStudent.id}&year=${currentYear}`
         );
         if (!res.ok) return;
@@ -1007,7 +1007,7 @@ export function PaymentsView() {
         ? `/api/payments/${editingPayment.id}`
         : '/api/payments';
       const method = editingPayment ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -1074,7 +1074,7 @@ export function PaymentsView() {
 
   const handlePromoDelete = async (id: string) => {
     try {
-      await fetch(`/api/promotions/${id}`, { method: 'DELETE' });
+      await centreFetch(`/api/promotions/${id}`, { method: 'DELETE' });
       toast.success(t.common.deleteSuccess);
       fetchPromotions();
       // Clear selection if deleted
@@ -1142,7 +1142,7 @@ export function PaymentsView() {
 
   const handlePackDiscountDelete = async (id: string) => {
     try {
-      await fetch(`/api/pack-discounts/${id}`, { method: 'DELETE' });
+      await centreFetch(`/api/pack-discounts/${id}`, { method: 'DELETE' });
       toast.success(t.common.deleteSuccess);
       fetchPackDiscounts();
       if (formData.packDiscountId === id) {

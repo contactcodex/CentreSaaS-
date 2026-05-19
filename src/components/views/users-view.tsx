@@ -305,7 +305,7 @@ export default function UsersView() {
 
       const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users';
       const method = editingUser ? 'PUT' : 'POST';
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -322,7 +322,7 @@ export default function UsersView() {
   const handleDelete = async () => {
     if (!deletingUser) return;
     try {
-      const res = await fetch(`/api/users/${deletingUser.id}`, {
+      const res = await centreFetch(`/api/users/${deletingUser.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error();

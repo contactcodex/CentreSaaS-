@@ -229,7 +229,7 @@ export function ClassroomsView() {
   const fetchOverduePayments = useCallback(async (classroomId: string) => {
     setOverdueLoading(true);
     try {
-      const res = await fetch(`/api/classrooms/${classroomId}/overdue`);
+      const res = await centreFetch(`/api/classrooms/${classroomId}/overdue`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setOverdueData(data);
@@ -322,7 +322,7 @@ export function ClassroomsView() {
 
       if (editDialog.classroom) {
         // Update
-        const res = await fetch(`/api/classrooms/${editDialog.classroom.id}`, {
+        const res = await centreFetch(`/api/classrooms/${editDialog.classroom.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -353,7 +353,7 @@ export function ClassroomsView() {
     if (!deleteDialog.classroom) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/classrooms/${deleteDialog.classroom.id}`, {
+      const res = await centreFetch(`/api/classrooms/${deleteDialog.classroom.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Failed to delete');

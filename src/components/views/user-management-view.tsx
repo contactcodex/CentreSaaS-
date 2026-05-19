@@ -118,7 +118,7 @@ export function UserManagementView() {
       }
 
       if (isEdit) {
-        const res = await fetch(`/api/users/${editingUser.id}`, {
+        const res = await centreFetch(`/api/users/${editingUser.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -159,7 +159,7 @@ export function UserManagementView() {
     if (!deletingId) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/users/${deletingId}`, { method: 'DELETE' });
+      const res = await centreFetch(`/api/users/${deletingId}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || (isAr ? 'فشل في الحذف' : 'Échec de la suppression'));

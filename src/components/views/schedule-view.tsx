@@ -305,7 +305,7 @@ export function ScheduleView() {
         params.set('sessionType', sessionFilter);
       }
       const query = params.toString();
-      const res = await fetch(`/api/schedules${query ? `?${query}` : ''}`);
+      const res = await centreFetch(`/api/schedules${query ? `?${query}` : ''}`);
       if (!res.ok) throw new Error(t.common.fetchError);
       const data = await res.json();
       setSchedules(data);
@@ -641,7 +641,7 @@ export function ScheduleView() {
         : '/api/schedules';
       const method = editingSchedule ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -676,7 +676,7 @@ export function ScheduleView() {
   const handleDelete = async () => {
     if (!deletingSchedule) return;
     try {
-      const res = await fetch(`/api/schedules/${deletingSchedule.id}`, {
+      const res = await centreFetch(`/api/schedules/${deletingSchedule.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error(t.common.deleteError);

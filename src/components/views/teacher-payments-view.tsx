@@ -110,6 +110,7 @@ interface CalculationData {
   teacherName: string;
   teacherPhone?: string;
   teacherPercentage: number;
+  baseSalary: number;
   totalStudents: number;
   totalCollected: number;
   teacherShare: number;
@@ -211,7 +212,7 @@ export function TeacherPaymentsView() {
       if (filterStatus && filterStatus !== 'all') params.set('status', filterStatus);
 
       const query = params.toString();
-      const res = await fetch(`/api/teacher-payments${query ? `?${query}` : ''}`);
+      const res = await centreFetch(`/api/teacher-payments${query ? `?${query}` : ''}`);
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setPayments(data);
@@ -236,7 +237,7 @@ export function TeacherPaymentsView() {
       if (teacherId) params.set('teacherId', teacherId);
       if (calcMonth) params.set('month', calcMonth);
       if (calcYear) params.set('year', calcYear);
-      const res = await fetch(`/api/teacher-payments?${params.toString()}`);
+      const res = await centreFetch(`/api/teacher-payments?${params.toString()}`);
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setCalcData(data);
@@ -382,7 +383,7 @@ export function TeacherPaymentsView() {
         : '/api/teacher-payments';
       const method = editingPayment ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await centreFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -401,7 +402,7 @@ export function TeacherPaymentsView() {
   const handleDelete = async () => {
     if (!deletingPayment) return;
     try {
-      const res = await fetch(`/api/teacher-payments/${deletingPayment.id}`, {
+      const res = await centreFetch(`/api/teacher-payments/${deletingPayment.id}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error('Failed');
@@ -723,7 +724,13 @@ export function TeacherPaymentsView() {
                     <span className="text-muted-foreground">{t.teacherPayments.teacherPercentage}</span>
                     <span className="font-bold text-foreground">{selectedCalc.teacherPercentage}%</span>
                   </div>
-                  <div className="flex justify-between items-center col-span-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">الراتب الأساسي</span>
+                    <span className="font-bold text-foreground">
+                      {(selectedCalc.baseSalary || 250).toLocaleString()} {t.common.dh}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">{t.teacherPayments.totalCollected}</span>
                     <span className="font-bold text-foreground">
                       {selectedCalc.totalCollected.toLocaleString()} {t.common.dh}
