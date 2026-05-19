@@ -197,11 +197,11 @@ function SidebarContent({ currentView, onNavigate, onMobileClose, navKeys: keys,
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <div className="p-5 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center overflow-hidden shadow-lg">
+          <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt="" className="h-7 w-7 object-contain" />
+              <img src={logoUrl} alt="" className="h-10 w-10 object-contain" />
             ) : (
-              <img src="/logo.png" alt="C" className="h-7 w-7 object-contain" />
+              <img src="/logo.png" alt="C" className="h-10 w-10 object-contain" />
             )}
           </div>
           <div>
@@ -473,11 +473,11 @@ export default function Home() {
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+            <div className="w-8 h-8 flex items-center justify-center overflow-hidden">
               {displayLogoUrl ? (
-                <img src={displayLogoUrl} alt="" className="h-6 w-6 object-contain" />
+                <img src={displayLogoUrl} alt="" className="h-8 w-8 object-contain" />
               ) : (
-                <img src="/logo.png" alt="C" className="h-6 w-6 object-contain" />
+                <img src="/logo.png" alt="C" className="h-8 w-8 object-contain" />
               )}
             </div>
             <h1 className="font-bold text-primary">{displayCentreName || 'Codex Centre'}</h1>
