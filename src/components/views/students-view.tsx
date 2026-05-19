@@ -1431,11 +1431,10 @@ export function StudentsView() {
                   {selectedSubjects.reduce((sum, sub) => sum + (parseFloat(enrollmentFees[sub.id]) || 0), 0).toLocaleString('ar-MA')} {t.common.dh}
                 </span>
               </div>
-              {/* Pack Type (Langues only) */}
-              {selectedService?.id === 'service_langues' && (
-                <div className="space-y-1.5">
-                  <Label>{t.payments.packType}</Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {/* Pack Type */}
+              <div className="space-y-1.5">
+                <Label>{t.payments.packType}</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
                       { value: 1, label: t.payments.pack1 },
                       { value: 3, label: t.payments.pack3 },
@@ -1459,7 +1458,6 @@ export function StudentsView() {
                     ))}
                   </div>
                 </div>
-              )}
             </div>
             )}
           </div>

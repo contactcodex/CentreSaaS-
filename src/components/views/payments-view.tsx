@@ -956,9 +956,7 @@ export function PaymentsView() {
       ...prev,
       studentId: student.id,
       amount: student.monthlyFee || '',
-      packMonths: student.level?.subject?.service?.id === 'service_langues'
-        ? (student.packMonths || prev.packMonths)
-        : 1,
+      packMonths: student.packMonths || prev.packMonths || 1,
       discount: '',
       packDiscountId: '',
     }));
@@ -2014,8 +2012,7 @@ export function PaymentsView() {
               </div>
               )}
 
-              {/* ── Pack Type (Langues only) ───────────────────────────── */}
-              {isLanguesService && (
+              {/* ── Pack Type ───────────────────────────── */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold flex items-center gap-2">
@@ -2107,7 +2104,6 @@ export function PaymentsView() {
                     })()
                   )}
                 </div>
-              )}
 
               {/* ── Month / Year / Date / Method ────────────────────────── */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

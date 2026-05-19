@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Student has payments — check for remaining amounts
-      // Find the latest paid payment to determine coverage
+      // Find the latest paid payment to determine pack coverage
       const paidPayments = student.payments.filter(p => p.status === 'paid' || p.paidAmount > 0);
       let coverageEnd: Date | null = null;
 
@@ -145,8 +145,10 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Also check for payments with remaining amounts (partial payments)
-      const partialPayments = student.payments.filter(p => p.remainingAmount > 0 && p.paidAmount > 0);
+      // If the student is covered by a pack (coverageEnd > now), skip entirely
+      if (coverageEnd && coverageEnd > now) {
+        continue;
+      }
 
       // For each enrollment, calculate overdue months
       for (const enrollment of student.enrollments) {
@@ -157,7 +159,6 @@ export async function GET(request: NextRequest) {
         const levelName = enrollment.level?.nameAr || enrollment.level?.name || '';
         const subjectName = enrollment.level?.subject?.nameAr || enrollment.level?.subject?.name || '';
 
-        // Check if there are overdue payments specifically for this month
         const overduePaymentsList: {
           id: string;
           month: string;
@@ -171,11 +172,9 @@ export async function GET(request: NextRequest) {
 
         for (const p of student.payments) {
           if (p.remainingAmount > 0) {
-            // Calculate how many months this is overdue
             const pMonthIdx = MONTH_NAMES.indexOf(p.month);
             const pMonthNum = pMonthIdx >= 0 ? pMonthIdx + 1 : 1;
 
-            // Calculate months overdue based on payment date vs now
             let monthsOverdue = 0;
             if (p.paymentDate) {
               const pDate = new Date(p.paymentDate);
@@ -198,14 +197,13 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // Also check if current month has no payment at all
+        // Check if current month has no payment at all and student is not covered
         const currentMonthName = MONTH_NAMES[currentMonthNum - 1];
         const hasCurrentMonthPayment = student.payments.some(
           p => p.month === currentMonthName && p.year === currentYear
         );
 
         if (!hasCurrentMonthPayment && student.enrollments.length > 0) {
-          // Check if enrollment was before current month
           const enrollmentDate = student.enrollmentDate || student.createdAt;
           if (enrollmentDate.getFullYear() < currentYear || 
               (enrollmentDate.getFullYear() === currentYear && enrollmentDate.getMonth() < currentMonthNum - 1)) {

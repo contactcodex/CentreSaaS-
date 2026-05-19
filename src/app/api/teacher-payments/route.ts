@@ -148,7 +148,10 @@ export async function GET(request: NextRequest) {
               const isPaid = countsForCalcMonth && payment && payment.status === 'paid';
               if (isPaid) {
                 const paidAmount = payment.paidAmount || 0;
-                const teacherPortion = Math.round(paidAmount * ratio * 100) / 100;
+                const packMonths = payment.packMonths || 1;
+                // For packs: divide total paid by number of months, then apply ratio
+                const monthlyPaidAmount = packMonths > 1 ? Math.round(paidAmount / packMonths * 100) / 100 : paidAmount;
+                const teacherPortion = Math.round(monthlyPaidAmount * ratio * 100) / 100;
                 totalCollectedForTeacher += teacherPortion;
               }
 
@@ -159,7 +162,12 @@ export async function GET(request: NextRequest) {
                 subjectNameAr: sl.level?.subject?.nameAr || '',
                 monthlyAmount: fee,
                 paid: isPaid,
-                paidAmount: isPaid ? Math.round(((payment?.paidAmount || 0) * ratio) * 100) / 100 : 0,
+                paidAmount: isPaid ? (() => {
+                  const paidAmount = payment?.paidAmount || 0;
+                  const packMonths = payment?.packMonths || 1;
+                  const monthlyPaid = packMonths > 1 ? Math.round(paidAmount / packMonths * 100) / 100 : paidAmount;
+                  return Math.round(monthlyPaid * ratio * 100) / 100;
+                })() : 0,
                 paidDate: payment?.paymentDate ? String(payment.paymentDate) : null,
               });
             }

@@ -42,9 +42,8 @@ export async function GET(request: Request) {
       const key = String(monthNum);
       if (!monthlyStats[key]) monthlyStats[key] = { revenue: 0, expected: 0, remaining: 0, count: 0 };
       const serviceId = p.student?.level?.subject?.serviceId || '';
-      const isLangues = serviceId === 'service_langues';
       const packMonths = (p.packMonths || 1);
-      const divisor = (isLangues && packMonths > 1) ? packMonths : 1;
+      const divisor = packMonths > 1 ? packMonths : 1;
       monthlyStats[key].revenue += p.paidAmount / divisor;
       monthlyStats[key].expected += p.amount / divisor;
       monthlyStats[key].remaining += p.remainingAmount / divisor;
