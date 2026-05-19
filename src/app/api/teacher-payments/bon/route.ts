@@ -51,6 +51,20 @@ export async function GET(request: NextRequest) {
 
     const { centreId } = auth.auth;
 
+    // Fetch centre info and settings for bon header/footer
+    const [centre, settings] = await Promise.all([
+      db.centre.findUnique({
+        where: { id: centreId },
+        select: { name: true, logoUrl: true, contactPhone: true, contactWhatsapp: true },
+      }),
+      db.setting.findMany({ where: { key: { in: ['center_name', 'center_phone', 'center_address'] } } }),
+    ]);
+    const settingsMap = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+    const centreName = settingsMap.center_name || centre?.name || 'Codex Centre';
+    const centreLogo = centre?.logoUrl || '/logo.png';
+    const centrePhone = settingsMap.center_phone || centre?.contactPhone || centre?.contactWhatsapp || '--';
+    const centreAddress = settingsMap.center_address || '--';
+
     // Fetch payment with teacher info, filtered by centreId
     const payment = await db.teacherPayment.findFirst({
       where: { id: paymentId, teacher: { centreId } },
@@ -489,14 +503,14 @@ export async function GET(request: NextRequest) {
     <!-- Header -->
     <div class="bon-header">
       <div class="logo-area">
-        <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+        <img src="${centreLogo}" alt="Logo" onerror="this.style.display='none'">
       </div>
       <div class="title-area">
-        <h1>Codex Centre</h1>
-        <div class="subtitle">--</div>
+        <h1>${centreName}</h1>
+        <div class="subtitle">${centreAddress}</div>
       </div>
       <div class="contact-area">
-        <div>--</div>
+        <div>${centrePhone}</div>
       </div>
     </div>
 
@@ -560,8 +574,8 @@ export async function GET(request: NextRequest) {
           <span class="info-value" dir="ltr">${day} / ${month} / ${year}</span>
         </div>
         <div class="footer-right">
-          <div class="phone-line">--</div>
-          <div>--</div>
+          <div class="phone-line">${centrePhone}</div>
+          <div>${centreAddress}</div>
         </div>
       </div>
     </div>

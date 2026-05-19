@@ -387,11 +387,38 @@ export function PaymentsView() {
     }
   }, [t]);
 
+  // Centre info for bon (logo + name + phone + address)
+  const [centreInfo, setCentreInfo] = useState<{ name: string; logoUrl: string | null; contactWhatsapp: string | null } | null>(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await centreFetch('/api/centre-info');
+        if (res.ok) setCentreInfo(await res.json());
+      } catch { /* silent */ }
+    })();
+  }, []);
+
+  // Also fetch settings for bon footer
+  const [centreSettings, setCentreSettings] = useState<Record<string, string>>({});
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await centreFetch('/api/settings');
+        if (res.ok) setCentreSettings(await res.json());
+      } catch { /* silent */ }
+    })();
+  }, []);
+
   const getBonHtml = useCallback((payment: Payment) => {
     const student = payment.student;
     const monthLabel = MONTH_NAMES[payment.month] || payment.month;
     const paymentDate = payment.paymentDate ? formatDate(payment.paymentDate) : '—';
     const netAmount = payment.amount - payment.discount;
+
+    const centreName = centreInfo?.name || 'Codex Centre';
+    const centreLogo = centreInfo?.logoUrl || '/logo.png';
+    const centrePhone = centreSettings.center_phone || centreInfo?.contactWhatsapp || '--';
+    const centreAddress = centreSettings.center_address || '--';
 
     return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -522,8 +549,8 @@ export function PaymentsView() {
 <body>
   <div class="bon">
     <div class="header">
-      <img src="/logo.png" alt="Codex Centre" class="logo">
-      <h1>Codex Centre</h1>
+      <img src="${centreLogo}" alt="${centreName}" class="logo">
+      <h1>${centreName}</h1>
     </div>
     <div class="divider"></div>
     <div class="info-section">
@@ -579,8 +606,8 @@ export function PaymentsView() {
       </tbody>
     </table>
     <div class="bon-footer">
-      <div class="phone-line">${t.payments.bonPhone}</div>
-      <div>${t.payments.bonAddress}</div>
+      <div class="phone-line">${centrePhone}</div>
+      <div>${centreAddress}</div>
     </div>
   </div>
   <div class="no-print" style="text-align:center; margin-top:16px;">

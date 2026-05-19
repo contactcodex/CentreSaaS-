@@ -1,7 +1,7 @@
 'use client';
 
 import { useAppStore, centreFetch, isExpired } from '@/store/store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Settings,
   Save,
@@ -19,6 +19,10 @@ import {
   Trash2,
   Shield,
   AlertTriangle,
+  ImagePlus,
+  X,
+  Upload,
+  Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useT } from '@/hooks/use-translation';
@@ -335,11 +339,19 @@ function SecuritySection() {
 
 export function SettingsView() {
   const t = useT();
+  const { lang } = useAppStore();
+  const isAr = lang === 'ar';
   const { isAdmin } = useAppStore();
   const [settings, setSettings] = useState<SettingsData>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Logo upload state
+   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchSettings = async () => {
     try {
@@ -360,8 +372,23 @@ export function SettingsView() {
     }
   };
 
+  // Fetch centre info (logo) on mount
+  const fetchCentreInfo = async () => {
+    try {
+      const res = await centreFetch('/api/centre-info');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logoUrl) {
+          setLogoUrl(data.logoUrl);
+          setLogoPreview(data.logoUrl);
+        }
+      }
+    } catch { /* silent */ }
+  };
+
   useEffect(() => {
     fetchSettings();
+    fetchCentreInfo();
   }, []);
 
   const handleChange = (key: string, value: string) => {
@@ -384,6 +411,68 @@ export function SettingsView() {
       toast.error(t.settings.saveError);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Logo upload handlers
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(isAr ? 'حجم الصورة كبير جداً (الحد الأقصى 2MB)' : 'Fichier trop volumineux (max 2MB)');
+      return;
+    }
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(isAr ? 'نوع الملف غير مدعوم (JPEG, PNG, GIF, WebP, SVG)' : 'Type de fichier non supporté (JPEG, PNG, GIF, WebP, SVG)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setLogoPreview(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoSave = async () => {
+    if (!logoPreview) return;
+    setUploading(true);
+    try {
+      // Convert data URL to Blob
+      const res = await fetch(logoPreview);
+      const blob = await res.blob();
+      const formData = new FormData();
+      formData.append('file', blob, 'logo.png');
+
+      const uploadRes = await centreFetch('/api/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+      const data = await uploadRes.json();
+      setLogoUrl(data.logoUrl);
+      toast.success(isAr ? '✅ تم حفظ الشعار بنجاح' : '✅ Logo enregistré avec succès');
+    } catch {
+      toast.error(isAr ? 'فشل رفع الشعار' : 'Échec du téléchargement du logo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    try {
+      // Update DB to remove logo
+      const res = await centreFetch('/api/upload-logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remove: true }),
+      });
+      if (!res.ok) throw new Error();
+      setLogoUrl(null);
+      setLogoPreview(null);
+      toast.success(isAr ? '✅ تم حذف الشعار' : '✅ Logo supprimé');
+    } catch {
+      toast.error(isAr ? 'فشل حذف الشعار' : 'Échec de la suppression du logo');
     }
   };
 
@@ -425,6 +514,97 @@ export function SettingsView() {
             </div>
           </div>
         </div>
+      </Card>
+
+      {/* Logo Upload Card */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Camera className="w-5 h-5 text-cyan-600" />
+            <CardTitle className="text-lg">
+              {isAr ? 'شعار المركز' : 'Logo du centre'}
+            </CardTitle>
+          </div>
+          <CardDescription>
+            {isAr
+              ? 'قم برفع شعار مركزك وسيظهر في التطبيق وعلى الوصولات'
+              : 'Téléchargez le logo de votre centre, il apparaîtra dans l\'application et sur les reçus'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Logo Preview */}
+            <div className="relative group">
+              <div className="w-28 h-28 rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center overflow-hidden transition-all hover:border-cyan-400">
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
+                    className="w-full h-full object-contain p-2"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <ImagePlus className="w-8 h-8" />
+                    <span className="text-[10px]">{isAr ? 'PNG, JPG, SVG' : 'PNG, JPG, SVG'}</span>
+                  </div>
+                )}
+              </div>
+              {/* Delete button */}
+              {logoUrl && (
+                <button
+                  type="button"
+                  onClick={handleLogoRemove}
+                  className="absolute -top-2 -end-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 cursor-pointer"
+                  title={isAr ? 'حذف الشعار' : 'Supprimer le logo'}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Upload Controls */}
+            <div className="flex-1 space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                className="hidden"
+                onChange={handleLogoSelect}
+              />
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="w-4 h-4" />
+                  {isAr ? 'اختر صورة' : 'Choisir une image'}
+                </Button>
+                {logoPreview && (
+                  <Button
+                    type="button"
+                    onClick={handleLogoSave}
+                    disabled={uploading}
+                    className="gap-2 bg-cyan-600 hover:bg-cyan-700 cursor-pointer"
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    {isAr ? 'حفظ الشعار' : 'Enregistrer le logo'}
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {isAr
+                  ? 'PNG, JPG, GIF, WebP, SVG — الحد الأقصى 2MB'
+                  : 'PNG, JPG, GIF, WebP, SVG — Max 2MB'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Settings Form */}

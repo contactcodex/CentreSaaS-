@@ -17,6 +17,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
     }
 
+    const centreId = session.user.centreId;
+
+    // Check if this is a remove request (JSON body)
+    const contentType = request.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      if (body.remove) {
+        await db.centre.update({
+          where: { id: centreId },
+          data: { logoUrl: null },
+        });
+        return NextResponse.json({ logoUrl: null });
+      }
+    }
+
+    // Otherwise, handle file upload
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -38,7 +54,7 @@ export async function POST(request: NextRequest) {
     const logoUrl = `data:${file.type};base64,${base64}`;
 
     await db.centre.update({
-      where: { id: session.user.centreId },
+      where: { id: centreId },
       data: { logoUrl },
     });
 
