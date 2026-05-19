@@ -17,12 +17,31 @@ export async function GET() {
       return NextResponse.json({ error: st('unauthorized') }, { status: 401 });
     }
 
-    const centre = await db.centre.findUnique({
-      where: { id: session.user.centreId },
-      select: { name: true, logoUrl: true, contactWhatsapp: true },
-    });
+    const centreId = session.user.centreId;
 
-    return NextResponse.json(centre || { name: 'Codex Centre', logoUrl: null });
+    const [centre, settings] = await Promise.all([
+      db.centre.findUnique({
+        where: { id: centreId },
+        select: { name: true, logoUrl: true, contactWhatsapp: true },
+      }),
+      db.setting.findMany({ where: { key: { in: ['center_name', 'center_phone', 'center_address'] } } }),
+    ]);
+
+    const settingsMap: Record<string, string> = {};
+    for (const s of settings) {
+      settingsMap[s.key] = s.value;
+    }
+
+    // Prefer center_name from settings, fall back to Centre.name
+    const name = settingsMap.center_name || centre?.name || '';
+
+    return NextResponse.json({
+      name,
+      logoUrl: centre?.logoUrl || null,
+      contactWhatsapp: centre?.contactWhatsapp || null,
+      center_phone: settingsMap.center_phone || null,
+      center_address: settingsMap.center_address || null,
+    });
   } catch (error) {
     console.error('Centre info error:', error);
     return NextResponse.json({ error: st('fetchError') }, { status: 500 });

@@ -16,6 +16,12 @@ export type ViewType =
 
 export type Lang = 'ar' | 'fr';
 
+export interface CentreInfoData {
+  name: string;
+  logoUrl: string | null;
+  contactWhatsapp: string | null;
+}
+
 interface AppState {
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
@@ -26,6 +32,9 @@ interface AppState {
   setUserRole: (role: string) => void;
   subscriptionExpired: boolean;
   setSubscriptionExpired: (expired: boolean) => void;
+  centreInfo: CentreInfoData | null;
+  setCentreInfo: (info: CentreInfoData | null) => void;
+  refreshCentreInfo: () => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -39,6 +48,23 @@ export const useAppStore = create<AppState>((set) => ({
   setUserRole: (role) => set({ userRole: role }),
   subscriptionExpired: false,
   setSubscriptionExpired: (expired: boolean) => set({ subscriptionExpired: expired }),
+  centreInfo: null,
+  setCentreInfo: (info) => set({ centreInfo: info }),
+  refreshCentreInfo: async () => {
+    try {
+      const res = await centreFetch('/api/centre-info');
+      if (res.ok) {
+        const data = await res.json();
+        set({
+          centreInfo: {
+            name: data.name || '',
+            logoUrl: data.logoUrl || null,
+            contactWhatsapp: data.contactWhatsapp || null,
+          },
+        });
+      }
+    } catch { /* silent */ }
+  },
 }));
 
 // ── Smart fetch wrapper that detects subscription expiry ────────────────

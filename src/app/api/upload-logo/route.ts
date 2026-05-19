@@ -28,7 +28,14 @@ export async function POST(request: NextRequest) {
           where: { id: centreId },
           data: { logoUrl: null },
         });
-        return NextResponse.json({ logoUrl: null });
+        // Return current centre info including name from settings
+        const centerNameSetting = await db.setting.findUnique({ where: { key: 'center_name' } });
+        const centre = await db.centre.findUnique({ where: { id: centreId }, select: { name: true, contactWhatsapp: true } });
+        return NextResponse.json({
+          logoUrl: null,
+          name: centerNameSetting?.value || centre?.name || '',
+          contactWhatsapp: centre?.contactWhatsapp || null,
+        });
       }
     }
 
@@ -58,7 +65,15 @@ export async function POST(request: NextRequest) {
       data: { logoUrl },
     });
 
-    return NextResponse.json({ logoUrl });
+    // Return current centre info including name from settings
+    const centerNameSetting = await db.setting.findUnique({ where: { key: 'center_name' } });
+    const centre = await db.centre.findUnique({ where: { id: centreId }, select: { name: true, contactWhatsapp: true } });
+
+    return NextResponse.json({
+      logoUrl,
+      name: centerNameSetting?.value || centre?.name || '',
+      contactWhatsapp: centre?.contactWhatsapp || null,
+    });
   } catch (error) {
     console.error('Logo upload error:', error);
     return NextResponse.json({ error: st('saveError') }, { status: 500 });

@@ -339,7 +339,7 @@ function SecuritySection() {
 
 export function SettingsView() {
   const t = useT();
-  const { lang } = useAppStore();
+  const { lang, refreshCentreInfo } = useAppStore();
   const isAr = lang === 'ar';
   const { isAdmin } = useAppStore();
   const [settings, setSettings] = useState<SettingsData>(DEFAULT_SETTINGS);
@@ -407,6 +407,8 @@ export function SettingsView() {
       if (!res.ok) throw new Error('Failed to save');
       toast.success(t.settings.saveSuccess);
       setHasChanges(false);
+      // Refresh centre info in global store so sidebar/receipts update immediately
+      await refreshCentreInfo();
     } catch {
       toast.error(t.settings.saveError);
     } finally {
@@ -452,6 +454,8 @@ export function SettingsView() {
       const data = await uploadRes.json();
       setLogoUrl(data.logoUrl);
       toast.success(isAr ? '✅ تم حفظ الشعار بنجاح' : '✅ Logo enregistré avec succès');
+      // Refresh centre info in global store so sidebar/receipts update immediately
+      await refreshCentreInfo();
     } catch {
       toast.error(isAr ? 'فشل رفع الشعار' : 'Échec du téléchargement du logo');
     } finally {
@@ -471,6 +475,8 @@ export function SettingsView() {
       setLogoUrl(null);
       setLogoPreview(null);
       toast.success(isAr ? '✅ تم حذف الشعار' : '✅ Logo supprimé');
+      // Refresh centre info in global store so sidebar/receipts update immediately
+      await refreshCentreInfo();
     } catch {
       toast.error(isAr ? 'فشل حذف الشعار' : 'Échec de la suppression du logo');
     }

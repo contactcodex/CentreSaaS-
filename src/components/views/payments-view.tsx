@@ -1,6 +1,6 @@
 'use client';
 
-import { useAppStore, centreFetch, isExpired } from '@/store/store';
+import { useAppStore, centreFetch, isExpired, type CentreInfoData } from '@/store/store';
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -387,15 +387,10 @@ export function PaymentsView() {
     }
   }, [t]);
 
-  // Centre info for bon (logo + name + phone + address)
-  const [centreInfo, setCentreInfo] = useState<{ name: string; logoUrl: string | null; contactWhatsapp: string | null } | null>(null);
+  // Centre info for bon (logo + name + phone + address) — use global store for live updates
+  const { centreInfo: storeCentreInfo, refreshCentreInfo } = useAppStore();
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await centreFetch('/api/centre-info');
-        if (res.ok) setCentreInfo(await res.json());
-      } catch { /* silent */ }
-    })();
+    if (!storeCentreInfo) refreshCentreInfo();
   }, []);
 
   // Also fetch settings for bon footer
@@ -415,9 +410,9 @@ export function PaymentsView() {
     const paymentDate = payment.paymentDate ? formatDate(payment.paymentDate) : '—';
     const netAmount = payment.amount - payment.discount;
 
-    const centreName = centreInfo?.name || 'Codex Centre';
-    const centreLogo = centreInfo?.logoUrl || '/logo.png';
-    const centrePhone = centreSettings.center_phone || centreInfo?.contactWhatsapp || '--';
+    const centreName = storeCentreInfo?.name || 'Codex Centre';
+    const centreLogo = storeCentreInfo?.logoUrl || '/logo.png';
+    const centrePhone = centreSettings.center_phone || storeCentreInfo?.contactWhatsapp || '--';
     const centreAddress = centreSettings.center_address || '--';
 
     return `<!DOCTYPE html>
@@ -615,7 +610,7 @@ export function PaymentsView() {
   </div>
 </body>
 </html>`;
-  }, [t, MONTH_NAMES]);
+  }, [t, storeCentreInfo, centreSettings]);
 
   // Generate bon in new window for printing
   const generateBon = useCallback((payment: Payment) => {

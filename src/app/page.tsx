@@ -319,13 +319,17 @@ function SubscriptionExpiredPage({ onLogout }: { onLogout: () => void }) {
 }
 
 export default function Home() {
-  const { currentView, setCurrentView, lang, userRole, setUserRole: setStoreUserRole, subscriptionExpired, setSubscriptionExpired } = useAppStore();
+  const { currentView, setCurrentView, lang, userRole, setUserRole: setStoreUserRole, subscriptionExpired, setSubscriptionExpired, centreInfo: storeCentreInfo, refreshCentreInfo } = useAppStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userName, setUserName] = useState('');
   const [accessPages, setAccessPages] = useState<string>('');
   const [centre, setCentre] = useState<CentreInfo | null>(null);
   const t = useT();
+
+  // Merge store centre info with auth centre info for live logo/name updates
+  const displayCentreName = storeCentreInfo?.name || centre?.name || '';
+  const displayLogoUrl = storeCentreInfo?.logoUrl ?? centre?.logoUrl ?? null;
 
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
   const isAdmin = userRole === 'ADMIN';
@@ -364,14 +368,7 @@ export default function Home() {
   // Load centre info for sidebar logo
   useEffect(() => {
     if (isAuthenticated && !isSuperAdmin) {
-      centreFetch('/api/centre-info')
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data) {
-            setCentre(prev => prev ? { ...prev, ...data } : null as unknown as CentreInfo);
-          }
-        })
-        .catch(() => {});
+      refreshCentreInfo();
     }
   }, [isAuthenticated, isSuperAdmin]);
 
@@ -445,8 +442,8 @@ export default function Home() {
           currentView={currentView}
           onNavigate={setCurrentView}
           navKeys={filteredNavKeys}
-          centreName={centre?.name}
-          logoUrl={centre?.logoUrl}
+          centreName={displayCentreName}
+          logoUrl={displayLogoUrl}
         />
       </aside>
 
@@ -470,20 +467,20 @@ export default function Home() {
                 onNavigate={setCurrentView}
                 onMobileClose={() => setMobileOpen(false)}
                 navKeys={filteredNavKeys}
-                centreName={centre?.name}
-                logoUrl={centre?.logoUrl}
+                centreName={displayCentreName}
+                logoUrl={displayLogoUrl}
               />
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-              {centre?.logoUrl ? (
-                <img src={centre.logoUrl} alt="" className="h-6 w-6 object-contain" />
+              {displayLogoUrl ? (
+                <img src={displayLogoUrl} alt="" className="h-6 w-6 object-contain" />
               ) : (
                 <img src="/logo.png" alt="C" className="h-6 w-6 object-contain" />
               )}
             </div>
-            <h1 className="font-bold text-primary">{centre?.name || 'Codex Centre'}</h1>
+            <h1 className="font-bold text-primary">{displayCentreName || 'Codex Centre'}</h1>
           </div>
         </header>
 
