@@ -541,17 +541,19 @@ export function SettingsView() {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             {/* Logo Preview */}
             <div className="relative group">
-              <div className="w-28 h-28 rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center overflow-hidden transition-all hover:border-cyan-400">
+              <div className="w-36 h-36 flex items-center justify-center overflow-hidden">
                 {logoPreview ? (
                   <img
                     src={logoPreview}
                     alt="Logo"
-                    className="w-full h-full object-contain p-2"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <ImagePlus className="w-8 h-8" />
-                    <span className="text-[10px]">{isAr ? 'PNG, JPG, SVG' : 'PNG, JPG, SVG'}</span>
+                  <div className="w-full h-full rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex items-center justify-center transition-all hover:border-cyan-400">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <ImagePlus className="w-8 h-8" />
+                      <span className="text-[10px]">{isAr ? 'PNG, JPG, SVG' : 'PNG, JPG, SVG'}</span>
+                    </div>
                   </div>
                 )}
               </div>
